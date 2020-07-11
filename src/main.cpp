@@ -1,4 +1,5 @@
 ﻿
+#include <string>
 #include <iostream>
 
 
@@ -9,12 +10,43 @@ using namespace std;
 
 
 
+
+const string command_create_large = "create";
+const string command_create_small = "cr";
+const string command_load_large   = "load";
+const string command_load_small   = "ld";
+const string command_quit_large   = "quit";
+const string command_quit_small   = "qt";
+	
+
+
+
+void printInitialMessage ();
+bool isCommandToQuit ();
+void printAskWhatToDo ();
+void executeCommand (string );
+void handleIncorrectCommand ();
+
+
+
+
 int main (int argc, char * argv [], char * envp [])
 {
 	// Что вы хотите сделать? Создать новое дерево или загрузить имеющееся? Или выйти?
+	printInitialMessage();
 
-	/* 1. Создать новое:
-	Задать название и начать редактирование
+	string whatToDo;
+	while ( !isCommandToQuit() )
+	{
+		printAskWhatToDo();
+		cin >> whatToDo;
+		try { executeCommand(whatToDo); }
+		catch (exception) { handleIncorrectCommand(); }
+	}
+
+	return 0;
+
+	/*Задать название и начать редактирование
 	В любой момент обрабатывать команды:
 		- создать вход (с параметрами или без)
 		- удалить вход (переназначить потомков, удалить потомков, создать новый вход для потомков)
@@ -38,7 +70,34 @@ int main (int argc, char * argv [], char * envp [])
 		- рассчитать и показать результаты
 	*/
 
-	// 2. Загрузить или выйти
-
 	return 0;
+}
+
+
+
+
+void printInitialMessage ()
+{
+#pragma todo
+}
+
+bool isCommandToQuit ()
+{
+#pragma todo
+	return false;
+}
+
+void printAskWhatToDo ()
+{
+#pragma todo
+}
+
+void executeCommand (string)
+{
+#pragma todo
+}
+
+void handleIncorrectCommand ()
+{
+#pragma todo
 }
