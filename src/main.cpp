@@ -68,6 +68,9 @@ namespace commands
 
 	const string set_load_params_large_str = "set_load_params";
 	const string set_load_params_small_str = "sl";
+
+	const string move_large_str = "move";
+	const string move_small_str = "mv";
 };
 	
 
@@ -227,6 +230,12 @@ void executeCommand (string command)
 	}
 
 	if (command == set_load_params_large_str || command == set_load_params_small_str)
+	{
+
+		return;
+	}
+
+	if (command == move_large_str || command == move_small_str)
 	{
 
 		return;
