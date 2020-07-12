@@ -15,6 +15,10 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
+	// Внятное представление команд с полиморфной функцией execute и удобным добавлением новых команд
+	// Переменное количество аргументов команд
+	// API в отдельный файл
+	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
 	printInitialMessage();
 
 	string whatToDo;

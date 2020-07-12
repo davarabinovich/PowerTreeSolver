@@ -1,0 +1,28 @@
+
+1. Input
+	- name (string)
+	- type of CV: voltage, current
+	- for CV-voltage: voltage, max. current
+	  for CV-current: current, max. voltage
+	  
+2. Converter
+	- name (string)
+	- parent (name of input or other converter)
+	- type of CV: voltage, current
+	- type: pulse, linear
+	- efficiency, self current consumption
+	  for CV-voltage: voltage, max. current, min. current
+	  for CV-current: current, max. voltage, min. voltage
+	  
+3. Load
+	- name (string)
+	- parent (name of input or converter)
+	- type: resistive, current, power
+	- for resistive: resistance, max. power dissipation, max. current, max. voltage
+	  for current:   current, max. voltage, max. power dissipation
+	  for power:     nom. power, nom. voltage, max. current, max. power, max. voltage
+	
+	
+	
+	
+CV - Controlled variable (voltage or current)

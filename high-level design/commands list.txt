@@ -1,0 +1,128 @@
+																									
+SYSTEM:                                                                                             
+- Quit                                                                                              |
+	Execute AcB.                                                                                    |
+																									|
+																									|
+GENERAL WORK WITH TREES:                                                                            |
+- Save                                                                                              |
+	May be a path. If no - by defaul by relative path.                                              |
+	If the name isn't specified, ask leave a default name or enter the user-defined.                |
+																									|
+- Load                                                                                              |
+	Request a name with a path if they're not specified.                                            |
+	Execute AcB.                                                                                    |
+																									|
+- Create                                                                                            |
+	If the name isn't specified, ask leave a default name or enter the user-defined.                |
+	Execute AbC.                                                                                    |
+	Add one input without defined parameters with some name if the name isn't specified.            |
+																									|
+- Rename                                                                                            |
+	Request a name if it's not specified.                                                           |
+																									|
+- Solve                                                                                             |
+	Ask whether to show results.                                                                    |
+																									|
+- Show results                                                                                      |
+	If tree isn't solved since a last modification, say about it and propose to solve.              |
+																									|
+- Show structure                                                                                    |
+																									|
+																									|
+EDITING TREE:                                                                                       |
+- Create input                                                                                      |
+	If the name isn't specified, ask leave a default name or enter the user-defined.                |
+	CV may be specified or not. By default - voltage.                                               |
+	Parameters may be specified or not. Parameters - CV, if CV is voltage - max. current, if CV is  |
+		current - max. voltage.                                                                     |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value.                                                                              |
+	If a parameter without key is specified - interprete it as CV.                                  |
+																									|
+- Modify input                                                                                      |
+	Request a name if it's not specified.                                                           |
+	Name, type of CV or any parameter may be changed.                                               |
+	Request a new value of changing field if it's not specified.                                    |
+	Request some field to changing if no one is specified.                                          |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value.                                                                              |
+	If a parameter without key is specified - interprete it as CV.                                  |
+																									|
+- Delete input                                                                                      |
+	Request a name if it's not specified.                                                           |
+	Request ToD if it's not specified. By defaul - "delete descendances".                           |
+	Requies a new parent, if ToD is "reassigne descendances" and a new parent isn't specified.      |
+																									|
+- Create converter                                                                                  |
+	If the name isn't specified, ask leave a default name or enter the user-defined.                |
+	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  |
+	CV may be specified or not. By default - voltage.                                               |
+	Type of converter may be specified or not. By default - pulse. Avialable types - pulse or       |
+		linear.                                                                                     |
+	Parameters may be specified or not. Parameters - CV, max. and min. cur/volt (dep. on CV type),  |
+		efficiency, self-consumption.                                                               |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value or nonexistent parent.                                                        |
+	If a parameter without key is specified - interprete it as CV.                                  |
+																									|
+- Modify converter                                                                                  |
+	Request a name if it's not specified.                                                           |
+	Name, type of CV, type of converter or any parameter may be changed.                            |
+	Request a new value of changing field if it's not specified.                                    |
+	Request some field to changing if no one is specified.                                          |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value.                                                                              |
+	If a parameter without key is specified - interprete it as CV.                                  |
+																									|
+- Delete converter                                                                                  |
+	Request a name if it's not specified.                                                           |
+	Request ToD if it's not specified. By defaul - "delete descendances".                           |
+	Requies a new parent, if ToD is "reassigne descendances" and a new parent isn't specified.      |
+																									|
+- Create load                                                                                       |
+	If the name isn't specified, ask leave a default name or enter the user-defined.                |
+	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  |
+	Type of load may be specified or not. By default - resistive. Avialable types - resistive,      |
+		current or power.                                                                           |
+	Parameters may be specified or not. Parameters - resistance, max. power, max. current for res., |
+		nom. current, max. voltage for cur., nom. voltage, power, max. power, max. current for pow. |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value or nonexistent parent.                                                        |
+	If a parameter without key is specified - interprete it as CV.                                  |
+																									|
+- Modify load                                                                                       |
+	Request a name if it's not specified.                                                           |
+	Name, type of load or any parameter may be changed.                                             |
+	Request a new value of changing field if it's not specified.                                    |
+	Request some field to changing if no one is specified.                                          |
+	Discard this command and show attenting message if the user has entered invalid field or        |
+		field's value.                                                                              |
+	If a parameter without key is specified - interprete it as resistance for res., current for 	|
+		cur., power for pow.                                                                        |
+																									|
+- Delete load                                                                                       |
+	Request a name if it's not specified.                                                           |
+																									|
+- Move item                                                                                         |
+	Request a name if it's not specified.                                                           |
+	Request a name of new parent if it's not specified.                                             |
+	Discard this command and show attenting message if the an invalid new parent's name has         |
+		entered.                                                                                    |
+																									|
+- Disconnect item                                                                                   |
+	Request a name if it's not specified.                                                           |
+																									|
+- Rename item                                                                                       |
+	Request a name if it's not specified.                                                           |
+	Request a new name if it's not specified.                                                       |
+
+
+
+
+CV - Controlled variable (voltage or current)
+ToD - type of deleting ("delete descendances" or "reassigne descendances")
+
+Actions by closing (AbC):
+	Ask save or not the current tree (if it's not saved only) if it's not specified.
+	If yes - later according to "Save" command.
