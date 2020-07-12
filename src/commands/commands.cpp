@@ -19,9 +19,11 @@ using namespace loads_types_keys;
 
 
 #pragma todo move to other file
-enum class CvType {VOLTAGE, CURRENT};
+
 void CreateTree (string name);
 void CreateInput (string name, CvType );
+
+void SetInputValue (string key, double);
 
 
 
@@ -35,9 +37,12 @@ using TokensList = deque<string>;
 class Command
 {
 	public:
-		virtual void execute (TokensList & args) const { throw exception("The \"excecute\" method of parent class Command was used."); }
+
+		virtual void execute (TokensList & tokens) const 
+		{ throw exception("The \"excecute\" method of parent class Command was used."); }
 
 	protected:
+		
 		bool isName (const string & str) const
 		{
 #pragma todo in my library
@@ -51,24 +56,43 @@ class Command
 class CommandQuit : public Command 
 {
 	public:
-		virtual void execute (TokensList & args) const override { return; }
+		virtual void execute (TokensList & tokens) const override { return; }
 };
 
 class CommandCreate : public Command
 {
 	public:
-		virtual void execute (TokensList & args) const override
+		virtual void execute (TokensList & tokens) const override
 		{
-			string name = default_tree_name;
-			string firstInputName = default_input_name;
-			CvType firstInputCvType;
-
-			if ( isName(args.front()) )
-			{
-				name = args.front();
-				args.pop_front();
-			}
+			Arguments args = parseArguments(tokens);
 			
+			try { validateArguments(args); }
+			catch (exception& ex) { throw exception(ex.what()); }
+
+
+			
+
+		}
+
+	protected:
+
+		struct Arguments
+		{
+			string name = "";
+			string inputName = "";
+			CvType inputCvType = CvType::VOLTAGE;
+			double inputCvValue = NAN;
+		};
+
+	private:
+		Arguments && parseArguments (const TokensList & tokens) const
+		{
+			return Arguments();
+		}
+
+		void validateArguments(const Arguments & args) const
+		{
+
 		}
 };
 

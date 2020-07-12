@@ -12,9 +12,12 @@ using command_mnemonic = const string;
 
 
 
+enum class CvType { VOLTAGE, CURRENT };
 
 const string default_tree_name = "Tree1";
 const string default_input_name = "Input";
+
+const CvType default_input_cv_type = CvType::VOLTAGE;
 
 
 

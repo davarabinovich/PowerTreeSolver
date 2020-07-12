@@ -17,6 +17,8 @@ GENERAL WORK WITH TREES:                                                        
 	If the name isn't specified, ask leave a default name or enter the user-defined.                |
 	Execute AbC.                                                                                    |
 	Add one input without defined parameters with some name if the name isn't specified.            |
+	The CV and its value for first input may be specified. By default - voltage.                    |
+	Possible arguments: name, name of first input, type CV of first input, value CV of first input  |
 																									|
 - Rename                                                                                            |
 	Request a name if it's not specified.                                                           |
