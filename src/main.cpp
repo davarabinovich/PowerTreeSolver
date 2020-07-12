@@ -15,19 +15,20 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
-	// Внятное представление команд с полиморфной функцией execute и удобным добавлением новых команд
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
 	printInitialMessage();
 
-	string whatToDo;
-	while ( !isCommandToQuit(whatToDo) )
+	string newCommand_str;
+	do
 	{
-		cin >> whatToDo;
-		try { executeCommand(whatToDo); }
-		catch (exception & err) { handleCommandError(err.what()); }
-	}
+		getline(cin, newCommand_str);
+
+		try { executeCommand(newCommand_str); }
+		catch (exception& err) { handleCommandError(err.what()); }
+	} 
+	while ( !isCommandToQuit(newCommand_str) );
 
 	return 0;
 }
