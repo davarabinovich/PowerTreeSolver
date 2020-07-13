@@ -7,6 +7,12 @@
 
 
 
+const string command_quit_mnemonic	 = "qt";
+const string command_quit_large_form = "quit";
+
+
+
+
 void printInitialMessage ();
 void handleCommandError (string errorMessage);
 
@@ -20,15 +26,15 @@ int main (int argc, char * argv [], char * envp [])
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
 	printInitialMessage();
 
-	string newCommand_str;
-	do
+	while (true)
 	{
+		string newCommand_str;
 		getline(cin, newCommand_str);
+		if (newCommand_str == command_quit_mnemonic || newCommand_str == command_quit_large_form) break;
 
 		try { executeCommand(newCommand_str); }
 		catch (exception& err) { handleCommandError(err.what()); }
 	} 
-	while ( !isCommandToQuit(newCommand_str) );
 
 	return 0;
 }
