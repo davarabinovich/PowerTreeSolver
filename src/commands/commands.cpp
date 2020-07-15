@@ -1,12 +1,17 @@
 ﻿
 #include <sstream>
 #include <cctype>
+#include <cmath>
+
 #include <vector>
 #include <deque>
 
 
 #include "commands.h"
 
+
+#include "config.h"
+	
 
 
 
@@ -40,6 +45,8 @@ class Command
 
 		virtual void execute (TokensList & tokens) const 
 		{ throw exception("The \"excecute\" method of parent class Command was used."); }
+
+
 
 	protected:
 		
@@ -95,28 +102,25 @@ class CommandCreate : public Command
 {
 	public:
 
-		virtual void execute (TokensList & tokens) const override
+		virtual void execute (TokensList & tokens) const 
 		{
-			Arguments args = parseArguments(tokens);
-			
-			try { validateArguments(args); }
+			Arguments args;			
+			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
 
 			createTreeByArgs(args);
-			createInputByArgs(args);	
+			createInputByArgs(args);
+
+			reportExcecution(args);
 		}
 
-
+	
 
 
 	private:
-
-		const string suggestion_enter_name_message = "Do you want to set a name for the new tree?";
-
-
 
 		struct Arguments
 		{
@@ -169,15 +173,10 @@ class CommandCreate : public Command
 					throw exception();
 		}
 
-		void validateArguments (const Arguments & args) const
-		{
-
-		}
-
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
-			cout << suggestion_enter_name_message << endl;
+			cout << "Do you want to set a name for the new tree ?" << endl;
 			string answer; cin >> answer;
 
 			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
@@ -203,24 +202,76 @@ class CommandCreate : public Command
 			else
 				CreateInput(args. name, args.inputCvType, args.inputCvValue);
 		}
+
+		void reportExcecution (const Arguments& args) const
+		{
+			string name = args.name;
+			if (name != "")
+				name = "\"" + name + "\" ";
+			
+			string cvType = "voltage";
+			if (args.inputCvType == CvType::CURRENT)
+				cvType = "current"; 
+
+			bool isCvValuePresent = false;
+			string cvUnit = "V";
+			if (!isnan(args.inputCvValue))
+			{
+				isCvValuePresent = true;
+				if (args.inputCvType == CvType::CURRENT)
+					cvUnit = "A";
+			}
+
+
+			cout << "A new three " << name << "with a " << cvType << " input";
+			if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
+			cout << " is created" << endl << endl;
+		}
 };
 
 
 
-
-const map<string, Command> commandDictionary = { {"cr", CommandCreate()} };
-
-
+static const CommandCreate cr;
+static const map<string, const Command*> commandDictionary = { {"cr", &cr} };
 
 
 
 
 
 
-
-TokensList tokenize(string& tokens_str)
+#pragma todo carry over to library
+void scrollInteratorToNewWord_unsafe(string::const_iterator& char_it)
 {
-	return TokensList();
+	while (*char_it == ' ') char_it++;
+}
+
+
+TokensList tokenize (const string & command_string)
+{
+	if (command_string.size() == 0)    return TokensList();
+
+	TokensList tokens;
+	auto wordBegin_it = command_string.cbegin();
+	scrollInteratorToNewWord_unsafe(wordBegin_it);
+	auto wordEnd_it = wordBegin_it;
+	
+	while (wordBegin_it != command_string.cend())
+	{
+		while (true)
+		{
+			if (wordEnd_it == command_string.cend())
+				break;
+			if (*wordEnd_it == ' ')
+				break;
+			wordEnd_it++;
+		}
+
+		tokens.push_back(string(wordBegin_it, wordEnd_it));
+		scrollInteratorToNewWord_unsafe(wordBegin_it);
+		wordBegin_it = wordEnd_it;
+	}
+
+	return tokens;
 }
 
 
@@ -228,16 +279,16 @@ TokensList tokenize(string& tokens_str)
 
 void executeCommand (string enteredCommand)
 {
-#pragma todo Whether replace deque with a vector?
+#pragma todo whether replace deque with a vector?
 	auto tokens = tokenize(enteredCommand);
 	string commandMnemonic = tokens.front();
 	tokens.pop_front();
 	
-	Command currentCommand;
+	const Command * currentCommand;
 	try { currentCommand = commandDictionary.at(commandMnemonic); }
-	catch (out_of_range()) { throw exception("Unrecognized command"); }
+	catch (out_of_range) { throw exception("Unrecognized command"); }
 
-	currentCommand.execute(tokens);
+	currentCommand->execute(tokens);
 }
 
 

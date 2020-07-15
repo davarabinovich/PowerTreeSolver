@@ -24,6 +24,10 @@ int main (int argc, char * argv [], char * envp [])
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
+	cout.setf(ios::fixed);
+
+
+
 	printInitialMessage();
 
 	while (true)
