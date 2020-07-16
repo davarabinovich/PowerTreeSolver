@@ -417,6 +417,8 @@ public:
 
 
 
+
+
 #pragma todo
 void test_Commands()
 {
@@ -426,8 +428,8 @@ void test_Commands()
 
 
 
-static CommandCreate cr;
-static map< string, shared_ptr<Command> > commandDictionary = { {"cr", make_shared<CommandCreate>(cr)} };
+static const CommandCreate cr;
+static const map< string, const shared_ptr<Command> > commandDictionary = { {"cr", make_shared<CommandCreate>(cr)} };
 
 
 

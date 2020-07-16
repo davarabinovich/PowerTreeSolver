@@ -22,7 +22,7 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
-	//test_Commands();
+	test_Commands();
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
