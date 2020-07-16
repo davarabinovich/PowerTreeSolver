@@ -3,6 +3,7 @@
 #include <cctype>
 #include <cmath>
 
+#include <string>
 #include <vector>
 #include <deque>
 
@@ -177,10 +178,10 @@ class CommandCreate : public Command
 		{
 			string name = "";
 			cout << "Do you want to set a name for the new tree ?" << endl;
-			string answer; cin >> answer;
+			string answer; getline(cin, answer);
 
 			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				cin >> name;
+				getline(cin, name);
 			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
 				throw exception("Invalid answer");
 
@@ -267,7 +268,8 @@ TokensList tokenize (const string & command_string)
 		}
 
 		tokens.push_back(string(wordBegin_it, wordEnd_it));
-		scrollInteratorToNewWord_unsafe(wordBegin_it);
+		if (wordEnd_it != command_string.cend())
+			scrollInteratorToNewWord_unsafe(wordEnd_it);
 		wordBegin_it = wordEnd_it;
 	}
 
