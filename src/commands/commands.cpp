@@ -275,43 +275,6 @@ class CommandCreate : public Command
 
 				return args;
 			}
-
-
-
-
-//			string handeledArg = tokens.front(); tokens.pop_front();
-//			
-//			string name = "";
-//			if (!isCvType(handeledArg))
-//			{
-//				args.name = handeledArg;
-//				if (tokens.empty()) return args;
-//
-//				handeledArg = tokens.front(); tokens.pop_front();
-//				string inputName = "";
-//				if (!isCvType(handeledArg))
-//				{
-//					args.inputName = handeledArg;
-//					if (tokens.empty()) return args;
-//				}
-//			}
-//
-//			args.inputCvType = parseCvType(handeledArg);
-//			if (tokens.empty()) return args;
-//			
-//			handeledArg = tokens.front(); tokens.pop_front();
-//			if (tokens.empty())
-//				if (isFloatNumber(handeledArg))
-//				{
-//					args.inputCvValue = atof(handeledArg.c_str());
-//					return args;
-//				}
-//				else
-//#pragma todo write exceptions message
-//					throw exception();
-//			else
-//#pragma todo write exceptions message
-//				throw exception();
 		}	
 
 
@@ -418,6 +381,12 @@ public:
 
 
 
+class CommandRename : public Command
+{
+
+};
+
+
 
 #pragma todo
 void test_Commands()
@@ -429,7 +398,10 @@ void test_Commands()
 
 
 static const CommandCreate cr;
-static const map< string, const shared_ptr<Command> > commandDictionary = { {"cr", make_shared<CommandCreate>(cr)} };
+static const CommandRename rn;
+
+static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr) },
+																		     { "rn", make_shared<CommandRename>(rn) }  };
 
 
 
