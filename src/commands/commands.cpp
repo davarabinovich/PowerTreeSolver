@@ -7,9 +7,11 @@
 #include <vector>
 #include <deque>
 
+#pragma todo
+#include <cassert>
+
 
 #include "commands.h"
-
 
 #include "config.h"
 	
@@ -36,6 +38,9 @@ void CreateInput (string name, CvType cvType, double cvValue) {}
 
 
 using TokensList = deque<string>;
+
+
+
 
 
 
@@ -67,13 +72,13 @@ class Command
 			for ( ; letter_it != str.cend(); letter_it++)
 			{
 				if (*letter_it == '.' || *letter_it == ',') break;
-				if (isdigit(*letter_it))
+				if (!isdigit(*letter_it))
 					return false;
 			}
 
 			for ( ; letter_it != str.cend(); letter_it++)
 			{
-				if (isdigit(*letter_it))
+				if (!isdigit(*letter_it))
 					return false;
 			}
 
@@ -129,6 +134,28 @@ class CommandCreate : public Command
 			string inputName = "";
 			CvType inputCvType = CvType::VOLTAGE;
 			double inputCvValue = NAN;
+
+			bool operator == (const Arguments & partner)
+			{
+				if (name         != partner.name)         return false;
+				if (inputName    != partner.inputName)    return false;
+				if (inputCvType  != partner.inputCvType)  return false;
+				
+				if (isnan(inputCvValue))
+					if (isnan(partner.inputCvValue))
+						return true;
+					else
+						return false;
+				if (inputCvValue != partner.inputCvValue) return false;
+				
+				return true;
+			}
+
+			bool operator != (const Arguments & partner)
+			{
+				bool result = !(*this == partner);
+				return result;
+			}
 		}; 
 		
 		
@@ -136,44 +163,202 @@ class CommandCreate : public Command
 		Arguments parseArguments (TokensList & tokens) const
 		{
 			Arguments args;
+
 			if (tokens.empty()) return args;
 
 			string handeledArg = tokens.front(); tokens.pop_front();
-			
-			string name = "";
 			if (!isCvType(handeledArg))
-			{
-				args.name = handeledArg;
-				if (tokens.empty()) return args;
-
-				handeledArg = tokens.front(); tokens.pop_front();
-				string inputName = "";
-				if (!isCvType(handeledArg))
+				if (!isFloatNumber(handeledArg))
+					args.name = handeledArg;
+				else
 				{
-					args.inputName = handeledArg;
-					if (tokens.empty()) return args;
+					args.inputCvValue = atof(handeledArg.c_str());
+					if (tokens.size() != 0)
+						#pragma todo write exceptions message
+						throw exception();
+					return args;
 				}
-
-				handeledArg = tokens.front(); tokens.pop_front();
-			}
+			else
+			{
 				args.inputCvType = parseCvType(handeledArg);
-				if (tokens.empty()) return args;
 
-				handeledArg = tokens.front(); tokens.pop_front();
-				if (tokens.empty())
-					if (isFloatNumber(handeledArg))
+				if (tokens.size() != 0)
+				{
+					handeledArg = tokens.front(); tokens.pop_front();
+					if (!isFloatNumber(handeledArg))
+						#pragma todo write exceptions message
+						throw exception();
+					else
 					{
 						args.inputCvValue = atof(handeledArg.c_str());
-						return args;
+						if (tokens.size() != 0)
+							#pragma todo write exceptions message
+							throw exception();
 					}
-					else
+				}
+
+				return args;
+			}
+			
+
+			if (tokens.size() == 0)    return args;
+		
+			handeledArg = tokens.front(); tokens.pop_front();
+			if (!isCvType(handeledArg))
+				if (!isFloatNumber(handeledArg))
+					args.inputName = handeledArg;
+				else
+				{
+					args.inputCvValue = atof(handeledArg.c_str());
+					if (tokens.size() != 0)
 #pragma todo write exceptions message
 						throw exception();
-				else
+					return args;
+				}
+			else
+			{
+				args.inputCvType = parseCvType(handeledArg);
+
+				if (tokens.size() != 0)
+				{
+					handeledArg = tokens.front(); tokens.pop_front();
+					if (!isFloatNumber(handeledArg))
+#pragma todo write exceptions message
+						throw exception();
+					else
+					{
+						args.inputCvValue = atof(handeledArg.c_str());
+						if (tokens.size() != 0)
+#pragma todo write exceptions message
+							throw exception();
+					}
+				}
+
+				return args;
+			}
+
+
+
+			if (tokens.size() == 0)    return args;
+				
+			handeledArg = tokens.front(); tokens.pop_front();
+			if (!isCvType(handeledArg))
+				if (!isFloatNumber(handeledArg))
 #pragma todo write exceptions message
 					throw exception();
+				else
+				{
+					args.inputCvValue = atof(handeledArg.c_str());
+					if (tokens.size() != 0)
+#pragma todo write exceptions message
+						throw exception();
+					return args;
+				}
+			else
+			{
+				args.inputCvType = parseCvType(handeledArg);
+
+				if (tokens.size() != 0)
+				{
+					handeledArg = tokens.front(); tokens.pop_front();
+					if (!isFloatNumber(handeledArg))
+#pragma todo write exceptions message
+						throw exception();
+					else
+					{
+						args.inputCvValue = atof(handeledArg.c_str());
+						if (tokens.size() != 0)
+#pragma todo write exceptions message
+							throw exception();
+					}
+				}
+
+				return args;
+			}
+
+
+
+
+//			string handeledArg = tokens.front(); tokens.pop_front();
+//			
+//			string name = "";
+//			if (!isCvType(handeledArg))
+//			{
+//				args.name = handeledArg;
+//				if (tokens.empty()) return args;
+//
+//				handeledArg = tokens.front(); tokens.pop_front();
+//				string inputName = "";
+//				if (!isCvType(handeledArg))
+//				{
+//					args.inputName = handeledArg;
+//					if (tokens.empty()) return args;
+//				}
+//			}
+//
+//			args.inputCvType = parseCvType(handeledArg);
+//			if (tokens.empty()) return args;
+//			
+//			handeledArg = tokens.front(); tokens.pop_front();
+//			if (tokens.empty())
+//				if (isFloatNumber(handeledArg))
+//				{
+//					args.inputCvValue = atof(handeledArg.c_str());
+//					return args;
+//				}
+//				else
+//#pragma todo write exceptions message
+//					throw exception();
+//			else
+//#pragma todo write exceptions message
+//				throw exception();
+		}	
+
+
+
+public:
+		void test_parseArguments ()
+		{
+
+			TokensList emptyTokens;
+
+			Arguments emptyArgs;
+			
+			auto emptyOut = parseArguments(emptyTokens);
+			assert(emptyArgs == emptyOut);
+
+
+
+			TokensList onlyNameTokens = { "name" };
+
+			Arguments onlyNameArgs;
+			onlyNameArgs.name = "name";
+
+			auto onlyNameOut = parseArguments(onlyNameTokens);
+			assert(onlyNameArgs == onlyNameOut);
+
+
+
+			TokensList onlyTypeTokens = { "cur" };
+
+			Arguments onlyTypeArgs;
+			onlyTypeArgs.inputCvType = CvType::CURRENT;
+
+			auto onlyTypeOut = parseArguments(onlyTypeTokens);
+			assert(onlyTypeArgs == onlyTypeOut);
+
+
+
+			TokensList onlyValueTokens = { "24" };
+
+			Arguments onlyValueArgs;
+			onlyValueArgs.inputCvValue = 24;
+
+			auto onlyValueOut = parseArguments(onlyValueTokens);
+			assert(onlyValueArgs == onlyValueOut);
 		}
 
+	private:
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
@@ -229,6 +414,15 @@ class CommandCreate : public Command
 			cout << " is created" << endl << endl;
 		}
 };
+
+
+
+#pragma todo
+void test_Commands()
+{
+	CommandCreate cr;
+	cr.test_parseArguments();
+}
 
 
 

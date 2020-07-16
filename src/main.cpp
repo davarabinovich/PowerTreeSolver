@@ -1,5 +1,6 @@
 ﻿
 #include <string>
+#include <iomanip>
 
 #include "commands/commands.h"
 #include "config.h"
@@ -21,10 +22,12 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
+	//test_Commands();
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
 	cout.setf(ios::fixed);
+	cout << setprecision(3);
 
 
 

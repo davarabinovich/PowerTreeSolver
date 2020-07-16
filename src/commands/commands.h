@@ -27,6 +27,14 @@ const CvType default_input_cv_type = CvType::VOLTAGE;
 
 
 
+#pragma todo
+void test_Commands();
+
+
+
+
+
+
 namespace deleting_modes_keys
 {
 	const string delete_descendants_str   = "del";
