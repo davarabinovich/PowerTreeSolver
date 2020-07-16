@@ -22,6 +22,7 @@ GENERAL WORK WITH TREES:                                                        
 																									|
 - Rename                                                                                            |
 	Request a name if it's not specified.                                                           |
+	Must don't work if a new tree isn't created or loaded yet - just suggest these options          |
 																									|
 - Solve                                                                                             |
 	Ask whether to show results.                                                                    |

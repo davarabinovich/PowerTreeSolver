@@ -27,8 +27,15 @@ using namespace loads_types_keys;
 
 
 #pragma todo move to other file
+bool IsThereSomeTree () { return true; };
+
 void CreateTree () {}
 void CreateTree (string name) {}
+
+void RenameTree (string name) {}
+
+string GetNameOfTree () { return string(); }
+
 
 void CreateInput (CvType cvType, double cvValue) {}
 void CreateInput (string name, CvType cvType, double cvValue) {}
@@ -106,6 +113,7 @@ class Command
 
 class CommandCreate : public Command
 {
+
 	public:
 
 		virtual void execute (TokensList & tokens) const 
@@ -278,50 +286,6 @@ class CommandCreate : public Command
 		}	
 
 
-
-public:
-		void test_parseArguments ()
-		{
-
-			TokensList emptyTokens;
-
-			Arguments emptyArgs;
-			
-			auto emptyOut = parseArguments(emptyTokens);
-			assert(emptyArgs == emptyOut);
-
-
-
-			TokensList onlyNameTokens = { "name" };
-
-			Arguments onlyNameArgs;
-			onlyNameArgs.name = "name";
-
-			auto onlyNameOut = parseArguments(onlyNameTokens);
-			assert(onlyNameArgs == onlyNameOut);
-
-
-
-			TokensList onlyTypeTokens = { "cur" };
-
-			Arguments onlyTypeArgs;
-			onlyTypeArgs.inputCvType = CvType::CURRENT;
-
-			auto onlyTypeOut = parseArguments(onlyTypeTokens);
-			assert(onlyTypeArgs == onlyTypeOut);
-
-
-
-			TokensList onlyValueTokens = { "24" };
-
-			Arguments onlyValueArgs;
-			onlyValueArgs.inputCvValue = 24;
-
-			auto onlyValueOut = parseArguments(onlyValueTokens);
-			assert(onlyValueArgs == onlyValueOut);
-		}
-
-	private:
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
@@ -335,7 +299,7 @@ public:
 
 			return name;
 		}
-
+		
 		void createTreeByArgs (const Arguments & args) const
 		{
 			if (args.name.empty())
@@ -352,7 +316,7 @@ public:
 				CreateInput(args. name, args.inputCvType, args.inputCvValue);
 		}
 
-		void reportExcecution (const Arguments& args) const
+		void reportExcecution (const Arguments & args) const
 		{
 			string name = args.name;
 			if (name != "")
@@ -372,10 +336,56 @@ public:
 			}
 
 
-			cout << "A new three " << name << "with a " << cvType << " input";
+			cout << "A new power three " << name << "with a " << cvType << " input";
 			if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
 			cout << " is created" << endl << endl;
 		}
+
+
+
+
+	public:
+
+		void test_parseArguments()
+			{
+
+				TokensList emptyTokens;
+
+				Arguments emptyArgs;
+
+				auto emptyOut = parseArguments(emptyTokens);
+				assert(emptyArgs == emptyOut);
+
+
+
+				TokensList onlyNameTokens = { "name" };
+
+				Arguments onlyNameArgs;
+				onlyNameArgs.name = "name";
+
+				auto onlyNameOut = parseArguments(onlyNameTokens);
+				assert(onlyNameArgs == onlyNameOut);
+
+
+
+				TokensList onlyTypeTokens = { "cur" };
+
+				Arguments onlyTypeArgs;
+				onlyTypeArgs.inputCvType = CvType::CURRENT;
+
+				auto onlyTypeOut = parseArguments(onlyTypeTokens);
+				assert(onlyTypeArgs == onlyTypeOut);
+
+
+
+				TokensList onlyValueTokens = { "24" };
+
+				Arguments onlyValueArgs;
+				onlyValueArgs.inputCvValue = 24;
+
+				auto onlyValueOut = parseArguments(onlyValueTokens);
+				assert(onlyValueArgs == onlyValueOut);
+			}
 };
 
 
@@ -383,7 +393,76 @@ public:
 
 class CommandRename : public Command
 {
+	public:
+	
+		virtual void execute (TokensList& tokens) const
+		{
+			bool isThereSomeTree = IsThereSomeTree();
+			if (!isThereSomeTree)
+			{
+				requestToGetTree();
+				return;
+			}
 
+			if (tokens.size() > 1)    throw exception("Too many arguments for this command");
+
+			string newName;
+			if (tokens.size() == 0)
+				newName = requestAndGetNewName();
+			else
+				newName = tokens.front();
+
+			string oldName = GetNameOfTree();
+			RenameTree(newName);
+
+			Arguments args = { newName, oldName };
+			reportExcecution(args);
+		}
+
+
+
+
+	private:
+	
+		struct Arguments
+		{
+			string newName = "";
+			string oldName = "";
+	
+			bool operator == (const Arguments& partner)
+			{
+				if (newName != partner.newName)    return false;
+				if (newName != partner.oldName)    return false;
+				return true;
+			}
+	
+			bool operator != (const Arguments& partner)
+			{
+				bool result = !(*this == partner);
+				return result;
+			}
+		};
+
+
+
+		void requestToGetTree () const
+		{
+			cout << "There are no power tree. Create or load a tree" << endl << endl;
+		}
+
+		string requestAndGetNewName () const
+		{
+			cout << "Enter a new name for this power tree: ";
+			string newName;
+			getline(cin, newName);
+			return newName;
+		}
+
+		void reportExcecution (const Arguments & args) const
+		{
+			cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
+				 << endl << endl;
+		}
 };
 
 
@@ -462,7 +541,7 @@ void executeCommand (string enteredCommand)
 }
 
 
-command_mnemonic extractCommandMnemonicFrom(string commandWithParameters)
+command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
 {
 	return command_mnemonic();
 }
