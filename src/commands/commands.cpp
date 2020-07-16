@@ -231,8 +231,8 @@ class CommandCreate : public Command
 
 
 
-static const CommandCreate cr;
-static const map<string, const Command*> commandDictionary = { {"cr", &cr} };
+static CommandCreate cr;
+static map< string, shared_ptr<Command> > commandDictionary = { {"cr", make_shared<CommandCreate>(cr)} };
 
 
 
@@ -284,7 +284,7 @@ void executeCommand (string enteredCommand)
 	string commandMnemonic = tokens.front();
 	tokens.pop_front();
 	
-	const Command * currentCommand;
+	shared_ptr<Command> currentCommand;
 	try { currentCommand = commandDictionary.at(commandMnemonic); }
 	catch (out_of_range) { throw exception("Unrecognized command"); }
 
