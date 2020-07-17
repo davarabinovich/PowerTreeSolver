@@ -27,6 +27,13 @@ using namespace loads_types_keys;
 
 
 #pragma todo move to other file
+struct Results
+{
+
+};
+
+
+
 bool IsThereSomeTree () { return true; };
 
 void CreateTree () {}
@@ -34,11 +41,18 @@ void CreateTree (string name) {}
 
 void RenameTree (string name) {}
 
+void Solve () {}
+Results GetResults () { return Results(); }
+
 string GetNameOfTree () { return string(); }
 
 
 void CreateInput (CvType cvType, double cvValue) {}
 void CreateInput (string name, CvType cvType, double cvValue) {}
+
+
+
+
 
 
 
@@ -110,6 +124,10 @@ class Command
 			return CvType::VOLTAGE;
 		}
 };
+
+
+
+
 
 class CommandCreate : public Command
 {
@@ -386,6 +404,7 @@ class CommandCreate : public Command
 				auto onlyValueOut = parseArguments(onlyValueTokens);
 				assert(onlyValueArgs == onlyValueOut);
 			}
+
 };
 
 
@@ -393,6 +412,7 @@ class CommandCreate : public Command
 
 class CommandRename : public Command
 {
+
 	public:
 	
 		virtual void execute (TokensList& tokens) const
@@ -429,14 +449,14 @@ class CommandRename : public Command
 			string newName = "";
 			string oldName = "";
 	
-			bool operator == (const Arguments& partner)
+			bool operator == (const Arguments & partner)
 			{
 				if (newName != partner.newName)    return false;
 				if (newName != partner.oldName)    return false;
 				return true;
 			}
 	
-			bool operator != (const Arguments& partner)
+			bool operator != (const Arguments & partner)
 			{
 				bool result = !(*this == partner);
 				return result;
@@ -463,7 +483,90 @@ class CommandRename : public Command
 			cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
 				 << endl << endl;
 		}
+
 };
+
+
+
+
+
+class CommandSolve : public Command
+{
+
+	public:
+	
+		virtual void execute (TokensList & tokens) const override
+		{
+			Arguments args = parseArguments(tokens);
+
+			bool needsToDisplayResults = args.needsToDisplayResults;
+			if (!needsToDisplayResults)
+			{
+				needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
+			}
+
+			Solve();
+			reportCalculationsFinishs();
+
+			if (needsToDisplayResults)
+			{
+				Results results = GetResults();
+				displayResults(args.resultsView);
+			}
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			enum class ResultsView { TABLE, TREE };
+
+			bool needsToDisplayResults = false;
+			ResultsView resultsView = ResultsView::TABLE;
+		};
+	
+	
+	
+		Arguments parseArguments (TokensList & tokens) const
+		{
+			if (tokens.size() == 0)
+				return Arguments();
+
+			
+
+			return Arguments();
+		}
+
+		bool suggestDisplayResultsAndGetAnswer () const
+		{
+			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
+			cout << "Do you want to see results ?" << endl;
+			string answer_str; getline(cin, answer_str);
+
+			if (answer_str == "yes" || answer_str == "Yes" || answer_str == "y" || answer_str == "Y")
+				return true;
+			else if (answer_str != "no" && answer_str != "No" && answer_str != "n" && answer_str != "N")
+				throw exception("Invalid answer");
+
+			return false;
+		}
+
+		void reportCalculationsFinishs () const
+		{
+			cout << "Calculations has finished successfully." << endl;
+		}
+
+		void displayResults (Arguments::ResultsView view) const
+		{
+
+		}
+
+};
+
+
 
 
 
@@ -473,14 +576,54 @@ void test_Commands()
 	CommandCreate cr;
 	cr.test_parseArguments();
 }
+class CommandT: public Command
+{
+
+public:
+
+	virtual void execute(TokensList& tokens) const
+	{
+		
+	}
+
+
+
+
+private:
+
+	struct Arguments
+	{
+		bool operator == (const Arguments& partner)
+		{
+			return true;
+		}
+
+		bool operator != (const Arguments& partner)
+		{
+			bool result = !(*this == partner);
+			return result;
+		}
+	};
+
+
+
+	void reportExcecution(const Arguments& args) const
+	{
+
+	}
+
+};
+
 
 
 
 static const CommandCreate cr;
 static const CommandRename rn;
+static const CommandSolve  sv;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr) },
-																		     { "rn", make_shared<CommandRename>(rn) }  };
+																		     { "rn", make_shared<CommandRename>(rn) },
+                                                                             { "sv", make_shared<CommandSolve>(sv)  }  };
 
 
 

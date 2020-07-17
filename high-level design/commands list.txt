@@ -26,9 +26,11 @@ GENERAL WORK WITH TREES:                                                        
 																									|
 - Solve                                                                                             |
 	Ask whether to show results.                                                                    |
+	About results view - see command "Display results"                                              |
 																									|
 - Display results                                                                                   |
 	If tree isn't solved since a last modification, say about it and propose to solve.              |
+	A format of result's view may be specified - table or tree. By default - table.                 |
 																									|
 - Display structure                                                                                 |
 																									|
