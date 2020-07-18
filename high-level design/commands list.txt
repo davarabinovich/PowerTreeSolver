@@ -31,6 +31,7 @@ GENERAL WORK WITH TREES:                                                        
 - Display results                                                                                   |
 	If tree isn't solved since a last modification, say about it and propose to solve.              |
 	A format of result's view may be specified - table or tree. By default - table.                 |
+	Consumpted and put power may be shown.                                                          |
 																									|
 - Display structure                                                                                 |
 																									|

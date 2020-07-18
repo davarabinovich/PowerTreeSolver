@@ -19,17 +19,91 @@
 
 
 
-using namespace deleting_modes_keys;
-using namespace inputs_parameters_keys;
-using namespace converters_types_keys;
-using namespace loads_types_keys;
+
+
+
+#pragma todo carry over to library
+void shiftSpaces(unsigned spaces_qty)
+{
+	for (; spaces_qty != 0; spaces_qty--)
+		cout << " ";
+}
+
+void scrollInteratorToNewWord_unsafe(string::const_iterator& char_it)
+{
+	while (*char_it == ' ') char_it++;
+}
+
+
+
+
+
+
 
 
 
 #pragma todo move to other file
+enum class CvType { VOLTAGE, CURRENT };
+
+ostream & operator << (ostream & os, const CvType & type)
+{
+	switch (type)
+	{
+		case CvType::VOLTAGE:
+			return os << "voltage";
+		case CvType::CURRENT:
+			return os << "current";
+
+		default:
+			throw exception("Invalid type of controlled variable");
+	}
+}
+
+
+enum class LoadType { RESISTIVE, CURRENT, POWER };
+
+ostream & operator << (ostream & os, const LoadType & type)
+{
+	switch (type)
+	{
+		case LoadType::RESISTIVE:
+			return os << "resistive";
+		case LoadType::CURRENT:
+			return os << "current";
+		case LoadType::POWER:
+			return os << "power";
+
+		default:
+			throw exception("Invalid type of load");
+	}
+}
+
+
 struct Results
 {
+	struct Load
+	{
+		string name;
+		LoadType type;
+		double value;
+		double power;
+		double secondaryParam;
+	};
 
+	struct Source
+	{
+		string name;
+		CvType cvType;
+		double cvValue;
+		double avValue;
+		double power;
+
+		vector<Source> converterSinks;
+		vector<Load>   loadSinks;
+	};
+	
+	string name;
+	vector<Source> inputs;
 };
 
 
@@ -49,8 +123,6 @@ string GetNameOfTree () { return string(); }
 
 void CreateInput (CvType cvType, double cvValue) {}
 void CreateInput (string name, CvType cvType, double cvValue) {}
-
-
 
 
 
@@ -499,7 +571,7 @@ class CommandSolve : public Command
 		{
 			Arguments args = parseArguments(tokens);
 
-			bool needsToDisplayResults = args.needsToDisplayResults;
+			bool needsToDisplayResults = args.needsDisplayResults;
 			if (!needsToDisplayResults)
 			{
 				needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
@@ -511,7 +583,9 @@ class CommandSolve : public Command
 			if (needsToDisplayResults)
 			{
 				Results results = GetResults();
-				displayResults(args.resultsView);
+
+				try { displayResults(results, args.resultsView, args.needsShowPowers, args.needsShowSecondaryLoadParams); }
+				catch (exception & ex) { cout << ex.what(); }
 			}
 		}
 	
@@ -519,25 +593,54 @@ class CommandSolve : public Command
 	
 	
 	private:
-	
+		
+		enum class ResultsView { TABLE, TREE };
+
 		struct Arguments
 		{
-			enum class ResultsView { TABLE, TREE };
-
-			bool needsToDisplayResults = false;
+			bool needsDisplayResults = false;
 			ResultsView resultsView = ResultsView::TABLE;
+			bool needsShowPowers = false;
+			bool needsShowSecondaryLoadParams = false;
 		};
 	
 	
 	
 		Arguments parseArguments (TokensList & tokens) const
 		{
-			if (tokens.size() == 0)
-				return Arguments();
+			if (tokens.size() > 3)	throw exception("Too many arguments for this command");
 
-			
+			Arguments args;
+			if (tokens.size() == 0)    return args;
 
-			return Arguments();
+			args.needsDisplayResults = true;
+
+			unsigned unparsedArgs_cnt = tokens.size();
+			for (const auto & token : tokens)
+			{
+				if (isResultViewMode(token))
+				{
+					args.resultsView = parseResultViewMode(token);
+					unparsedArgs_cnt--;
+					continue;
+				}
+				if (isPowerFlag(token))
+				{
+					args.needsShowPowers = true;
+					unparsedArgs_cnt--;
+					continue;
+				}
+				if (isSecondaryParamsFlag(token))
+				{
+					args.needsShowSecondaryLoadParams = true;
+					unparsedArgs_cnt--;
+					continue;
+				}
+			}
+
+			if (unparsedArgs_cnt != 0)    throw exception("Invalid argument");
+
+			return args;
 		}
 
 		bool suggestDisplayResultsAndGetAnswer () const
@@ -559,9 +662,117 @@ class CommandSolve : public Command
 			cout << "Calculations has finished successfully." << endl;
 		}
 
-		void displayResults (Arguments::ResultsView view) const
+		void displayResults (Results results, ResultsView view, bool needsShowPower, bool needsShowSecondaryLoadParams) const
+		{
+			cout << "Calcultion's results for power tree \"" << results.name << "\"";
+
+			switch (view)
+			{
+				case ResultsView::TABLE:
+					displayResultsTable(results, needsShowPower, needsShowSecondaryLoadParams);
+					break;
+
+				case ResultsView::TREE:
+					displayResultsTree(results, needsShowPower, needsShowSecondaryLoadParams);
+					break;
+
+				default:
+					throw exception("Invalid results display mode");
+			}
+		}
+
+		bool isResultViewMode (string token) const
+		{
+			if (token == "tb" || token == "Tb" || token == "tab" || token == "Tab" || 
+				token == "table" || token == "Table")    return true;
+			if (token == "tr" || token == "Tr" || token == "tree" || token == "Tree")    
+				return true;
+			return false;
+		}
+
+		bool isPowerFlag (string token) const
+		{
+			if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
+				return true;
+			return false;
+		}
+
+		bool isSecondaryParamsFlag(string token) const
+		{
+			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
+				return true;
+			return false;
+		}
+
+		ResultsView parseResultViewMode (string rwMode) const
+		{
+			if (!isResultViewMode(rwMode))    throw exception("Invalid display results mode");
+
+			if (rwMode == "tb" || rwMode == "Tb" || rwMode == "tab" || rwMode == "Tab" ||
+				rwMode == "table" || rwMode == "Table")    return ResultsView::TABLE;
+			return ResultsView::TREE;
+		}
+
+		void displayResultsTable (Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
+		{
+			for (auto & input : results.inputs)
+				displaySourceResults (input, needsShowPower, needsShowSecondaryLoadParams);
+		}
+
+		void displayResultsTree (Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
 		{
 
+		}
+
+		void displaySourceResults (Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+			                       unsigned hierarchy_level = 1) const
+		{
+			shiftSpaces(4*hierarchy_level);
+			if (hierarchy_level != 1)
+				cout << "- ";
+
+			cout << source.name << ": " << source.cvValue << " " << source.cvType << ", ";
+
+			if (source.cvType == CvType::VOLTAGE)
+				cout << "consumpted current: " << source.avValue << " " << "A";
+			else
+				cout << "output voltage: " << source.avValue << " " << "V";
+
+			if (needsShowPower)
+				cout << ", consumpted power:" << source.power << " W";
+
+			cout << endl;
+
+
+			for (auto& converterSink : source.converterSinks)
+				displaySourceResults (converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level+1);
+
+			for (auto& loadSink : source.loadSinks)
+				displayLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
+		}
+
+		void displayLoadResults(Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams, 
+			                    unsigned hierarchy_level) const
+		{
+			shiftSpaces(4*(hierarchy_level + 1));
+
+			cout << load.name << ": " << load.type << " load " << load.value << " ";
+
+			if (load.type == LoadType::RESISTIVE)
+				cout << "Ohm";
+			else if (load.type == LoadType::CURRENT)
+				cout << "A";
+			else
+				cout << "W";
+
+			if (needsShowPower)
+				cout << ", " << load.power << " W";
+
+			if (load.type == LoadType::POWER)
+				if (needsShowSecondaryLoadParams)
+					cout << load.secondaryParam << " V";
+
+			cout << endl;
 		}
 
 };
@@ -630,14 +841,9 @@ static const map< string, const shared_ptr<Command> > commandDictionary = {  { "
 
 
 
-#pragma todo carry over to library
-void scrollInteratorToNewWord_unsafe(string::const_iterator& char_it)
-{
-	while (*char_it == ' ') char_it++;
-}
 
 
-TokensList tokenize (const string & command_string)
+TokensList tokenize(const string& command_string)
 {
 	if (command_string.size() == 0)    return TokensList();
 
@@ -645,7 +851,7 @@ TokensList tokenize (const string & command_string)
 	auto wordBegin_it = command_string.cbegin();
 	scrollInteratorToNewWord_unsafe(wordBegin_it);
 	auto wordEnd_it = wordBegin_it;
-	
+
 	while (wordBegin_it != command_string.cend())
 	{
 		while (true)
@@ -666,23 +872,19 @@ TokensList tokenize (const string & command_string)
 	return tokens;
 }
 
-
-
-
-void executeCommand (string enteredCommand)
+void executeCommand(string enteredCommand)
 {
 #pragma todo whether replace deque with a vector?
 	auto tokens = tokenize(enteredCommand);
 	string commandMnemonic = tokens.front();
 	tokens.pop_front();
-	
+
 	shared_ptr<Command> currentCommand;
 	try { currentCommand = commandDictionary.at(commandMnemonic); }
 	catch (out_of_range) { throw exception("Unrecognized command"); }
 
 	currentCommand->execute(tokens);
 }
-
 
 command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
 {
