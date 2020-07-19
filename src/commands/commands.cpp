@@ -102,7 +102,6 @@ struct Results
 		vector<Load>   loadSinks;
 	};
 	
-	string name;
 	vector<Source> inputs;
 };
 
@@ -118,7 +117,7 @@ void RenameTree (string name) {}
 void Solve () {}
 Results GetResults () { return Results(); }
 
-string GetNameOfTree () { return string(); }
+string GetNameOfTree() { return string(); }
 
 
 void CreateInput (CvType cvType, double cvValue) {}
@@ -142,12 +141,16 @@ class Command
 {
 	public:
 
-		virtual void execute (TokensList & tokens) const 
-		{ throw exception("The \"excecute\" method of parent class Command was used."); }
+		virtual void execute (TokensList & tokens) const = 0;
+
 
 
 
 	protected:
+
+		Command() {}
+
+
 		
 		static bool isName (const string & str)
 		{
@@ -409,8 +412,9 @@ class CommandCreate : public Command
 		void reportExcecution (const Arguments & args) const
 		{
 			string name = args.name;
-			if (name != "")
-				name = "\"" + name + "\" ";
+			if (name == "")
+				name = GetNameOfTree();
+			name = "\"" + name + "\" ";
 			
 			string cvType = "voltage";
 			if (args.inputCvType == CvType::CURRENT)
@@ -567,9 +571,14 @@ class CommandWithDislayingResults : public Command
 	
 	public:
 	
-		virtual void execute(TokensList& tokens) const
+		virtual void execute (TokensList & tokens) const override
 		{
-			throw exception("These command cannot be executed");
+			Arguments args = parseArguments(tokens);
+
+			Results results = GetResults();
+
+			try { displayResults(results, args); }
+			catch (exception & ex) { cout << ex.what(); }
 		}
 	
 	
@@ -581,181 +590,86 @@ class CommandWithDislayingResults : public Command
 	
 		struct Arguments
 		{
-			ResultsView resultsView = ResultsView::TABLE;
+			ResultsView view = ResultsView::TABLE;
 			bool needsShowPowers = false;
 			bool needsShowSecondaryLoadParams = false;
 		};
 
-};
 
 
-
-
-
-class CommandSolve : public CommandWithDislayingResults
-{
-
-	public:
-	
-		virtual void execute (TokensList & tokens) const override
-		{
-			Arguments args = parseArguments(tokens);
-
-			bool needsToDisplayResults = args.needsDisplayResults;
-			if (!needsToDisplayResults)
-			{
-				needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
-			}
-
-			Solve();
-			reportCalculationsFinishs();
-
-			if (needsToDisplayResults)
-			{
-				Results results = GetResults();
-
-				try { displayResults(results, args.displayArgs.resultsView, args.displayArgs.needsShowPowers, 
-					                 args.displayArgs.needsShowSecondaryLoadParams); }
-				catch (exception & ex) { cout << ex.what(); }
-			}
-		}
-	
-	
-	
-	
-	private:
-		
-		struct Arguments
-		{
-			bool needsDisplayResults = false;
-			
-			CommandWithDislayingResults::Arguments displayArgs;
-		};
-	
-	
-	
-		Arguments parseArguments (TokensList & tokens) const
+		virtual Arguments parseArguments (TokensList & tokens) const
 		{
 			if (tokens.size() > 3)	throw exception("Too many arguments for this command");
 
 			Arguments args;
 			if (tokens.size() == 0)    return args;
 
-			args.needsDisplayResults = true;
-
 			unsigned unparsedArgs_cnt = tokens.size();
-			for (const auto & token : tokens)
+			for (const auto& token : tokens)
 			{
 				if (isResultViewMode(token))
 				{
-					args.displayArgs.resultsView = parseResultViewMode(token);
+					args.view = parseResultViewMode(token);
 					unparsedArgs_cnt--;
 					continue;
 				}
 				if (isPowerFlag(token))
 				{
-					args.displayArgs.needsShowPowers = true;
+					args.needsShowPowers = true;
 					unparsedArgs_cnt--;
 					continue;
 				}
 				if (isSecondaryParamsFlag(token))
 				{
-					args.displayArgs.needsShowSecondaryLoadParams = true;
+					args.needsShowSecondaryLoadParams = true;
 					unparsedArgs_cnt--;
 					continue;
 				}
 			}
-
-			if (unparsedArgs_cnt != 0)    throw exception("Invalid argument");
-
 			return args;
 		}
 
-		bool suggestDisplayResultsAndGetAnswer () const
+		void displayResults (Results results, Arguments args) const
 		{
-			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
-			cout << "Do you want to see results ?" << endl;
-			string answer_str; getline(cin, answer_str);
+			cout << "Calcultion's results for power tree \"" << GetNameOfTree() << "\"";
 
-			if (answer_str == "yes" || answer_str == "Yes" || answer_str == "y" || answer_str == "Y")
-				return true;
-			else if (answer_str != "no" && answer_str != "No" && answer_str != "n" && answer_str != "N")
-				throw exception("Invalid answer");
-
-			return false;
-		}
-
-		void reportCalculationsFinishs () const
-		{
-			cout << "Calculations has finished successfully." << endl;
-		}
-
-		void displayResults (Results results, ResultsView view, bool needsShowPower, bool needsShowSecondaryLoadParams) const
-		{
-			cout << "Calcultion's results for power tree \"" << results.name << "\"";
-
-			switch (view)
+			switch (args.view)
 			{
-				case ResultsView::TABLE:
-					displayResultsTable(results, needsShowPower, needsShowSecondaryLoadParams);
-					break;
+			case ResultsView::TABLE:
+				displayResultsTable(results, args.needsShowPowers, args.needsShowSecondaryLoadParams);
+				break;
 
-				case ResultsView::TREE:
-					displayResultsTree(results, needsShowPower, needsShowSecondaryLoadParams);
-					break;
+			case ResultsView::TREE:
+				displayResultsTree(results, args.needsShowPowers, args.needsShowSecondaryLoadParams);
+				break;
 
-				default:
-					throw exception("Invalid results display mode");
+			default:
+				throw exception("Invalid results display mode");
 			}
+
+			cout << endl;
 		}
 
-		bool isResultViewMode (string token) const
-		{
-			if (token == "tb" || token == "Tb" || token == "tab" || token == "Tab" || 
-				token == "table" || token == "Table")    return true;
-			if (token == "tr" || token == "Tr" || token == "tree" || token == "Tree")    
-				return true;
-			return false;
-		}
 
-		bool isPowerFlag (string token) const
-		{
-			if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
-				return true;
-			return false;
-		}
 
-		bool isSecondaryParamsFlag(string token) const
-		{
-			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
-				return true;
-			return false;
-		}
 
-		ResultsView parseResultViewMode (string rwMode) const
-		{
-			if (!isResultViewMode(rwMode))    throw exception("Invalid display results mode");
+	private:
 
-			if (rwMode == "tb" || rwMode == "Tb" || rwMode == "tab" || rwMode == "Tab" ||
-				rwMode == "table" || rwMode == "Table")    return ResultsView::TABLE;
-			return ResultsView::TREE;
-		}
-
-		void displayResultsTable (Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
+		void displayResultsTable(Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
 		{
 			for (auto & input : results.inputs)
-				displaySourceResults (input, needsShowPower, needsShowSecondaryLoadParams);
+				displaySourceResults(input, needsShowPower, needsShowSecondaryLoadParams);
 		}
 
-		void displayResultsTree (Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
+		void displayResultsTree(Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
 		{
 
 		}
 
-		void displaySourceResults (Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
-			                       unsigned hierarchy_level = 1) const
+		void displaySourceResults(Results::Source& source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+			unsigned hierarchy_level = 1) const
 		{
-			shiftSpaces(4*hierarchy_level);
+			shiftSpaces(4 * hierarchy_level);
 			if (hierarchy_level != 1)
 				cout << "- ";
 
@@ -772,17 +686,17 @@ class CommandSolve : public CommandWithDislayingResults
 			cout << endl;
 
 
-			for (auto& converterSink : source.converterSinks)
-				displaySourceResults (converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level+1);
+			for (auto & converterSink : source.converterSinks)
+				displaySourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 
-			for (auto& loadSink : source.loadSinks)
+			for (auto & loadSink : source.loadSinks)
 				displayLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 		}
 
-		void displayLoadResults(Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams, 
+		void displayLoadResults(Results::Load& load, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			                    unsigned hierarchy_level) const
 		{
-			shiftSpaces(4*(hierarchy_level + 1));
+			shiftSpaces(4 * (hierarchy_level + 1));
 
 			cout << load.name << ": " << load.type << " load " << load.value << " ";
 
@@ -803,6 +717,95 @@ class CommandSolve : public CommandWithDislayingResults
 			cout << endl;
 		}
 
+		bool isResultViewMode(string token) const
+		{
+			if (token == "tb" || token == "Tb" || token == "tab" || token == "Tab" ||
+				token == "table" || token == "Table")    return true;
+			if (token == "tr" || token == "Tr" || token == "tree" || token == "Tree")
+				return true;
+			return false;
+		}
+	
+		bool isPowerFlag(string token) const
+		{
+			if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
+				return true;
+			return false;
+		}
+	
+		bool isSecondaryParamsFlag(string token) const
+		{
+			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
+				return true;
+			return false;
+		}
+	
+		ResultsView parseResultViewMode(string rwMode) const
+		{
+			if (!isResultViewMode(rwMode))    throw exception("Invalid display results mode");
+	
+			if (rwMode == "tb" || rwMode == "Tb" || rwMode == "tab" || rwMode == "Tab" ||
+				rwMode == "table" || rwMode == "Table")    return ResultsView::TABLE;
+			return ResultsView::TREE;
+		}
+
+};
+
+
+
+
+
+class CommandSolve : public CommandWithDislayingResults
+{
+
+	public:
+	
+		virtual void execute (TokensList & tokens) const override
+		{
+			bool needsToDisplayResults = ( tokens.size() != 0 );
+			if (!needsToDisplayResults)
+			{
+				needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
+			}
+
+			Arguments args = parseArguments(tokens);
+
+			Solve();
+			reportCalculationsFinishs();
+
+			if (needsToDisplayResults)
+			{
+				Results results = GetResults();
+
+				try { displayResults(results, args); }
+				catch (exception & ex) { cout << ex.what(); }
+			}
+		}
+	
+	
+	
+	
+	private:
+
+		bool suggestDisplayResultsAndGetAnswer () const
+		{
+			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
+			cout << "Do you want to see results ?" << endl;
+			string answer_str; getline(cin, answer_str);
+
+			if (answer_str == "yes" || answer_str == "Yes" || answer_str == "y" || answer_str == "Y")
+				return true;
+			else if (answer_str != "no" && answer_str != "No" && answer_str != "n" && answer_str != "N")
+				throw exception("Invalid answer");
+
+			return false;
+		}
+
+		void reportCalculationsFinishs () const
+		{
+			cout << "Calculations has finished successfully." << endl;
+		}
+
 };
 
 
@@ -816,12 +819,19 @@ class CommandDisplayResults : public CommandWithDislayingResults
 	
 		virtual void execute (TokensList & tokens) const
 		{
-	
+			
 		}
 	
 	
 	
 	
+	protected:
+		
+		CommandDisplayResults() {}
+
+
+
+
 	private:
 	
 };
@@ -880,19 +890,21 @@ private:
 static const CommandCreate cr;
 static const CommandRename rn;
 static const CommandSolve  sv;
+//static const CommandDisplayResults dr;
 
-static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr) },
-																		     { "rn", make_shared<CommandRename>(rn) },
-                                                                             { "sv", make_shared<CommandSolve>(sv)  }  };
-
-
-
-
+static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr)         },
+																		     { "rn", make_shared<CommandRename>(rn)         },
+                                                                             { "sv", make_shared<CommandSolve>(sv)          },
+											                                 /*{ "dr", make_shared<CommandDisplayResults>(dr) } */ };
 
 
 
 
-TokensList tokenize(const string& command_string)
+
+
+
+
+TokensList tokenize(const string & command_string)
 {
 	if (command_string.size() == 0)    return TokensList();
 
@@ -921,7 +933,7 @@ TokensList tokenize(const string& command_string)
 	return tokens;
 }
 
-void executeCommand(string enteredCommand)
+void executeCommand (string enteredCommand)
 {
 #pragma todo whether replace deque with a vector?
 	auto tokens = tokenize(enteredCommand);

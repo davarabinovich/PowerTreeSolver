@@ -54,7 +54,7 @@ void printInitialMessage ()
 {
 	cout << endl << endl << "The Power trees' solver is here." << endl << "Version: " << version_str 
 		 << endl << endl;
-	cout << "Please, enter you commands" << endl << endl;
+	cout << "Please, enter you commands" << endl;
 	#pragma todo options of commands
 }
 
