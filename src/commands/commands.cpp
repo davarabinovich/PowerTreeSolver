@@ -562,7 +562,37 @@ class CommandRename : public Command
 
 
 
-class CommandSolve : public Command
+class CommandWithDislayingResults : public Command
+{
+	
+	public:
+	
+		virtual void execute(TokensList& tokens) const
+		{
+			throw exception("These command cannot be executed");
+		}
+	
+	
+	
+	
+	protected:
+	
+		enum class ResultsView { TABLE, TREE };
+	
+		struct Arguments
+		{
+			ResultsView resultsView = ResultsView::TABLE;
+			bool needsShowPowers = false;
+			bool needsShowSecondaryLoadParams = false;
+		};
+
+};
+
+
+
+
+
+class CommandSolve : public CommandWithDislayingResults
 {
 
 	public:
@@ -584,7 +614,8 @@ class CommandSolve : public Command
 			{
 				Results results = GetResults();
 
-				try { displayResults(results, args.resultsView, args.needsShowPowers, args.needsShowSecondaryLoadParams); }
+				try { displayResults(results, args.displayArgs.resultsView, args.displayArgs.needsShowPowers, 
+					                 args.displayArgs.needsShowSecondaryLoadParams); }
 				catch (exception & ex) { cout << ex.what(); }
 			}
 		}
@@ -594,14 +625,11 @@ class CommandSolve : public Command
 	
 	private:
 		
-		enum class ResultsView { TABLE, TREE };
-
 		struct Arguments
 		{
 			bool needsDisplayResults = false;
-			ResultsView resultsView = ResultsView::TABLE;
-			bool needsShowPowers = false;
-			bool needsShowSecondaryLoadParams = false;
+			
+			CommandWithDislayingResults::Arguments displayArgs;
 		};
 	
 	
@@ -620,19 +648,19 @@ class CommandSolve : public Command
 			{
 				if (isResultViewMode(token))
 				{
-					args.resultsView = parseResultViewMode(token);
+					args.displayArgs.resultsView = parseResultViewMode(token);
 					unparsedArgs_cnt--;
 					continue;
 				}
 				if (isPowerFlag(token))
 				{
-					args.needsShowPowers = true;
+					args.displayArgs.needsShowPowers = true;
 					unparsedArgs_cnt--;
 					continue;
 				}
 				if (isSecondaryParamsFlag(token))
 				{
-					args.needsShowSecondaryLoadParams = true;
+					args.displayArgs.needsShowSecondaryLoadParams = true;
 					unparsedArgs_cnt--;
 					continue;
 				}
@@ -775,6 +803,27 @@ class CommandSolve : public Command
 			cout << endl;
 		}
 
+};
+
+
+
+
+
+class CommandDisplayResults : public CommandWithDislayingResults
+{
+
+	public:
+	
+		virtual void execute (TokensList & tokens) const
+		{
+	
+		}
+	
+	
+	
+	
+	private:
+	
 };
 
 
