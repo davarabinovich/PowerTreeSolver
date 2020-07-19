@@ -36,7 +36,9 @@ int main (int argc, char * argv [], char * envp [])
 	while (true)
 	{
 		string newCommand_str;
-		getline(cin, newCommand_str); 
+		do
+			getline(cin, newCommand_str); 
+		while (newCommand_str.size() == 0);
 		
 		if (newCommand_str == command_quit_mnemonic || newCommand_str == command_quit_large_form) break;
 
