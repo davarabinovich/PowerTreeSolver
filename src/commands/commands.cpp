@@ -816,24 +816,7 @@ class CommandSolve : public CommandWithDislayingResults
 
 
 
-class CommandDisplayResults : public CommandWithDislayingResults
-{
-
-	public:
-	
-		virtual void execute (TokensList & tokens) const
-		{
-			
-		}
-	
-	
-	
-	
-	protected:
-
-	private:
-	
-};
+class CommandDisplayResults : public CommandWithDislayingResults {};
 
 
 
@@ -894,7 +877,7 @@ static const CommandDisplayResults dr;
 static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr)         },
 																		     { "rn", make_shared<CommandRename>(rn)         },
                                                                              { "sv", make_shared<CommandSolve>(sv)          },
-											                                 /*{ "dr", make_shared<CommandDisplayResults>(dr) } */ };
+											                                 { "dr", make_shared<CommandDisplayResults>(dr) }  };
 
 
 
