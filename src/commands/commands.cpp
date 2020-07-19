@@ -597,6 +597,10 @@ class CommandWithDislayingResults : public Command
 
 
 
+		CommandWithDislayingResults () {}
+
+
+
 		virtual Arguments parseArguments (TokensList & tokens) const
 		{
 			if (tokens.size() > 3)	throw exception("Too many arguments for this command");
@@ -826,11 +830,6 @@ class CommandDisplayResults : public CommandWithDislayingResults
 	
 	
 	protected:
-		
-		CommandDisplayResults() {}
-
-
-
 
 	private:
 	
@@ -890,7 +889,7 @@ private:
 static const CommandCreate cr;
 static const CommandRename rn;
 static const CommandSolve  sv;
-//static const CommandDisplayResults dr;
+static const CommandDisplayResults dr;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr)         },
 																		     { "rn", make_shared<CommandRename>(rn)         },
