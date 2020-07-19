@@ -822,6 +822,47 @@ class CommandDisplayResults : public CommandWithDislayingResults {};
 
 
 
+class CommandDisplayStructure : public Command
+{
+	
+	public:
+	
+		virtual void execute(TokensList& tokens) const
+		{
+	
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			bool operator == (const Arguments& partner)
+			{
+				return true;
+			}
+	
+			bool operator != (const Arguments& partner)
+			{
+				bool result = !(*this == partner);
+				return result;
+			}
+		};
+	
+	
+	
+		void reportExcecution(const Arguments& args) const
+		{
+	
+		}
+	
+};
+
+
+
+
 #pragma todo
 void test_Commands()
 {
