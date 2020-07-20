@@ -23,7 +23,7 @@
 
 
 #pragma todo carry over to library
-void shiftSpaces(unsigned spaces_qty)
+void shiftSpaces (unsigned spaces_qty)
 {
 	for (; spaces_qty != 0; spaces_qty--)
 		cout << " ";
@@ -105,6 +105,17 @@ struct Results
 	vector<Source> inputs;
 };
 
+struct TreeStructure
+{
+	struct Source
+	{
+
+	};
+
+	vector<Source> inputs;
+};
+
+
 
 
 bool IsThereSomeTree () { return true; };
@@ -118,6 +129,8 @@ void Solve () {}
 Results GetResults () { return Results(); }
 
 string GetNameOfTree() { return string(); }
+TreeStructure GetTreeStructure () { return TreeStructure(); }
+
 
 
 void CreateInput (CvType cvType, double cvValue) {}
@@ -635,7 +648,7 @@ class CommandWithDislayingResults : public Command
 
 		void displayResults (Results results, Arguments args) const
 		{
-			cout << "Calcultion's results for power tree \"" << GetNameOfTree() << "\"";
+			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\"";
 
 			switch (args.view)
 			{
@@ -827,9 +840,10 @@ class CommandDisplayStructure : public Command
 	
 	public:
 	
-		virtual void execute(TokensList& tokens) const
+		virtual void execute (TokensList & tokens) const
 		{
-	
+			TreeStructure treeStructure = GetTreeStructure();
+			displayTreeStructure(treeStructure);
 		}
 	
 	
@@ -837,25 +851,17 @@ class CommandDisplayStructure : public Command
 	
 	private:
 	
-		struct Arguments
+		void displayTreeStructure (const TreeStructure & trStr) const
 		{
-			bool operator == (const Arguments& partner)
-			{
-				return true;
-			}
-	
-			bool operator != (const Arguments& partner)
-			{
-				bool result = !(*this == partner);
-				return result;
-			}
-		};
-	
-	
-	
-		void reportExcecution(const Arguments& args) const
+			cout << "Structure of the power tree \"" << GetNameOfTree() << "\"";
+			for (const auto & input : trStr.inputs)
+				displaySourceWithDescendantes(input);
+			cout << endl;
+		}
+
+		void displaySourceWithDescendantes (const TreeStructure::Source & src) const
 		{
-	
+
 		}
 	
 };
@@ -913,12 +919,14 @@ private:
 static const CommandCreate cr;
 static const CommandRename rn;
 static const CommandSolve  sv;
-static const CommandDisplayResults dr;
+static const CommandDisplayResults   dr;
+static const CommandDisplayStructure ds;
 
-static const map< string, const shared_ptr<Command> > commandDictionary = {  { "cr", make_shared<CommandCreate>(cr)         },
-																		     { "rn", make_shared<CommandRename>(rn)         },
-                                                                             { "sv", make_shared<CommandSolve>(sv)          },
-											                                 { "dr", make_shared<CommandDisplayResults>(dr) }  };
+static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
+																			{ "rn", make_shared<CommandRename>(rn)           },
+																			{ "sv", make_shared<CommandSolve>(sv)            },
+																			{ "dr", make_shared<CommandDisplayResults>(dr)   },
+																			{ "ds", make_shared<CommandDisplayStructure>(ds) }  };
 
 
 
