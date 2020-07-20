@@ -59,6 +59,23 @@ ostream & operator << (ostream & os, const CvType & type)
 	}
 }
 
+const string operator + (const CvType & tp, const string & str)
+{
+	if (tp == CvType::VOLTAGE)
+		return ("voltage" + str);
+	else
+		return ("current" + str);
+}
+
+const string operator + (const string& str, const CvType& tp)
+{
+	if (tp == CvType::VOLTAGE)
+		return (str + "voltage");
+	else
+		return (str + "current" + str);
+}
+
+
 
 enum class LoadType { RESISTIVE, CURRENT, POWER };
 
@@ -102,17 +119,36 @@ struct Results
 		vector<Load>   loadSinks;
 	};
 	
+
 	vector<Source> inputs;
 };
 
 struct TreeStructure
 {
-	struct Source
+	struct Load
 	{
 
 	};
 
-	vector<Source> inputs;
+	struct Converter
+	{
+
+	};
+
+	struct Input
+	{
+		string name;
+		CvType cvType;
+		double cvValue;
+
+		vector<Converter> converterSinks;
+		vector<Load>      loadSinks;
+	};
+	
+
+	vector<Input> inputs;
+	vector<Converter> flyingConverters;
+	vector<Load> flyingLoads;
 };
 
 
@@ -648,7 +684,7 @@ class CommandWithDislayingResults : public Command
 
 		void displayResults (Results results, Arguments args) const
 		{
-			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\"";
+			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
 
 			switch (args.view)
 			{
@@ -683,7 +719,7 @@ class CommandWithDislayingResults : public Command
 
 		}
 
-		void displaySourceResults(Results::Source& source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void displaySourceResults(const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			unsigned hierarchy_level = 1) const
 		{
 			shiftSpaces(4 * hierarchy_level);
@@ -703,14 +739,14 @@ class CommandWithDislayingResults : public Command
 			cout << endl;
 
 
-			for (auto & converterSink : source.converterSinks)
+			for (const auto & converterSink : source.converterSinks)
 				displaySourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 
-			for (auto & loadSink : source.loadSinks)
+			for (const auto & loadSink : source.loadSinks)
 				displayLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 		}
 
-		void displayLoadResults(Results::Load& load, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void displayLoadResults(const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			                    unsigned hierarchy_level) const
 		{
 			shiftSpaces(4 * (hierarchy_level + 1));
@@ -853,13 +889,40 @@ class CommandDisplayStructure : public Command
 	
 		void displayTreeStructure (const TreeStructure & trStr) const
 		{
-			cout << "Structure of the power tree \"" << GetNameOfTree() << "\"";
+			cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
+
 			for (const auto & input : trStr.inputs)
-				displaySourceWithDescendantes(input);
+				displayInputWithDescendantes(input);
+			
+			for (const auto & converter : trStr.flyingConverters)
+				displayConverterWithDescendantes(converter, 10);
+			for (const auto & load : trStr.flyingLoads)
+				displayLoad(load, 10);
+
 			cout << endl;
 		}
 
-		void displaySourceWithDescendantes (const TreeStructure::Source & src) const
+		void displayInputWithDescendantes (const TreeStructure::Input & src) const
+		{
+			string thisSourceInfo = "\"" + src.name + "\" " + src.cvType + " " + "source" + to_string(src.cvValue) + " ";
+			if (src.cvType == CvType::VOLTAGE)
+				thisSourceInfo += "V";
+			else
+				thisSourceInfo += "A";
+			cout << thisSourceInfo;
+
+			for (const auto & converter : src.converterSinks)
+				displayConverterWithDescendantes(converter, thisSourceInfo.size());
+			for (const auto & load : src.loadSinks)
+				displayLoad(load, thisSourceInfo.size());
+		}
+
+		void displayConverterWithDescendantes (const TreeStructure::Converter & cnvr, unsigned shiftLength = 0) const
+		{
+
+		}
+
+		void displayLoad (const TreeStructure::Load & ld, unsigned shiftLength = 0) const
 		{
 
 		}
