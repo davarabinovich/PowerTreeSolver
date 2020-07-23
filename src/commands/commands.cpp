@@ -63,16 +63,14 @@ const string operator + (const CvType & tp, const string & str)
 {
 	if (tp == CvType::VOLTAGE)
 		return ("voltage" + str);
-	else
-		return ("current" + str);
+	return ("current" + str);
 }
 
-const string operator + (const string& str, const CvType& tp)
+const string operator + (const string & str, const CvType & tp)
 {
 	if (tp == CvType::VOLTAGE)
 		return (str + "voltage");
-	else
-		return (str + "current" + str);
+	return (str + "current");
 }
 
 
@@ -94,6 +92,45 @@ ostream & operator << (ostream & os, const LoadType & type)
 			throw exception("Invalid type of load");
 	}
 }
+
+const string operator + (const LoadType & tp, const string& str)
+{
+	if (tp == LoadType::RESISTIVE)
+		return ("resistive" + str);
+	if (tp == LoadType::CURRENT)
+		return ("current" + str);
+	return ("power" + str);
+}
+
+const string operator + (const string & str, const LoadType & tp)
+{
+	if (tp == LoadType::RESISTIVE)
+		return (str + "resistive");
+	if (tp == LoadType::CURRENT)
+		return (str + "current");
+	return (str + "power");
+}
+
+
+
+enum class ConverterType { PULSE, LINEAR };
+
+ostream & operator << (ostream & os, const ConverterType & type)
+{
+	switch (type)
+	{
+	case ConverterType::PULSE:
+		return os << "pulse";
+	case ConverterType::LINEAR:
+		return os << "linear";
+
+	default:
+		throw exception("Invalid type of converter");
+	}
+}
+
+
+
 
 
 struct Results
@@ -127,12 +164,20 @@ struct TreeStructure
 {
 	struct Load
 	{
-
+		string name;
+		LoadType type;
+		double value;
 	};
 
 	struct Converter
 	{
+		string name;
+		CvType cvType;
+		double cvValue;
+		ConverterType type;
 
+		vector<Converter> converterSinks;
+		vector<Load>      loadSinks;
 	};
 
 	struct Input
@@ -144,8 +189,10 @@ struct TreeStructure
 		vector<Converter> converterSinks;
 		vector<Load>      loadSinks;
 	};
+
 	
 
+	
 	vector<Input> inputs;
 	vector<Converter> flyingConverters;
 	vector<Load> flyingLoads;
@@ -902,29 +949,49 @@ class CommandDisplayStructure : public Command
 			cout << endl;
 		}
 
-		void displayInputWithDescendantes (const TreeStructure::Input & src) const
+		void displayInputWithDescendantes (const TreeStructure::Input & inp) const
 		{
-			string thisSourceInfo = "\"" + src.name + "\" " + src.cvType + " " + "source" + to_string(src.cvValue) + " ";
-			if (src.cvType == CvType::VOLTAGE)
+			string thisSourceInfo = "\"" + inp.name + "\": " + inp.cvType + " input" + to_string(inp.cvValue) + " ";
+			if (inp.cvType == CvType::VOLTAGE)
 				thisSourceInfo += "V";
 			else
 				thisSourceInfo += "A";
 			cout << thisSourceInfo;
 
-			for (const auto & converter : src.converterSinks)
+			for (const auto & converter : inp.converterSinks)
 				displayConverterWithDescendantes(converter, thisSourceInfo.size());
-			for (const auto & load : src.loadSinks)
+			for (const auto & load : inp.loadSinks)
 				displayLoad(load, thisSourceInfo.size());
+
+			if (inp.converterSinks.size() == 0 && inp.loadSinks.size() == 0)
+				cout << endl;
 		}
 
 		void displayConverterWithDescendantes (const TreeStructure::Converter & cnvr, unsigned shiftLength = 0) const
 		{
+			shiftSpaces(shiftLength);
 
+			string thisSourceInfo = "- \"" + cnvr.name + "\": " + cnvr.cvType + " source" + to_string(cnvr.cvValue) + " ";
+			if (cnvr.cvType == CvType::VOLTAGE)
+				thisSourceInfo += "V";
+			else
+				thisSourceInfo += "A";
+			cout << thisSourceInfo;
+
+			for (const auto & converter : cnvr.converterSinks)
+				displayConverterWithDescendantes(converter, thisSourceInfo.size());
+			for (const auto & load : cnvr.loadSinks)
+				displayLoad(load, thisSourceInfo.size());
+
+			if (cnvr.converterSinks.size() == 0 && cnvr.loadSinks.size() == 0)
+				cout << endl;
 		}
 
 		void displayLoad (const TreeStructure::Load & ld, unsigned shiftLength = 0) const
 		{
+			shiftSpaces(shiftLength);
 
+			string thisLoadInfo = "- \"" + ld.name + "\": " + ld.type + " load" + to_string(ld.value);
 		}
 	
 };
