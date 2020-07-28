@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <set>
 
 #pragma todo
 #include <cassert>
@@ -216,8 +217,11 @@ TreeStructure GetTreeStructure () { return TreeStructure(); }
 
 
 
-void CreateInput (CvType cvType, double cvValue) {}
-void CreateInput (string name, CvType cvType, double cvValue) {}
+string CreateInput () { return string(); }
+void CreateInput (string name) {}
+
+void SetCvTypeForInput (string name, CvType type) {}
+void SetCvValueForInput (string name, double cvValue) {}
 
 
 
@@ -225,7 +229,7 @@ void CreateInput (string name, CvType cvType, double cvValue) {}
 
 
 
-using TokensList = deque<string>;
+using TokensDeque = deque<string>;
 
 
 
@@ -237,7 +241,7 @@ class Command
 {
 	public:
 
-		virtual void execute (TokensList & tokens) const = 0;
+		virtual void execute (TokensDeque & tokens) const = 0;
 
 
 
@@ -305,7 +309,7 @@ class CommandCreate : public Command
 
 	public:
 
-		virtual void execute (TokensList & tokens) const 
+		virtual void execute (TokensDeque & tokens) const 
 		{
 			Arguments args;			
 			try { args = parseArguments(tokens); }
@@ -357,7 +361,7 @@ class CommandCreate : public Command
 		
 		
 		
-		Arguments parseArguments (TokensList & tokens) const
+		Arguments parseArguments (TokensDeque & tokens) const
 		{
 			Arguments args;
 
@@ -499,10 +503,14 @@ class CommandCreate : public Command
 
 		void createInputByArgs (const Arguments & args) const
 		{
-			if (args.inputName.empty())
-				CreateInput(args.inputCvType, args.inputCvValue);
+			string name = args.inputName;
+			if (name.empty())
+				name = CreateInput();
 			else
-				CreateInput(args. name, args.inputCvType, args.inputCvValue);
+				CreateInput(name);
+
+			SetCvTypeForInput(name, args.inputCvType);
+			SetCvValueForInput(name, args.inputCvValue);
 		}
 
 		void reportExcecution (const Arguments & args) const
@@ -539,7 +547,7 @@ class CommandCreate : public Command
 		void test_parseArguments()
 			{
 
-				TokensList emptyTokens;
+				TokensDeque emptyTokens;
 
 				Arguments emptyArgs;
 
@@ -548,7 +556,7 @@ class CommandCreate : public Command
 
 
 
-				TokensList onlyNameTokens = { "name" };
+				TokensDeque onlyNameTokens = { "name" };
 
 				Arguments onlyNameArgs;
 				onlyNameArgs.name = "name";
@@ -558,7 +566,7 @@ class CommandCreate : public Command
 
 
 
-				TokensList onlyTypeTokens = { "cur" };
+				TokensDeque onlyTypeTokens = { "cur" };
 
 				Arguments onlyTypeArgs;
 				onlyTypeArgs.inputCvType = CvType::CURRENT;
@@ -568,7 +576,7 @@ class CommandCreate : public Command
 
 
 
-				TokensList onlyValueTokens = { "24" };
+				TokensDeque onlyValueTokens = { "24" };
 
 				Arguments onlyValueArgs;
 				onlyValueArgs.inputCvValue = 24;
@@ -587,7 +595,7 @@ class CommandRename : public Command
 
 	public:
 	
-		virtual void execute (TokensList& tokens) const
+		virtual void execute (TokensDeque& tokens) const
 		{
 			bool isThereSomeTree = IsThereSomeTree();
 			if (!isThereSomeTree)
@@ -667,7 +675,7 @@ class CommandWithDislayingResults : public Command
 	
 	public:
 	
-		virtual void execute (TokensList & tokens) const override
+		virtual void execute (TokensDeque & tokens) const override
 		{
 			Arguments args = parseArguments(tokens);
 
@@ -697,7 +705,7 @@ class CommandWithDislayingResults : public Command
 
 
 
-		virtual Arguments parseArguments (TokensList & tokens) const
+		virtual Arguments parseArguments (TokensDeque & tokens) const
 		{
 			if (tokens.size() > 3)	throw exception("Too many arguments for this command");
 
@@ -860,7 +868,7 @@ class CommandSolve : public CommandWithDislayingResults
 
 	public:
 	
-		virtual void execute (TokensList & tokens) const override
+		virtual void execute (TokensDeque & tokens) const override
 		{
 			bool needsToDisplayResults = ( tokens.size() != 0 );
 			if (!needsToDisplayResults)
@@ -923,7 +931,7 @@ class CommandDisplayStructure : public Command
 	
 	public:
 	
-		virtual void execute (TokensList & tokens) const
+		virtual void execute (TokensDeque & tokens) const
 		{
 			TreeStructure treeStructure = GetTreeStructure();
 			displayTreeStructure(treeStructure);
@@ -999,6 +1007,145 @@ class CommandDisplayStructure : public Command
 
 
 
+class CommandCreateInput : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception & ex) { throw exception(ex.what()); }
+	
+			if (args.name == "")
+				args.name = suggestEnterNameAndGet();
+	
+			createInputByArgs(args);
+	
+			reportExcecution(args);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string name = "";
+			CvType cvType = CvType::VOLTAGE;
+			double cvValue = NAN;
+
+			double minAvValue = NAN;
+			double maxAvValue = NAN;
+			double minPower = NAN;
+			double maxPower = NAN;
+
+
+			inline static set<string> optionalArgsMnemonics = { "mina", "maxa", "minp", "maxp" };
+
+	
+	
+			bool operator == (const Arguments & partner)
+			{
+				return true;
+			}
+	
+			bool operator != (const Arguments & partner)
+			{
+				bool result = !(*this == partner);
+				return result;
+			}
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+
+			if (tokens.empty())    return args;
+
+
+			auto handeledArg = tokens.front();
+			
+			if (isCvType(handeledArg))
+			{
+				args.cvType = parseCvType(handeledArg);
+
+				tokens.pop_front();
+				if (!tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isFloatNumber(handeledArg))
+			{
+				args.cvValue = atof(handeledArg.c_str());
+				
+				tokens.pop_front();
+				if (!tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			for (const auto & optionalArgToken : tokens)
+			{
+				try { ensureArgIsValid(optionalArgToken); }
+				catch (exception & ex) { throw exception(ex.what()); }
+
+				auto argKey = deriveArgKeyFromToken(optionalArgToken);
+				auto valueString = deriveValueStringFromToken(optionalArgToken);
+				*(args.optionalArgs.at(optionalArgToken)) = atof(valueString.c_str());
+			}
+
+			return args;
+		}
+
+		void ensureArgIsValid (const string & arg) const
+		{
+
+
+			if ()
+		}
+
+		string deriveArgKeyFromToken (const string optionalArgToken) const
+		{
+			 
+		}
+
+		string deriveValueStringFromToken (const string optionalArgToken) const
+		{
+
+		}
+
+
+	
+		string suggestEnterNameAndGet () const
+		{
+			return string();
+		}
+	
+
+		void createInputByArgs (const Arguments & args) const
+		{
+			string name = args.name;
+			if (name.empty())
+				name = CreateInput();
+			else
+				CreateInput(name);
+
+			SetCvTypeForInput(name, args.cvType);
+			SetCvValueForInput(name, args.cvValue);
+		}
+	
+		void reportExcecution (const Arguments & args) const
+		{
+	
+		}
+	
+};
+
+
 #pragma todo
 void test_Commands()
 {
@@ -1010,7 +1157,7 @@ class CommandT: public Command
 
 public:
 
-	virtual void execute(TokensList& tokens) const
+	virtual void execute(TokensDeque& tokens) const
 	{
 		
 	}
@@ -1052,11 +1199,15 @@ static const CommandSolve  sv;
 static const CommandDisplayResults   dr;
 static const CommandDisplayStructure ds;
 
+static const CommandCreateInput ci;
+
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
 																			{ "sv", make_shared<CommandSolve>(sv)            },
 																			{ "dr", make_shared<CommandDisplayResults>(dr)   },
-																			{ "ds", make_shared<CommandDisplayStructure>(ds) }  };
+																			{ "ds", make_shared<CommandDisplayStructure>(ds) },
+
+																			{ "ci", make_shared<CommandCreateInput>(ci)      }  };
 
 
 
@@ -1065,11 +1216,11 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 
 
 
-TokensList tokenize(const string & command_string)
+TokensDeque tokenize (const string & command_string)
 {
-	if (command_string.size() == 0)    return TokensList();
+	if (command_string.size() == 0)    return TokensDeque();
 
-	TokensList tokens;
+	TokensDeque tokens;
 	auto wordBegin_it = command_string.cbegin();
 	scrollInteratorToNewWord_unsafe(wordBegin_it);
 	auto wordEnd_it = wordBegin_it;
