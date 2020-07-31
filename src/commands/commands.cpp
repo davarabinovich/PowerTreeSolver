@@ -35,7 +35,13 @@ void scrollInteratorToNewWord_unsafe(string::const_iterator& char_it)
 	while (*char_it == ' ') char_it++;
 }
 
-
+double strToDouble (string str)
+{
+	double number = atof(str.c_str());
+	if ( (number == 0.0) && (str != "0.0") )
+		throw exception("There is no floating-point number");
+	return number;
+}
 
 
 
@@ -373,7 +379,7 @@ class CommandCreate : public Command
 					args.name = handeledArg;
 				else
 				{
-					args.inputCvValue = atof(handeledArg.c_str());
+					args.inputCvValue = strToDouble(handeledArg);
 					if (tokens.size() != 0)
 						#pragma todo write exceptions message
 						throw exception();
@@ -391,7 +397,7 @@ class CommandCreate : public Command
 						throw exception();
 					else
 					{
-						args.inputCvValue = atof(handeledArg.c_str());
+						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
 							#pragma todo write exceptions message
 							throw exception();
@@ -410,7 +416,7 @@ class CommandCreate : public Command
 					args.inputName = handeledArg;
 				else
 				{
-					args.inputCvValue = atof(handeledArg.c_str());
+					args.inputCvValue = strToDouble(handeledArg);
 					if (tokens.size() != 0)
 #pragma todo write exceptions message
 						throw exception();
@@ -428,7 +434,7 @@ class CommandCreate : public Command
 						throw exception();
 					else
 					{
-						args.inputCvValue = atof(handeledArg.c_str());
+						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
 #pragma todo write exceptions message
 							throw exception();
@@ -449,7 +455,7 @@ class CommandCreate : public Command
 					throw exception();
 				else
 				{
-					args.inputCvValue = atof(handeledArg.c_str());
+					args.inputCvValue = strToDouble(handeledArg);
 					if (tokens.size() != 0)
 #pragma todo write exceptions message
 						throw exception();
@@ -467,7 +473,7 @@ class CommandCreate : public Command
 						throw exception();
 					else
 					{
-						args.inputCvValue = atof(handeledArg.c_str());
+						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
 #pragma todo write exceptions message
 							throw exception();
@@ -482,7 +488,7 @@ class CommandCreate : public Command
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
-			cout << "Do you want to set a name for the new tree ?" << endl;
+			cout << "Do you want to set a name for the new tree?" << endl;
 			string answer; getline(cin, answer);
 
 			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
@@ -1036,15 +1042,6 @@ class CommandCreateInput : public Command
 			string name = "";
 			CvType cvType = CvType::VOLTAGE;
 			double cvValue = NAN;
-
-			double minAvValue = NAN;
-			double maxAvValue = NAN;
-			double minPower = NAN;
-			double maxPower = NAN;
-
-
-			inline static set<string> optionalArgsMnemonics = { "mina", "maxa", "minp", "maxp" };
-
 	
 	
 			bool operator == (const Arguments & partner)
@@ -1070,59 +1067,48 @@ class CommandCreateInput : public Command
 
 			auto handeledArg = tokens.front();
 			
+			if ( !isCvType(handeledArg) && !isFloatNumber(handeledArg) )
+			{
+				args.name = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
 			if (isCvType(handeledArg))
 			{
 				args.cvType = parseCvType(handeledArg);
 
 				tokens.pop_front();
-				if (!tokens.empty())    return args;
+				if (tokens.empty())    return args;
 				handeledArg = tokens.front();
 			}
-
+			
 			if (isFloatNumber(handeledArg))
 			{
 				args.cvValue = atof(handeledArg.c_str());
-				
+
 				tokens.pop_front();
-				if (!tokens.empty())    return args;
-				handeledArg = tokens.front();
+				if (tokens.empty())    return args;
 			}
 
-			for (const auto & optionalArgToken : tokens)
-			{
-				try { ensureArgIsValid(optionalArgToken); }
-				catch (exception & ex) { throw exception(ex.what()); }
-
-				auto argKey = deriveArgKeyFromToken(optionalArgToken);
-				auto valueString = deriveValueStringFromToken(optionalArgToken);
-				*(args.optionalArgs.at(optionalArgToken)) = atof(valueString.c_str());
-			}
-
-			return args;
+			throw exception("There is at least one invalid argument");
 		}
-
-		void ensureArgIsValid (const string & arg) const
-		{
-
-
-			if ()
-		}
-
-		string deriveArgKeyFromToken (const string optionalArgToken) const
-		{
-			 
-		}
-
-		string deriveValueStringFromToken (const string optionalArgToken) const
-		{
-
-		}
-
 
 	
 		string suggestEnterNameAndGet () const
 		{
-			return string();
+			string name = "";
+			cout << "Do you want to set a name for the new input?" << endl;
+			string answer; getline(cin, answer);
+
+			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				getline(cin, name);
+			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+				throw exception("Invalid answer");
+
+			return name;
 		}
 	
 
@@ -1140,7 +1126,28 @@ class CommandCreateInput : public Command
 	
 		void reportExcecution (const Arguments & args) const
 		{
-	
+			string name = args.name;
+			if (name == "")
+				name = GetNameOfTree();
+			name = "\"" + name + "\" ";
+
+			string cvType = "voltage";
+			if (args.cvType == CvType::CURRENT)
+				cvType = "current";
+
+			bool isCvValuePresent = false;
+			string cvUnit = "V";
+			if (!isnan(args.cvValue))
+			{
+				isCvValuePresent = true;
+				if (args.cvType == CvType::CURRENT)
+					cvUnit = "A";
+			}
+
+
+			cout << "A new " << cvType << " input";
+			if (isCvValuePresent)	cout << " " << args.cvValue << " " << cvUnit;
+			cout << " is created" << endl << endl;
 		}
 	
 };
