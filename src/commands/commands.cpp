@@ -1035,7 +1035,6 @@ class CommandCreateInput : public Command
 	
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
-
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
 	
@@ -1087,7 +1086,7 @@ class CommandCreateInput : public Command
 			
 			if (isFloatNumber(handeledArg))
 			{
-				args.cvValue = atof(handeledArg.c_str());
+				args.cvValue = strToDouble(handeledArg);
 
 				tokens.pop_front();
 				if (tokens.empty())    return args;
@@ -1178,6 +1177,10 @@ class CommandCreateConverter : public Command
 	
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
+			if (isnan(args.cvValue))
+				args.cvValue = requestCvValue(args.cvType);
+			if (args.parentName == "")
+				args.parentName = suggestSpecifieParentAndGet();
 	
 			createInputByArgs(args);
 	
@@ -1198,18 +1201,7 @@ class CommandCreateConverter : public Command
 			ConverterType type;
 			double efficiency;
 
-
-
-			bool operator == (const Arguments & partner)
-			{
-				return true;
-			}
-	
-			bool operator != (const Arguments & partner)
-			{
-				bool result = !(*this == partner);
-				return result;
-			}
+			string parentName;
 		};
 	
 	
@@ -1243,11 +1235,22 @@ class CommandCreateConverter : public Command
 
 			if (isFloatNumber(handeledArg))
 			{
-				args.cvValue = atof(handeledArg.c_str());
+				args.cvValue = strToDouble(handeledArg);
 
 				tokens.pop_front();
 				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
 			}
+
+			if (isConverterType(handeledArg))
+			{
+				args.type = strToDouble(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
 
 			throw exception("There is at least one invalid argument");
 		}
@@ -1265,6 +1268,30 @@ class CommandCreateConverter : public Command
 				throw exception("Invalid answer");
 
 			return name;
+		}
+
+
+		double requestCvValue (CvType type) const
+		{
+			cout << "Plase enter a value of " << type << endl;
+			string enteredValue; getline(cin, enteredValue);
+			auto value = strToDouble(enteredValue);
+			return value;
+		}
+
+
+		string suggestSpecifieParentAndGet () const
+		{
+			string parentName = "";
+			cout << "Do you want to leave the new converter unconnected?" << endl;
+			string answer; getline(cin, answer);
+
+			if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+				getline(cin, parentName);
+			else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+				throw exception("Invalid answer");
+
+			return parentName;
 		}
 
 
