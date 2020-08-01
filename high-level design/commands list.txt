@@ -1,99 +1,99 @@
 																									
 SYSTEM:                                                                                             
-- Quit                                                                                              |
-	Execute AcB.                                                                                    |
-																									|
-																									|
-GENERAL WORK WITH TREES:                                                                            |
-- Save                                                                                              |
-	May be a path. If no - by defaul by relative path.                                              |
-	If the name isn't specified, ask leave a default name or enter the user-defined.                |
-																									|
-- Load                                                                                              |
-	Request a name with a path if they're not specified.                                            |
-	Execute AcB.                                                                                    |
-																									|
-- Create                                                                                            |
-	If the name isn't specified, ask leave a default name or enter the user-defined.                |
-	Execute AbC.                                                                                    |
-	Add one input without defined parameters with some name if the name isn't specified.            |
-	The CV and its value for first input may be specified. By default - voltage.                    |
-	Possible arguments: name, name of first input, type CV of first input, value CV of first input  |
-																									|
-- Rename                                                                                            |
-	Request a name if it's not specified.                                                           |
-	Must don't work if a new tree isn't created or loaded yet - just suggest these options          |
-																									|
-- Solve                                                                                             |
-	Ask whether to show results.                                                                    |
-	About results view - see command "Display results"                                              |
-																									|
-- Display results                                                                                   |
-	If tree isn't solved since a last modification, say about it and propose to solve.              |
-	A format of result's view may be specified - table or tree. By default - table.                 |
-	Consumpted and put power may be shown.                                                          |
-																									|
-- Display structure                                                                                 |
-																									|
-																									|
-EDITING TREE:                                                                                       |
-- Create input                                                                                      |
-	If the name isn't specified, ask leave a default name or enter the user-defined.                |
-	CV may be specified or not. By default - voltage.                                               |
-	Parameters may be specified or not. Parameters - CV, if CV is voltage - max. current, if CV is  |
-		current - max. voltage.                                                                     |
-	Discard this command and show attenting message if the user has entered invalid field or        |
-		field's value.                                                                              |
-	If a parameter without key is specified - interprete it as CV.                                  |
-																									|
-- Create converter                                                                                  |
-	If the name isn't specified, ask leave a default name or enter the user-defined.                |
-	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  |
-	CV may be specified or not. By default - voltage.                                               |
-	Type of converter may be specified or not. By default - pulse. Avialable types - pulse or       |
-		linear.                                                                                     |
-	Parameters may be specified or not. Parameters - CV, max. and min. cur/volt (dep. on CV type),  |
-		efficiency, self-consumption.                                                               |
-	Discard this command and show attenting message if the user has entered invalid field or        |
-		field's value or nonexistent parent.                                                        |
-	If a parameter without key is specified - interprete it as CV.                                  |
-																									|
-- Create load                                                                                       |
-	If the name isn't specified, ask leave a default name or enter the user-defined.                |
-	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  |
-	Type of load may be specified or not. By default - resistive. Avialable types - resistive,      |
-		current or power.                                                                           |
-	Parameters may be specified or not. Parameters - resistance, max. power, max. current for res., |
-		nom. current, max. voltage for cur., nom. voltage, power, max. power, max. current for pow. |
-	Discard this command and show attenting message if the user has entered invalid field or        |
-		field's value or nonexistent parent.                                                        |
-	If a parameter without key is specified - interprete it as CV.                                  |
-																									|
-- Modify node                                                                                       |
-	Request a name if it's not specified.                                                           |
-	Any parameters except parent may be changed.                                                    |
-	Request a new value of changing field if it's not specified.                                    |
-	Request some field to changing if no one is specified.                                          |
-	Discard this command and show attenting message if the user has entered invalid field or        |
-		field's value.                                                                              |
-	If a parameter without key is specified - interprete it as CV for sources, resistance for res.  |
-		load, current for cur. load and power for pow. load.                                        |
-																									|
-- Delete node                                                                                       |
-	Request a name if it's not specified.                                                           |
-	Request ToD for sources if it's not specified. By defaul - "delete descendances".               |            
-	Requies a new parent, if ToD is "reassigne descendances" and a new parent isn't specified.      |
-																						           	|																								
-- Move node                                                                                         |
-	Request a name if it's not specified.                                                           |
-	Request a name of new parent if it's not specified.                                             |
-	Discard this command and show attenting message if the an invalid new parent's name has         |
-		entered.                                                                                    |
-	Discard if the object is input.                                                                 |
-																									|
-- Disconnect node                                                                                   |
-	Request a name if it's not specified.                                                           |
-	Discard if the object is input.                                                                 |
+- Quit                                                                                              
+	Execute AcB.                                                                                    
+																									
+																									
+GENERAL WORK WITH TREES:                                                                            
+- Save                                                                                              
+	May be a path. If no - by defaul by relative path.                                              
+	If the name isn't specified, ask leave a default name or enter the user-defined.                
+																									
+- Load                                                                                              
+	Request a name with a path if they're not specified.                                            
+	Execute AcB.                                                                                    
+																									
+- Create                                                                                            
+	If the name isn't specified, ask leave a default name or enter the user-defined.                
+	Execute AbC.                                                                                    
+	Add one input without defined parameters with some name if the name isn't specified.            
+	The CV and its value for first input may be specified. By default - voltage.                    
+	Possible arguments: name, name of first input, type CV of first input, value CV of first input  
+																									
+- Rename                                                                                            
+	Request a name if it's not specified.                                                           
+	Must don't work if a new tree isn't created or loaded yet - just suggest these options          
+																									
+- Solve                                                                                             
+	Ask whether to show results.                                                                    
+	About results view - see command "Display results"                                              
+																									
+- Display results                                                                                   
+	If tree isn't solved since a last modification, say about it and propose to solve.              
+	A format of result's view may be specified - table or tree. By default - table.                 
+	Consumpted and put power may be shown.                                                          
+																									
+- Display structure                                                                                 
+																									
+																									
+EDITING TREE:                                                                                       
+- Create input                                                                                      
+	If the name isn't specified, ask leave a default name or enter the user-defined.                
+	CV may be specified or not. By default - voltage.                                               
+	Parameters may be specified or not. Parameters - CV                                             
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value.     
+	Request a CV value if it's not specified.
+
+																									
+- Create converter                                                                                  
+	If the name isn't specified, ask leave a default name or enter the user-defined.                
+	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  
+	CV may be specified or not. By default - voltage.                                               
+	Type of converter may be specified or not. By default - pulse. Avialable types - pulse or       
+		linear.                                                                                     
+	Parameters may be specified or not. Parameters - CV, max. and min. cur/volt (dep. on CV type),  
+		efficiency, self-consumption.                                                               
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value or nonexistent parent.                                                        
+	If a parameter without key is specified - interprete it as CV.                                  
+																									
+- Create load                                                                                       
+	If the name isn't specified, ask leave a default name or enter the user-defined.                
+	If the parent isn't specified, ask leave uconnected or enter the user-defined.                  
+	Type of load may be specified or not. By default - resistive. Avialable types - resistive,      
+		current or power.                                                                           
+	Parameters may be specified or not. Parameters - resistance, max. power, max. current for res., 
+		nom. current, max. voltage for cur., nom. voltage, power, max. power, max. current for pow. 
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value or nonexistent parent.                                                        
+	If a parameter without key is specified - interprete it as CV.                                  
+																									
+- Modify node                                                                                       
+	Request a name if it's not specified.                                                           
+	Any parameters except parent may be changed.                                                    
+	Request a new value of changing field if it's not specified.                                    
+	Request some field to changing if no one is specified.                                          
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value.                                                                              
+	If a parameter without key is specified - interprete it as CV for sources, resistance for res.  
+		load, current for cur. load and power for pow. load.                                        
+																									
+- Delete node                                                                                       
+	Request a name if it's not specified.                                                           
+	Request ToD for sources if it's not specified. By defaul - "delete descendances".               
+	Requies a new parent, if ToD is "reassigne descendances" and a new parent isn't specified.      
+																						           																						
+- Move node                                                                                         
+	Request a name if it's not specified.                                                           
+	Request a name of new parent if it's not specified.                                             
+	Discard this command and show attenting message if the an invalid new parent's name has         
+		entered.                                                                                    
+	Discard if the object is input.                                                                 
+																									
+- Disconnect node                                                                                   
+	Request a name if it's not specified.                                                           
+	Discard if the object is input.                                                                 
 
 
 

@@ -295,7 +295,7 @@ class Command
 			return true;
 		}
 
-		static CvType parseCvType(const string & str)
+		static CvType parseCvType (const string & str)
 		{
 			if (!isCvType(str))
 #pragma todo write exceptions message
@@ -303,6 +303,14 @@ class Command
 
 			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return CvType::CURRENT;
 			return CvType::VOLTAGE;
+		}
+		
+		static bool isConverterType (const string & str)
+		{
+			if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
+			if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
+				if (str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
+			return true;
 		}
 };
 
@@ -1013,6 +1021,7 @@ class CommandDisplayStructure : public Command
 
 
 
+
 class CommandCreateInput : public Command
 {
 	
@@ -1026,6 +1035,9 @@ class CommandCreateInput : public Command
 	
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
+
+			if (isnan(args.cvValue))
+				args.cvValue = requestCvValue(args.cvType);
 	
 			createInputByArgs(args);
 	
@@ -1042,18 +1054,6 @@ class CommandCreateInput : public Command
 			string name = "";
 			CvType cvType = CvType::VOLTAGE;
 			double cvValue = NAN;
-	
-	
-			bool operator == (const Arguments & partner)
-			{
-				return true;
-			}
-	
-			bool operator != (const Arguments & partner)
-			{
-				bool result = !(*this == partner);
-				return result;
-			}
 		};
 	
 	
@@ -1112,6 +1112,15 @@ class CommandCreateInput : public Command
 		}
 	
 
+		double requestCvValue (CvType type) const
+		{
+			cout << "Plase enter a value of " << type << endl;
+			string enteredValue; getline(cin, enteredValue);
+			auto value = strToDouble(enteredValue);
+			return value;
+		}
+
+
 		void createInputByArgs (const Arguments & args) const
 		{
 			string name = args.name;
@@ -1148,6 +1157,125 @@ class CommandCreateInput : public Command
 			cout << "A new " << cvType << " input";
 			if (isCvValuePresent)	cout << " " << args.cvValue << " " << cvUnit;
 			cout << " is created" << endl << endl;
+		}
+	
+};
+
+
+
+
+
+class CommandCreateConverter : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+	
+			if (args.name == "")
+				args.name = suggestEnterNameAndGet();
+	
+			createInputByArgs(args);
+	
+			reportExcecution(args);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string name;
+			CvType cvType;
+			double cvValue;
+
+			ConverterType type;
+			double efficiency;
+
+
+
+			bool operator == (const Arguments & partner)
+			{
+				return true;
+			}
+	
+			bool operator != (const Arguments & partner)
+			{
+				bool result = !(*this == partner);
+				return result;
+			}
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+
+			if (tokens.empty())    return args;
+
+
+			auto handeledArg = tokens.front();
+
+			if (!isCvType(handeledArg) && !isConverterType(handeledArg) && !isFloatNumber(handeledArg))
+			{
+				args.name = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isCvType(handeledArg))
+			{
+				args.cvType = parseCvType(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isFloatNumber(handeledArg))
+			{
+				args.cvValue = atof(handeledArg.c_str());
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+			}
+
+			throw exception("There is at least one invalid argument");
+		}
+
+
+		string suggestEnterNameAndGet() const
+		{
+			string name = "";
+			cout << "Do you want to set a name for the new input?" << endl;
+			string answer; getline(cin, answer);
+
+			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				getline(cin, name);
+			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+				throw exception("Invalid answer");
+
+			return name;
+		}
+
+
+		void createInputByArgs(const Arguments& args) const
+		{
+		
+		}
+
+		void reportExcecution (const Arguments & args) const
+		{
+	
 		}
 	
 };
