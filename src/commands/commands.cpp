@@ -224,6 +224,7 @@ TreeStructure GetTreeStructure () { return TreeStructure(); }
 
 
 bool IsSourceExsist (string name) { return true; }
+string GetSourceType (string name) { return string(); }
 
 
 
@@ -1217,14 +1218,14 @@ class CommandCreateConverter : public Command
 	
 		struct Arguments
 		{
-			string name;
-			CvType cvType;
-			double cvValue;
+			string name = "";
+			CvType cvType = CvType::VOLTAGE;
+			double cvValue = NAN;
 
-			ConverterType type;
-			double efficiency;
+			ConverterType type = ConverterType::PULSE;
+			double efficiency = NAN;
 
-			string parentName;
+			string parentName = "";
 		};
 	
 	
@@ -1295,10 +1296,10 @@ class CommandCreateConverter : public Command
 		}
 
 
-		string suggestEnterNameAndGet() const
+		string suggestEnterNameAndGet () const
 		{
 			string name = "";
-			cout << "Do you want to set a name for the new input?" << endl;
+			cout << "Do you want to set a name for the new converter?" << endl;
 			string answer; getline(cin, answer);
 
 			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
@@ -1326,7 +1327,10 @@ class CommandCreateConverter : public Command
 			string answer; getline(cin, answer);
 
 			if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+			{
+				cout << "Enter the name of parent source" << endl;
 				getline(cin, parentName);
+			}
 			else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
 				throw exception("Invalid answer");
 
@@ -1358,28 +1362,24 @@ class CommandCreateConverter : public Command
 
 		void reportExcecution (const Arguments & args) const
 		{
-			string name = args.name;
-			if (name == "")
-				name = GetNameOfTree();
-			name = "\"" + name + "\" ";
+			bool isFree = args.parentName.empty();
 
-			string cvType = "voltage";
-			if (args.cvType == CvType::CURRENT)
-				cvType = "current";
 
-			bool isCvValuePresent = false;
+			string name = "\"" + args.name + "\" ";
+
 			string cvUnit = "V";
-			if (!isnan(args.cvValue))
-			{
-				isCvValuePresent = true;
-				if (args.cvType == CvType::CURRENT)
-					cvUnit = "A";
-			}
+			if (args.cvType == CvType::CURRENT)
+				cvUnit = "A";
 
 
-			cout << "A new " << cvType << " input";
-			if (isCvValuePresent)	cout << " " << args.cvValue << " " << cvUnit;
-			cout << " is created" << endl << endl;
+			cout << "A new ";
+			if (isFree)
+				cout << "free ";
+			cout << args.type << " converter " << args.cvValue << " " << cvUnit;
+			cout << " is created";
+			if (!isFree)
+				cout << " at the " << GetSourceType(args.parentName) << " \"" << args.parentName << "\"";
+			cout << endl << endl;
 		}
 	
 };
@@ -1439,6 +1439,7 @@ static const CommandDisplayResults   dr;
 static const CommandDisplayStructure ds;
 
 static const CommandCreateInput ci;
+static const CommandCreateConverter cc;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -1446,7 +1447,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 																			{ "dr", make_shared<CommandDisplayResults>(dr)   },
 																			{ "ds", make_shared<CommandDisplayStructure>(ds) },
 
-																			{ "ci", make_shared<CommandCreateInput>(ci)      }  };
+																			{ "ci", make_shared<CommandCreateInput>(ci)      },
+                                                                            { "cc", make_shared<CommandCreateConverter>(cc)  }  };
 
 
 
