@@ -1385,6 +1385,52 @@ class CommandCreateConverter : public Command
 };
 
 
+
+
+
+class CommandCreateLoad : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+
+			if (args.name == "")
+				args.name = suggestEnterNameAndGet();
+			if (isnan(args.cvValue))
+				args.cvValue = requestCvValue(args.cvType);
+			if (args.parentName == "")
+				args.parentName = suggestSpecifieParentAndGet();
+
+			createConverterByArgs(args);
+
+			reportExcecution(args);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			
+		};
+	
+	
+	
+		void reportExcecution (const Arguments& args) const
+		{
+	
+		}
+	
+};
+
+
 #pragma todo
 void test_Commands()
 {
@@ -1438,8 +1484,9 @@ static const CommandSolve  sv;
 static const CommandDisplayResults   dr;
 static const CommandDisplayStructure ds;
 
-static const CommandCreateInput ci;
+static const CommandCreateInput     ci;
 static const CommandCreateConverter cc;
+static const CommandCreateLoad      cl;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -1448,7 +1495,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 																			{ "ds", make_shared<CommandDisplayStructure>(ds) },
 
 																			{ "ci", make_shared<CommandCreateInput>(ci)      },
-                                                                            { "cc", make_shared<CommandCreateConverter>(cc)  }  };
+                                                                            { "cc", make_shared<CommandCreateConverter>(cc)  },
+																			{ "cl", make_shared<CommandCreateLoad>(cl)       }  };
 
 
 
