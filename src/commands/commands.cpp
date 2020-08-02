@@ -208,7 +208,7 @@ struct TreeStructure
 
 
 
-bool IsThereSomeTree () { return true; };
+bool IsThereSomeTree () { return true; }
 
 void CreateTree () {}
 void CreateTree (string name) {}
@@ -218,8 +218,12 @@ void RenameTree (string name) {}
 void Solve () {}
 Results GetResults () { return Results(); }
 
-string GetNameOfTree() { return string(); }
+string GetNameOfTree () { return string(); }
 TreeStructure GetTreeStructure () { return TreeStructure(); }
+
+
+
+bool IsSourceExsist (string name) { return true; }
 
 
 
@@ -229,6 +233,17 @@ void CreateInput (string name) {}
 void SetCvTypeForInput (string name, CvType type) {}
 void SetCvValueForInput (string name, double cvValue) {}
 
+
+
+string CreateConverter () { return string(); }
+void CreateConverter (string name) {}
+
+void ConnectConverterTo (string parentName) {}
+
+void SetTypeForConverter (string name, ConverterType type) {}
+void SetCvTypeForConverter (string name, CvType type) {}
+void SetCvValueForConverter (string name, double value) {}
+void SetEfficiencyForConverter (string name, double efficiency) {}
 
 
 
@@ -311,6 +326,16 @@ class Command
 			if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
 				if (str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
 			return true;
+		}
+
+		static ConverterType parseConverterType (const string & str)
+		{
+			if (!isConverterType(str))
+#pragma todo write exceptions message
+				throw exception();
+
+			if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
+			return ConverterType::PULSE;
 		}
 };
 
@@ -1120,9 +1145,9 @@ class CommandCreateInput : public Command
 		}
 
 
-		void createInputByArgs (const Arguments & args) const
+		void createInputByArgs (Arguments & args) const
 		{
-			string name = args.name;
+			string & name = args.name;
 			if (name.empty())
 				name = CreateInput();
 			else
@@ -1134,10 +1159,7 @@ class CommandCreateInput : public Command
 	
 		void reportExcecution (const Arguments & args) const
 		{
-			string name = args.name;
-			if (name == "")
-				name = GetNameOfTree();
-			name = "\"" + name + "\" ";
+			string name = "\"" + args.name + "\" ";
 
 			string cvType = "voltage";
 			if (args.cvType == CvType::CURRENT)
@@ -1153,8 +1175,9 @@ class CommandCreateInput : public Command
 			}
 
 
-			cout << "A new " << cvType << " input";
-			if (isCvValuePresent)	cout << " " << args.cvValue << " " << cvUnit;
+			cout << "A new " << cvType << " input " << name;
+			if (isCvValuePresent)	
+				cout << args.cvValue << " " << cvUnit;
 			cout << " is created" << endl << endl;
 		}
 	
@@ -1182,7 +1205,7 @@ class CommandCreateConverter : public Command
 			if (args.parentName == "")
 				args.parentName = suggestSpecifieParentAndGet();
 	
-			createInputByArgs(args);
+			createConverterByArgs(args);
 	
 			reportExcecution(args);
 		}
@@ -1244,13 +1267,29 @@ class CommandCreateConverter : public Command
 
 			if (isConverterType(handeledArg))
 			{
-				args.type = strToDouble(handeledArg);
+				args.type = parseConverterType(handeledArg);
 
 				tokens.pop_front();
 				if (tokens.empty())    return args;
 				handeledArg = tokens.front();
 			}
 
+			if (isFloatNumber(handeledArg))
+			{
+				args.efficiency = strToDouble(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (!isCvType(handeledArg) && !isConverterType(handeledArg) && !isFloatNumber(handeledArg))
+			{
+				args.parentName = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+			}
 
 			throw exception("There is at least one invalid argument");
 		}
@@ -1295,14 +1334,52 @@ class CommandCreateConverter : public Command
 		}
 
 
-		void createInputByArgs(const Arguments& args) const
+		void createConverterByArgs (const Arguments & args) const
 		{
-		
+			string name = args.name;
+			if (name.empty())
+				name = CreateConverter();
+			else
+				CreateConverter(name);
+
+			if (!args.parentName.empty())
+			{
+				if (IsSourceExsist(args.parentName))
+					ConnectConverterTo(args.parentName);
+				else
+					throw exception("Invalid parent source for the new converter is specified");
+			}
+
+			SetTypeForConverter(name, args.type);
+			SetCvTypeForConverter(name, args.cvType);
+			SetCvValueForConverter(name, args.cvValue);
+			SetEfficiencyForConverter(name, args.efficiency);
 		}
 
 		void reportExcecution (const Arguments & args) const
 		{
-	
+			string name = args.name;
+			if (name == "")
+				name = GetNameOfTree();
+			name = "\"" + name + "\" ";
+
+			string cvType = "voltage";
+			if (args.cvType == CvType::CURRENT)
+				cvType = "current";
+
+			bool isCvValuePresent = false;
+			string cvUnit = "V";
+			if (!isnan(args.cvValue))
+			{
+				isCvValuePresent = true;
+				if (args.cvType == CvType::CURRENT)
+					cvUnit = "A";
+			}
+
+
+			cout << "A new " << cvType << " input";
+			if (isCvValuePresent)	cout << " " << args.cvValue << " " << cvUnit;
+			cout << " is created" << endl << endl;
 		}
 	
 };
