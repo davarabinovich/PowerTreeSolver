@@ -1137,7 +1137,7 @@ class CommandCreateInput : public Command
 		}
 	
 
-		double requestCvValue (CvType type) const
+		double requestCvValue (const CvType type) const
 		{
 			cout << "Plase enter a value of " << type << endl;
 			string enteredValue; getline(cin, enteredValue);
@@ -1311,7 +1311,7 @@ class CommandCreateConverter : public Command
 		}
 
 
-		double requestCvValue (CvType type) const
+		double requestCvValue (const CvType type) const
 		{
 			cout << "Plase enter a value of " << type << endl;
 			string enteredValue; getline(cin, enteredValue);
@@ -1401,12 +1401,12 @@ class CommandCreateLoad : public Command
 
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
-			if (isnan(args.cvValue))
-				args.cvValue = requestCvValue(args.cvType);
+			if (isnan(args.value))
+				args.value = requestValue(args.type);
 			if (args.parentName == "")
 				args.parentName = suggestSpecifieParentAndGet();
 
-			createConverterByArgs(args);
+			createLoadByArgs(args);
 
 			reportExcecution(args);
 		}
@@ -1418,12 +1418,85 @@ class CommandCreateLoad : public Command
 	
 		struct Arguments
 		{
-			
+			string name = "";
+			LoadType type = LoadType::RESISTIVE;
+			double value = NAN;
+
+			string parentName;
 		};
 	
 	
-	
-		void reportExcecution (const Arguments& args) const
+
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			return Arguments();
+		}
+		
+		string suggestEnterNameAndGet () const
+		{
+			string name = "";
+			cout << "Do you want to set a name for the new load?" << endl;
+			string answer; getline(cin, answer);
+
+			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				getline(cin, name);
+			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+				throw exception("Invalid answer");
+
+			return name;
+		}
+
+		double requestValue (const LoadType type) const
+		{
+			cout << "Plase enter a value of ";
+			string mainParam; 
+			switch (type)
+			{
+				case LoadType::RESISTIVE:
+					mainParam = "resistance";
+					break;
+
+				case LoadType::CURRENT:
+					mainParam = "current";
+					break;
+
+				case LoadType::POWER:
+						mainParam = "power";
+						break;
+			
+				default:
+						throw exception("Invalid type of load");
+			}
+			cout << mainParam << endl;
+			
+			string enteredValue; getline(cin, enteredValue);
+			auto value = strToDouble(enteredValue);
+			return value;
+		}
+
+		string suggestSpecifieParentAndGet () const
+		{
+			string parentName = "";
+			cout << "Do you want to leave the new load unconnected?" << endl;
+			string answer; getline(cin, answer);
+
+			if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+			{
+				cout << "Enter the name of parent source" << endl;
+				getline(cin, parentName);
+			}
+			else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+				throw exception("Invalid answer");
+
+			return parentName;
+		}
+
+		void createLoadByArgs (const Arguments & args) const
+		{
+			
+		}
+
+		void reportExcecution (const Arguments & args) const
 		{
 	
 		}
