@@ -240,7 +240,7 @@ void CreateInput (string name) {}
 void SetCvTypeForInput (string name, CvType type) {}
 void SetCvValueForInput (string name, double cvValue) {}
 
-bool IsInputExsist (string name) { return true; }
+bool IsInputExsist (string name) { return false; }
 
 
 
@@ -252,6 +252,8 @@ void SetCvTypeForConverter (string name, CvType type) {}
 void SetCvValueForConverter (string name, double value) {}
 void SetEfficiencyForConverter (string name, double efficiency) {}
 
+bool IsConverterExsist (string name) { return false; }
+
 
 
 string CreateLoad () { return string(); }
@@ -261,6 +263,7 @@ void SetTypeForLoad (string name, LoadType type) {}
 void SetValueForLoad (string name, double value) {}
 void SetNomVoltageForLoad (string name, double nomVoltage) {}
 
+bool IsLoadExsist (string name) { return false; }
 
 
 
@@ -1093,11 +1096,9 @@ class CommandCreateInput : public Command
 			catch (exception & ex) { throw exception(ex.what()); }
 	
 			if (args.name == "")
-			{
-				string name = args.name;
-				while (IsInputExsist(args.name))
-					args.name = suggestEnterNameAndGet();
-			}
+				args.name = suggestEnterNameAndGet();
+			while (IsInputExsist(args.name))
+				args.name = requestUniqueName();
 
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
@@ -1159,7 +1160,6 @@ class CommandCreateInput : public Command
 			throw exception("There is at least one invalid argument");
 		}
 
-	
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
@@ -1174,6 +1174,12 @@ class CommandCreateInput : public Command
 			return name;
 		}
 	
+		string requestUniqueName () const
+		{
+			cout << "This name is already taken. Please enter other name" << endl;
+			string newName; getline(cin, newName);
+			return newName;
+		}
 
 		double requestCvValue (const CvType type) const
 		{
@@ -1182,7 +1188,6 @@ class CommandCreateInput : public Command
 			auto value = strToDouble(enteredValue);
 			return value;
 		}
-
 
 		void createInputByArgs (Arguments & args) const
 		{
@@ -1239,6 +1244,9 @@ class CommandCreateConverter : public Command
 	
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
+			while (IsConverterExsist(args.name))
+				args.name = requestUniqueName();
+
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
 			if (args.parentName == "")
@@ -1333,7 +1341,6 @@ class CommandCreateConverter : public Command
 			throw exception("There is at least one invalid argument");
 		}
 
-
 		string suggestEnterNameAndGet () const
 		{
 			string name = "";
@@ -1348,6 +1355,12 @@ class CommandCreateConverter : public Command
 			return name;
 		}
 
+		string requestUniqueName () const
+		{
+			cout << "This name is already taken. Please enter other name" << endl;
+			string newName; getline(cin, newName);
+			return newName;
+		}
 
 		double requestCvValue (const CvType type) const
 		{
@@ -1356,7 +1369,6 @@ class CommandCreateConverter : public Command
 			auto value = strToDouble(enteredValue);
 			return value;
 		}
-
 
 		string suggestSpecifieParentAndGet () const
 		{
@@ -1374,7 +1386,6 @@ class CommandCreateConverter : public Command
 
 			return parentName;
 		}
-
 
 		void createConverterByArgs (const Arguments & args) const
 		{
@@ -1439,6 +1450,9 @@ class CommandCreateLoad : public Command
 
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
+			while (IsLoadExsist(args.name))
+				args.name = requestUniqueName();
+
 			if (isnan(args.value))
 				args.value = requestValue(args.type);
 			if (args.parentName == "")
@@ -1533,6 +1547,13 @@ class CommandCreateLoad : public Command
 				throw exception("Invalid answer");
 
 			return name;
+		}
+
+		string requestUniqueName () const
+		{
+			cout << "This name is already taken. Please enter other name" << endl;
+			string newName; getline(cin, newName);
+			return newName;
 		}
 
 		double requestValue (const LoadType type) const
