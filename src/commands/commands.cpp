@@ -7,6 +7,8 @@
 #include <vector>
 #include <deque>
 #include <set>
+#include <variant>
+
 
 #pragma todo
 #include <cassert>
@@ -228,6 +230,10 @@ string GetSourceType (string name) { return string(); }
 
 
 
+void ConnectSinkTo(string sinkName, string parentName) {}
+
+
+
 string CreateInput () { return string(); }
 void CreateInput (string name) {}
 
@@ -239,13 +245,19 @@ void SetCvValueForInput (string name, double cvValue) {}
 string CreateConverter () { return string(); }
 void CreateConverter (string name) {}
 
-void ConnectConverterTo (string parentName) {}
-
 void SetTypeForConverter (string name, ConverterType type) {}
 void SetCvTypeForConverter (string name, CvType type) {}
 void SetCvValueForConverter (string name, double value) {}
 void SetEfficiencyForConverter (string name, double efficiency) {}
 
+
+
+string CreateLoad () { return string(); }
+void CreateLoad (string name) {}
+
+void SetTypeForLoad (string name, LoadType type) {}
+void SetValueForLoad (string name, double value) {}
+void SetNomVoltageForLoad (string name, double nomVoltage) {}
 
 
 
@@ -337,6 +349,25 @@ class Command
 
 			if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
 			return ConverterType::PULSE;
+		}
+
+		static bool isLoadType (const string & str)
+		{
+			if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
+			if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
+				if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
+					if (str != "pow" && str != "Pow" && str != "power" && str != "Power")    return false;
+			return true;
+		}
+
+		static LoadType parseLoadType (const string & str)
+		{
+			if (!isConverterType(str))
+				throw exception("Invalid type of load");
+
+			if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
+			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CURRENT;
+			return LoadType::POWER;
 		}
 };
 
@@ -1349,7 +1380,7 @@ class CommandCreateConverter : public Command
 			if (!args.parentName.empty())
 			{
 				if (IsSourceExsist(args.parentName))
-					ConnectConverterTo(args.parentName);
+					ConnectSinkTo(name, args.parentName);
 				else
 					throw exception("Invalid parent source for the new converter is specified");
 			}
@@ -1422,14 +1453,65 @@ class CommandCreateLoad : public Command
 			LoadType type = LoadType::RESISTIVE;
 			double value = NAN;
 
-			string parentName;
+			double nomVoltage = NAN;
+
+			string parentName = "";
 		};
 	
 	
 
 		Arguments parseArguments (TokensDeque & tokens) const
 		{
-			return Arguments();
+			Arguments args;
+
+			if (tokens.empty())    return args;
+
+
+			auto handeledArg = tokens.front();
+
+			if (!isLoadType(handeledArg) && !isFloatNumber(handeledArg))
+			{
+				args.name = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isLoadType(handeledArg))
+			{
+				args.type = parseLoadType(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isFloatNumber(handeledArg))
+			{
+				args.value = strToDouble(handeledArg);
+
+				tokens.pop_front();
+				if (args.type != LoadType::POWER) 
+				{
+					if (tokens.empty())    return args;
+				}
+				else
+				{
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+
+					if (isFloatNumber(handeledArg))
+					{
+						args.value = strToDouble(handeledArg);
+
+						tokens.pop_front();
+						if (tokens.empty())    return args;
+					}
+				}
+			}
+
+			throw exception("There is at least one invalid argument");
 		}
 		
 		string suggestEnterNameAndGet () const
@@ -1493,7 +1575,24 @@ class CommandCreateLoad : public Command
 
 		void createLoadByArgs (const Arguments & args) const
 		{
-			
+			string name = args.name;
+			if (name.empty())
+				name = CreateLoad();
+			else
+				CreateLoad(name);
+
+			if (!args.parentName.empty())
+			{
+				if (IsSourceExsist(args.parentName))
+					ConnectSinkTo(name, args.parentName);
+				else
+					throw exception("Invalid parent source for the new converter is specified");
+			}
+
+			SetTypeForLoad(name, args.type);
+			SetValueForLoad(name, args.value);
+			if (args.type == LoadType::POWER)
+				SetNomVoltageForLoad(name, args.nomVoltage);
 		}
 
 		void reportExcecution (const Arguments & args) const
