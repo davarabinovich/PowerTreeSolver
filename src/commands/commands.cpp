@@ -305,7 +305,7 @@ class Command
 				if (!isdigit(*letter_it))
 					return false;
 			}
-
+			letter_it++;
 			for ( ; letter_it != str.cend(); letter_it++)
 			{
 				if (!isdigit(*letter_it))
@@ -362,7 +362,7 @@ class Command
 
 		static LoadType parseLoadType (const string & str)
 		{
-			if (!isConverterType(str))
+			if (!isLoadType(str))
 				throw exception("Invalid type of load");
 
 			if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
@@ -1406,7 +1406,7 @@ class CommandCreateConverter : public Command
 			cout << "A new ";
 			if (isFree)
 				cout << "free ";
-			cout << args.type << " converter " << args.cvValue << " " << cvUnit;
+			cout << args.type << " converter " << name << args.cvValue << " " << cvUnit;
 			cout << " is created";
 			if (!isFree)
 				cout << " at the " << GetSourceType(args.parentName) << " \"" << args.parentName << "\"";
@@ -1597,7 +1597,26 @@ class CommandCreateLoad : public Command
 
 		void reportExcecution (const Arguments & args) const
 		{
-	
+			bool isFree = args.parentName.empty();
+
+
+			string name = "\"" + args.name + "\" ";
+
+			string valueUnit = "Ohm";
+			if (args.type == LoadType::CURRENT)
+				valueUnit = "A";
+			else if (args.type == LoadType::POWER)
+				valueUnit = "W";
+
+
+			cout << "A new ";
+			if (isFree)
+				cout << "free ";
+			cout << args.type << " load " << name << args.value << " " << valueUnit;
+			cout << " is created";
+			if (!isFree)
+				cout << " at the " << GetSourceType(args.parentName) << " \"" << args.parentName << "\"";
+			cout << endl << endl;
 		}
 	
 };
