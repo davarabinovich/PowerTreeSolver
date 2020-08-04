@@ -240,6 +240,8 @@ void CreateInput (string name) {}
 void SetCvTypeForInput (string name, CvType type) {}
 void SetCvValueForInput (string name, double cvValue) {}
 
+bool IsInputExsist (string name) { return true; }
+
 
 
 string CreateConverter () { return string(); }
@@ -1091,7 +1093,12 @@ class CommandCreateInput : public Command
 			catch (exception & ex) { throw exception(ex.what()); }
 	
 			if (args.name == "")
-				args.name = suggestEnterNameAndGet();
+			{
+				string name = args.name;
+				while (IsInputExsist(args.name))
+					args.name = suggestEnterNameAndGet();
+			}
+
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
 	
