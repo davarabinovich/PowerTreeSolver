@@ -1650,6 +1650,41 @@ class CommandCreateLoad : public Command
 };
 
 
+
+
+
+class CommandModifyInput : public Command
+{
+	
+	public:
+	
+		virtual void execute(TokensDeque& tokens) const
+		{
+	
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+	
+		};
+	
+	
+	
+		void reportExcecution(const Arguments& args) const
+		{
+	
+		}
+	
+};
+
+
+
+
 #pragma todo
 void test_Commands()
 {
@@ -1706,6 +1741,7 @@ static const CommandDisplayStructure ds;
 static const CommandCreateInput     ci;
 static const CommandCreateConverter cc;
 static const CommandCreateLoad      cl;
+static const CommandModifyInput mi;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -1715,7 +1751,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 
 																			{ "ci", make_shared<CommandCreateInput>(ci)      },
                                                                             { "cc", make_shared<CommandCreateConverter>(cc)  },
-																			{ "cl", make_shared<CommandCreateLoad>(cl)       }  };
+																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
+                                                                            { "mi", make_shared<CommandModifyInput>(mi)      }  };
 
 
 
