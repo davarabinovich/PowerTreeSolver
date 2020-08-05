@@ -241,7 +241,7 @@ void RenameInput (string oldName, string newName) {}
 void SetCvTypeForInput (string name, CvType type) {}
 void SetCvValueForInput (string name, double cvValue) {}
 
-bool IsInputExsist (string name) { return false; }
+bool IsInputExsist (string name) { return true; }
 
 
 
@@ -253,7 +253,7 @@ void SetCvTypeForConverter (string name, CvType type) {}
 void SetCvValueForConverter (string name, double value) {}
 void SetEfficiencyForConverter (string name, double efficiency) {}
 
-bool IsConverterExsist (string name) { return false; }
+bool IsConverterExsist (string name) { return true; }
 
 
 
@@ -264,7 +264,7 @@ void SetTypeForLoad (string name, LoadType type) {}
 void SetValueForLoad (string name, double value) {}
 void SetNomVoltageForLoad (string name, double nomVoltage) {}
 
-bool IsLoadExsist (string name) { return false; }
+bool IsLoadExsist (string name) { return true; }
 
 
 
@@ -311,6 +311,9 @@ class Command
 				if (!isdigit(*letter_it))
 					return false;
 			}
+
+			if (letter_it == str.cend())    return true;
+
 			letter_it++;
 			for ( ; letter_it != str.cend(); letter_it++)
 			{
@@ -1665,9 +1668,13 @@ class CommandModifyInput : public Command
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 
-			modifyLoadParams(args);
-
-			reportExcecution(args);
+			if (IsInputExsist(args.currentName))
+			{
+				modifyLoadParams(args);
+				reportExcecution(args);
+			}
+			else
+				reportNonexsistentInput(args.currentName);
 		}
 	
 	
@@ -1689,24 +1696,35 @@ class CommandModifyInput : public Command
 		Arguments parseArguments (TokensDeque & tokens) const
 		{
 			Arguments args;
+			if (tokens.empty())    return args;
 
+			args.currentName = tokens.front();
+			if (tokens.empty())    return args;
+
+			tokens.pop_front();
 			for (const auto & token : tokens)
 			{
-				if (!isParamWithKey(token))
+				if (isParamWithKey(token))
 				{
 					string key = extractKeyFromToken(token);
 					if (key == "n")
 					{
+						if (args.newName.first == true)    continue;
+
 						args.newName.first = true;
 						args.newName.second = extractParamFromToken(token);
 					}
 					else if (key == "t")
 					{
+						if (args.cvType.first == true)    continue;
+
 						args.cvType.first = true;
 						args.cvType.second = parseCvType(extractParamFromToken(token));
 					}
 					else if (key == "v")
 					{
+						if (args.cvValue.first == true)    continue;
+
 						args.cvValue.first = true;
 						args.cvValue.second = strToDouble(extractParamFromToken(token));
 					}
@@ -1717,19 +1735,28 @@ class CommandModifyInput : public Command
 				{
 					if (isCvType(token))
 					{
-						args.cvType.first = true;
-						args.cvType.second = parseCvType(token);
+						if (args.cvType.first == false)
+						{
+							args.cvType.first = true;
+							args.cvType.second = parseCvType(token);
+							continue;
+						}
 					}
-					else if (isFloatNumber(token))
+
+					if (isFloatNumber(token))
 					{
-						args.cvValue.first = true;
-						args.cvValue.second = strToDouble(token);
+						if (args.cvValue.first == false)
+						{
+							args.cvValue.first = true;
+							args.cvValue.second = strToDouble(token);
+							continue;
+						}
 					}
-					else
-					{
-						args.newName.first = true;
-						args.newName.second = token;
-					}
+					
+					if (args.newName.first == true)    continue;
+
+					args.newName.first = true;
+					args.newName.second = token;
 				}
 			}
 
@@ -1794,6 +1821,11 @@ class CommandModifyInput : public Command
 			}
 
 			cout << endl;
+		}
+
+		void reportNonexsistentInput (const string & name) const
+		{
+			cout << "An input \"" << name << "\" doesn't exsist." << endl;
 		}
 	
 };
