@@ -32,7 +32,7 @@ void shiftSpaces (unsigned spaces_qty)
 		cout << " ";
 }
 
-void scrollInteratorToNewWord_unsafe(string::const_iterator& char_it)
+void scrollInteratorToNewWord_unsafe(string::const_iterator & char_it)
 {
 	while (*char_it == ' ') char_it++;
 }
@@ -237,6 +237,7 @@ void ConnectSinkTo(string sinkName, string parentName) {}
 string CreateInput () { return string(); }
 void CreateInput (string name) {}
 
+void RenameInput (string oldName, string newName) {}
 void SetCvTypeForInput (string name, CvType type) {}
 void SetCvValueForInput (string name, double cvValue) {}
 
@@ -1658,9 +1659,15 @@ class CommandModifyInput : public Command
 	
 	public:
 	
-		virtual void execute(TokensDeque& tokens) const
+		virtual void execute (TokensDeque & tokens) const
 		{
-	
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+
+			modifyLoadParams(args);
+
+			reportExcecution(args);
 		}
 	
 	
@@ -1670,14 +1677,123 @@ class CommandModifyInput : public Command
 	
 		struct Arguments
 		{
-	
+			string currentName;
+
+			pair<bool, string> newName = { false, "" };
+			pair<bool, CvType> cvType = { false, CvType::VOLTAGE };
+			pair<bool, double> cvValue = { false, NAN };
 		};
 	
 	
 	
-		void reportExcecution(const Arguments& args) const
+		Arguments parseArguments (TokensDeque & tokens) const
 		{
-	
+			Arguments args;
+
+			for (const auto & token : tokens)
+			{
+				if (!isParamWithKey(token))
+				{
+					string key = extractKeyFromToken(token);
+					if (key == "n")
+					{
+						args.newName.first = true;
+						args.newName.second = extractParamFromToken(token);
+					}
+					else if (key == "t")
+					{
+						args.cvType.first = true;
+						args.cvType.second = parseCvType(extractParamFromToken(token));
+					}
+					else if (key == "v")
+					{
+						args.cvValue.first = true;
+						args.cvValue.second = strToDouble(extractParamFromToken(token));
+					}
+					else
+						throw exception(  string("Unrecognized parameter \"" + key).c_str()  );
+				}
+				else
+				{
+					if (isCvType(token))
+					{
+						args.cvType.first = true;
+						args.cvType.second = parseCvType(token);
+					}
+					else if (isFloatNumber(token))
+					{
+						args.cvValue.first = true;
+						args.cvValue.second = strToDouble(token);
+					}
+					else
+					{
+						args.newName.first = true;
+						args.newName.second = token;
+					}
+				}
+			}
+
+			return args;
+		}
+
+		bool isParamWithKey (const string & token) const
+		{
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			if (charEqual_it != token.end())    return true;
+			return false;
+		}
+
+		string extractKeyFromToken (const string & token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(token.begin(), charEqual_it);
+			return result;
+		}
+
+		string extractParamFromToken (const string & token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(charEqual_it+1, token.end());
+			return result;
+		}
+
+
+		void modifyLoadParams (const Arguments & args) const
+		{
+			if (args.newName.first == true)
+				RenameInput(args.currentName, args.newName.second);
+			if (args.cvType.first == true)
+				SetCvTypeForInput(args.currentName, args.cvType.second);
+			if (args.cvValue.first == true)
+				SetCvValueForInput(args.currentName, args.cvValue.second);
+		}
+
+
+		void reportExcecution (const Arguments & args) const
+		{
+			cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
+			
+			if (args.newName.first == true)
+				cout << endl << "    Name - \"" << args.newName.second << "\"";
+			if (args.cvType.first == true)
+				cout << endl << "    Type of controlled variable - " << args.cvType.second;
+			if (args.cvValue.first == true)
+			{
+				cout << endl << "    Controlled variable - " << args.cvValue.second;
+
+				string cvUnit = "V";
+				if (args.cvType.second == CvType::CURRENT)
+					cvUnit = "A";
+				cout << " " << cvUnit;
+			}
+
+			cout << endl;
 		}
 	
 };
