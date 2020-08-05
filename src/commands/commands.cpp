@@ -140,6 +140,10 @@ ostream & operator << (ostream & os, const ConverterType & type)
 
 
 
+enum class DeletingMode { WITH_DESCENDANTS, HANG_DESCENDANTS, RECONNECT_DESCENDANTS };
+
+
+
 
 
 struct Results
@@ -2222,7 +2226,6 @@ class CommandModifyLoad : public Command
 				SetNomVoltageForPowerLoad(args.currentName, args.nomVoltage.second);
 		}
 	
-	
 		void reportExcecution (const Arguments & args) const
 		{
 			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
@@ -2260,6 +2263,151 @@ class CommandModifyLoad : public Command
 
 
 
+
+class CommandDeleteInput : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+
+			if (IsInputExsist(args.name))
+			{
+				deleteInput(args);
+				reportExcecution(args);
+			}
+			else
+				reportNonexsistentInput(args.name);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string name;
+
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+			if (tokens.empty())    return args;
+
+			args.currentName = tokens.front();
+			if (tokens.empty())    return args;
+
+			tokens.pop_front();
+			for (const auto& token : tokens)
+			{
+				if (isParamWithKey(token))
+				{
+					string key = extractKeyFromToken(token);
+					if (key == "n")
+					{
+						if (args.newName.first == true)    continue;
+
+						args.newName.first = true;
+						args.newName.second = extractParamFromToken(token);
+					}
+					else if (key == "t")
+					{
+						if (args.type.first == true)    continue;
+
+						args.type.first = true;
+						args.type.second = parseLoadType(extractParamFromToken(token));
+					}
+					else if (key == "v")
+					{
+						if (args.value.first == true)    continue;
+
+						args.value.first = true;
+						args.value.second = strToDouble(extractParamFromToken(token));
+					}
+					else if (key == "n")
+					{
+						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+
+						if (args.nomVoltage.first == true)    continue;
+
+						args.nomVoltage.first = true;
+						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
+					}
+					else
+						throw exception(string("Unrecognized parameter \"" + key).c_str());
+				}
+				else
+				{
+					if (isLoadType(token))
+					{
+						if (args.type.first == false)
+						{
+							args.type.first = true;
+							args.type.second = parseLoadType(token);
+							continue;
+						}
+					}
+
+					if (isFloatNumber(token))
+					{
+						if (args.value.first == false)
+						{
+							args.value.first = true;
+							args.value.second = strToDouble(token);
+							continue;
+						}
+
+						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+
+						if (args.nomVoltage.first == false)
+						{
+							args.nomVoltage.first = true;
+							args.nomVoltage.second = strToDouble(token);
+							continue;
+						}
+					}
+
+					if (args.newName.first == true)    continue;
+
+					args.newName.first = true;
+					args.newName.second = token;
+				}
+			}
+
+			return args;
+		}
+
+		void deleteInput (const Arguments & args) const
+		{
+
+		}
+
+		void reportExcecution (const Arguments & args) const
+		{
+	
+		}
+	
+		void reportNonexsistentInput (const string & name) const
+		{
+			cout << "An input \"" << name << "\" doesn't exsist." << endl;
+		}
+};
+
+
+
+
+
+
+
+
 #pragma todo
 void test_Commands()
 {
@@ -2283,16 +2431,7 @@ private:
 
 	struct Arguments
 	{
-		bool operator == (const Arguments& partner)
-		{
-			return true;
-		}
 
-		bool operator != (const Arguments& partner)
-		{
-			bool result = !(*this == partner);
-			return result;
-		}
 	};
 
 
