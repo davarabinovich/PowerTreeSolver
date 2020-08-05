@@ -248,6 +248,7 @@ bool IsInputExsist (string name) { return true; }
 string CreateConverter () { return string(); }
 void CreateConverter (string name) {}
 
+void RenameConverter(string oldName, string newName) {}
 void SetTypeForConverter (string name, ConverterType type) {}
 void SetCvTypeForConverter (string name, CvType type) {}
 void SetCvValueForConverter (string name, double value) {}
@@ -2004,11 +2005,220 @@ class CommandModifyConverter : public Command
 		void modifyConverterParams (const Arguments & args) const
 		{
 			if (args.newName.first == true)
+				RenameConverter(args.currentName, args.newName.second);
+			if (args.cvType.first == true)
+				SetCvTypeForConverter(args.currentName, args.cvType.second);
+			if (args.cvValue.first == true)
+				SetCvValueForConverter(args.currentName, args.cvValue.second);
+
+			if (args.type.first == true)
+				SetTypeForConverter(args.currentName, args.type.second);
+			if (args.efficiency.first == true)
+				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
+		}
+	
+	
+		void reportExcecution (const Arguments & args) const
+		{
+			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
+	
+			if (args.newName.first == true)
+				cout << endl << "    Name - \"" << args.newName.second << "\"";
+			if (args.type.first == true)
+				cout << endl << "    Type - " << args.type.second;
+			if (args.cvType.first == true)
+				cout << endl << "    Type of controlled variable - " << args.cvType.second;
+			if (args.cvValue.first == true)
+			{
+				cout << endl << "    Controlled variable - " << args.cvValue.second;
+	
+				string cvUnit = "V";
+				if (args.cvType.second == CvType::CURRENT)
+					cvUnit = "A";
+				cout << " " << cvUnit;
+			}
+			if (args.efficiency.first == true)
+			{
+				cout << endl << "    Efficiency - " << args.efficiency.second << " %";
+			}
+	
+			cout << endl;
+		}
+	
+		void reportNonexsistentConverter (const string & name) const
+		{
+			cout << "An converter \"" << name << "\" doesn't exsist." << endl;
+		}
+	
+};
+
+
+
+
+
+class CommandModifyLoad : public Command
+{
+	
+	public:
+	
+		virtual void execute(TokensDeque& tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+	
+			if (IsLoadExsist(args.currentName))
+			{
+				modifyLoadParams(args);
+				reportExcecution(args);
+			}
+			else
+				reportNonexsistentLoad(args.currentName);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string currentName;
+	
+			pair<bool, string> newName = { false, "" };
+			pair<bool, LoadType> type = { false, LoadType::RESISTIVE };
+			pair<bool, double> value = { false, NAN };
+
+			pair<bool, double> nomVoltage = { false, NAN };
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+			if (tokens.empty())    return args;
+	
+			args.currentName = tokens.front();
+			if (tokens.empty())    return args;
+	
+			tokens.pop_front();
+			for (const auto& token : tokens)
+			{
+				if (isParamWithKey(token))
+				{
+					string key = extractKeyFromToken(token);
+					if (key == "n")
+					{
+						if (args.newName.first == true)    continue;
+	
+						args.newName.first = true;
+						args.newName.second = extractParamFromToken(token);
+					}
+					else if (key == "t")
+					{
+						if (args.type.first == true)    continue;
+	
+						args.type.first = true;
+						args.type.second = parseLoadType(extractParamFromToken(token));
+					}
+					else if (key == "v")
+					{
+						if (args.value.first == true)    continue;
+	
+						args.value.first = true;
+						args.value.second = strToDouble(extractParamFromToken(token));
+					}
+					else if (key == "n")
+					{
+						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+						
+						if (args.nomVoltage.first == true)    continue;
+	
+						args.nomVoltage.first = true;
+						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
+					}
+					else
+						throw exception(string("Unrecognized parameter \"" + key).c_str());
+				}
+				else
+				{
+					if (isLoadType(token))
+					{
+						if (args.type.first == false)
+						{
+							args.type.first = true;
+							args.type.second = parseLoadType(token);
+							continue;
+						}
+					}
+	
+					if (isFloatNumber(token))
+					{
+						if (args.value.first == false)
+						{
+							args.value.first = true;
+							args.value.second = strToDouble(token);
+							continue;
+						}
+
+						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+
+						if (args.nomVoltage.first == false)
+						{
+							args.nomVoltage.first = true;
+							args.nomVoltage.second = strToDouble(token);
+							continue;
+						}
+					}
+	
+					if (args.newName.first == true)    continue;
+	
+					args.newName.first = true;
+					args.newName.second = token;
+				}
+			}
+	
+			return args;
+		}
+	
+		bool isParamWithKey(const string& token) const
+		{
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			if (charEqual_it != token.end())    return true;
+			return false;
+		}
+	
+		string extractKeyFromToken(const string& token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+	
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(token.begin(), charEqual_it);
+			return result;
+		}
+	
+		string extractParamFromToken(const string& token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+	
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(charEqual_it + 1, token.end());
+			return result;
+		}
+	
+	
+		void modifyLoadParams(const Arguments& args) const
+		{
+			if (args.newName.first == true)
 				RenameInput(args.currentName, args.newName.second);
 			if (args.cvType.first == true)
 				SetCvTypeForConverter(args.currentName, args.cvType.second);
 			if (args.cvValue.first == true)
 				SetCvValueForConverter(args.currentName, args.cvValue.second);
+	
 			if (args.type.first == true)
 				SetTypeForConverter(args.currentName, args.type.second);
 			if (args.efficiency.first == true)
@@ -2043,7 +2253,7 @@ class CommandModifyConverter : public Command
 			cout << endl;
 		}
 	
-		void reportNonexsistentConverter(const string& name) const
+		void reportNonexsistentLoad(const string& name) const
 		{
 			cout << "An converter \"" << name << "\" doesn't exsist." << endl;
 		}
@@ -2111,6 +2321,7 @@ static const CommandCreateConverter cc;
 static const CommandCreateLoad      cl;
 static const CommandModifyInput     mi;
 static const CommandModifyConverter mc;
+static const CommandModifyLoad      ml;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -2122,7 +2333,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
                                                                             { "cc", make_shared<CommandCreateConverter>(cc)  },
 																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
                                                                             { "mi", make_shared<CommandModifyInput>(mi)      },
-                                                                            { "mc", make_shared<CommandModifyConverter>(mc)  }  };
+                                                                            { "mc", make_shared<CommandModifyConverter>(mc)  },
+                                                                            { "ml", make_shared<CommandModifyLoad>(ml)       }  };
 
 
 
