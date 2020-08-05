@@ -261,9 +261,10 @@ bool IsConverterExsist (string name) { return true; }
 string CreateLoad () { return string(); }
 void CreateLoad (string name) {}
 
+void RenameLoad (string oldName, string newName) {}
 void SetTypeForLoad (string name, LoadType type) {}
 void SetValueForLoad (string name, double value) {}
-void SetNomVoltageForLoad (string name, double nomVoltage) {}
+void SetNomVoltageForPowerLoad (string name, double nomVoltage) {}
 
 bool IsLoadExsist (string name) { return true; }
 
@@ -1625,7 +1626,7 @@ class CommandCreateLoad : public Command
 			SetTypeForLoad(name, args.type);
 			SetValueForLoad(name, args.value);
 			if (args.type == LoadType::POWER)
-				SetNomVoltageForLoad(name, args.nomVoltage);
+				SetNomVoltageForPowerLoad(name, args.nomVoltage);
 		}
 
 		void reportExcecution (const Arguments & args) const
@@ -2017,7 +2018,6 @@ class CommandModifyConverter : public Command
 				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
 		}
 	
-	
 		void reportExcecution (const Arguments & args) const
 		{
 			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
@@ -2182,14 +2182,14 @@ class CommandModifyLoad : public Command
 			return args;
 		}
 	
-		bool isParamWithKey(const string& token) const
+		bool isParamWithKey (const string & token) const
 		{
 			const auto charEqual_it = find(token.begin(), token.end(), '=');
 			if (charEqual_it != token.end())    return true;
 			return false;
 		}
 	
-		string extractKeyFromToken(const string& token) const
+		string extractKeyFromToken (const string & token) const
 		{
 			if (!isParamWithKey(token))
 				throw exception("This is not a parameter with a key");
@@ -2199,7 +2199,7 @@ class CommandModifyLoad : public Command
 			return result;
 		}
 	
-		string extractParamFromToken(const string& token) const
+		string extractParamFromToken (const string & token) const
 		{
 			if (!isParamWithKey(token))
 				throw exception("This is not a parameter with a key");
@@ -2210,52 +2210,49 @@ class CommandModifyLoad : public Command
 		}
 	
 	
-		void modifyLoadParams(const Arguments& args) const
+		void modifyLoadParams (const Arguments & args) const
 		{
 			if (args.newName.first == true)
-				RenameInput(args.currentName, args.newName.second);
-			if (args.cvType.first == true)
-				SetCvTypeForConverter(args.currentName, args.cvType.second);
-			if (args.cvValue.first == true)
-				SetCvValueForConverter(args.currentName, args.cvValue.second);
-	
+				RenameLoad(args.currentName, args.newName.second);
 			if (args.type.first == true)
-				SetTypeForConverter(args.currentName, args.type.second);
-			if (args.efficiency.first == true)
-				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
+				SetTypeForLoad(args.currentName, args.type.second);
+			if (args.value.first == true)
+				SetValueForLoad(args.currentName, args.value.second);
+			if (args.nomVoltage.first == true)
+				SetNomVoltageForPowerLoad(args.currentName, args.nomVoltage.second);
 		}
 	
 	
-		void reportExcecution(const Arguments& args) const
+		void reportExcecution (const Arguments & args) const
 		{
-			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
+			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
 	
 			if (args.newName.first == true)
 				cout << endl << "    Name - \"" << args.newName.second << "\"";
 			if (args.type.first == true)
 				cout << endl << "    Type - " << args.type.second;
-			if (args.cvType.first == true)
-				cout << endl << "    Type of controlled variable - " << args.cvType.second;
-			if (args.cvValue.first == true)
+			if (args.value.first == true)
 			{
-				cout << endl << "    Controlled variable - " << args.cvValue.second;
+				cout << endl << "    Value - " << args.value.second;
 	
-				string cvUnit = "V";
-				if (args.cvType.second == CvType::CURRENT)
-					cvUnit = "A";
-				cout << " " << cvUnit;
+				string valueUnit = "Ohm";
+				if (args.type.second == LoadType::CURRENT)
+					valueUnit = "A";
+				else if (args.type.second == LoadType::POWER)
+					valueUnit = "W";
+				cout << " " << valueUnit;
 			}
-			if (args.efficiency.first == true)
+			if (args.nomVoltage.first == true)
 			{
-				cout << endl << "    Efficiency - " << args.efficiency.second << " %";
+				cout << endl << "    Nominal voltage - " << args.nomVoltage.second << " V";
 			}
 	
 			cout << endl;
 		}
 	
-		void reportNonexsistentLoad(const string& name) const
+		void reportNonexsistentLoad (const string & name) const
 		{
-			cout << "An converter \"" << name << "\" doesn't exsist." << endl;
+			cout << "An load \"" << name << "\" doesn't exsist." << endl;
 		}
 	
 };
