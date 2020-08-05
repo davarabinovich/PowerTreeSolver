@@ -1670,7 +1670,7 @@ class CommandModifyInput : public Command
 
 			if (IsInputExsist(args.currentName))
 			{
-				modifyLoadParams(args);
+				modifyInputParams(args);
 				reportExcecution(args);
 			}
 			else
@@ -1714,7 +1714,7 @@ class CommandModifyInput : public Command
 						args.newName.first = true;
 						args.newName.second = extractParamFromToken(token);
 					}
-					else if (key == "t")
+					else if (key == "u")
 					{
 						if (args.cvType.first == true)    continue;
 
@@ -1791,7 +1791,7 @@ class CommandModifyInput : public Command
 		}
 
 
-		void modifyLoadParams (const Arguments & args) const
+		void modifyInputParams (const Arguments & args) const
 		{
 			if (args.newName.first == true)
 				RenameInput(args.currentName, args.newName.second);
@@ -1826,6 +1826,226 @@ class CommandModifyInput : public Command
 		void reportNonexsistentInput (const string & name) const
 		{
 			cout << "An input \"" << name << "\" doesn't exsist." << endl;
+		}
+	
+};
+
+
+
+
+
+class CommandModifyConverter : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+	
+			if (IsConverterExsist(args.currentName))
+			{
+				modifyConverterParams(args);
+				reportExcecution(args);
+			}
+			else
+				reportNonexsistentConverter(args.currentName);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string currentName;
+	
+			pair<bool, string> newName = { false, "" };
+			pair<bool, CvType> cvType = { false, CvType::VOLTAGE };
+			pair<bool, double> cvValue = { false, NAN };
+
+			pair<bool, ConverterType> type = { false, ConverterType::PULSE };
+			pair<bool, double> efficiency = { false, NAN };
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+			if (tokens.empty())    return args;
+	
+			args.currentName = tokens.front();
+			if (tokens.empty())    return args;
+	
+			tokens.pop_front();
+			for (const auto& token : tokens)
+			{
+				if (isParamWithKey(token))
+				{
+					string key = extractKeyFromToken(token);
+					if (key == "n")
+					{
+						if (args.newName.first == true)    continue;
+	
+						args.newName.first = true;
+						args.newName.second = extractParamFromToken(token);
+					}
+					else if (key == "u")
+					{
+						if (args.cvType.first == true)    continue;
+	
+						args.cvType.first = true;
+						args.cvType.second = parseCvType(extractParamFromToken(token));
+					}
+					else if (key == "v")
+					{
+						if (args.cvValue.first == true)    continue;
+	
+						args.cvValue.first = true;
+						args.cvValue.second = strToDouble(extractParamFromToken(token));
+					}
+					else if (key == "t")
+					{
+						if (args.type.first == true)    continue;
+
+						args.type.first = true;
+						args.type.second = parseConverterType(extractParamFromToken(token));
+					}
+					else if (key == "e")
+					{
+						if (args.efficiency.first == true)    continue;
+
+						args.efficiency.first = true;
+						args.efficiency.second = strToDouble(extractParamFromToken(token));
+					}
+					else
+						throw exception(string("Unrecognized parameter \"" + key).c_str());
+				}
+				else
+				{
+					if (isCvType(token))
+					{
+						if (args.cvType.first == false)
+						{
+							args.cvType.first = true;
+							args.cvType.second = parseCvType(token);
+							continue;
+						}
+					}
+
+					if (isConverterType(token))
+					{
+						if (args.type.first == false)
+						{
+							args.type.first = true;
+							args.type.second = parseConverterType(token);
+							continue;
+						}
+					}
+	
+					if (isFloatNumber(token))
+					{
+						if (args.cvValue.first == false)
+						{
+							args.cvValue.first = true;
+							args.cvValue.second = strToDouble(token);
+							continue;
+						}
+						if (args.efficiency.first == false)
+						{
+							args.efficiency.first = true;
+							args.efficiency.second = strToDouble(token);
+							continue;
+						}
+					}
+	
+					if (args.newName.first == true)    continue;
+	
+					args.newName.first = true;
+					args.newName.second = token;
+				}
+			}
+	
+			return args;
+		}
+	
+		bool isParamWithKey (const string & token) const
+		{
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			if (charEqual_it != token.end())    return true;
+			return false;
+		}
+	
+		string extractKeyFromToken (const string & token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+	
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(token.begin(), charEqual_it);
+			return result;
+		}
+	
+		string extractParamFromToken (const string & token) const
+		{
+			if (!isParamWithKey(token))
+				throw exception("This is not a parameter with a key");
+	
+			const auto charEqual_it = find(token.begin(), token.end(), '=');
+			string result = string(charEqual_it + 1, token.end());
+			return result;
+		}
+	
+	
+		void modifyConverterParams (const Arguments & args) const
+		{
+			if (args.newName.first == true)
+				RenameInput(args.currentName, args.newName.second);
+			if (args.cvType.first == true)
+				SetCvTypeForConverter(args.currentName, args.cvType.second);
+			if (args.cvValue.first == true)
+				SetCvValueForConverter(args.currentName, args.cvValue.second);
+			if (args.type.first == true)
+				SetTypeForConverter(args.currentName, args.type.second);
+			if (args.efficiency.first == true)
+				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
+		}
+	
+	
+		void reportExcecution(const Arguments& args) const
+		{
+			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
+	
+			if (args.newName.first == true)
+				cout << endl << "    Name - \"" << args.newName.second << "\"";
+			if (args.type.first == true)
+				cout << endl << "    Type - " << args.type.second;
+			if (args.cvType.first == true)
+				cout << endl << "    Type of controlled variable - " << args.cvType.second;
+			if (args.cvValue.first == true)
+			{
+				cout << endl << "    Controlled variable - " << args.cvValue.second;
+	
+				string cvUnit = "V";
+				if (args.cvType.second == CvType::CURRENT)
+					cvUnit = "A";
+				cout << " " << cvUnit;
+			}
+			if (args.efficiency.first == true)
+			{
+				cout << endl << "    Efficiency - " << args.efficiency.second << " %";
+			}
+	
+			cout << endl;
+		}
+	
+		void reportNonexsistentConverter(const string& name) const
+		{
+			cout << "An converter \"" << name << "\" doesn't exsist." << endl;
 		}
 	
 };
@@ -1889,7 +2109,8 @@ static const CommandDisplayStructure ds;
 static const CommandCreateInput     ci;
 static const CommandCreateConverter cc;
 static const CommandCreateLoad      cl;
-static const CommandModifyInput mi;
+static const CommandModifyInput     mi;
+static const CommandModifyConverter mc;
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -1900,7 +2121,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 																			{ "ci", make_shared<CommandCreateInput>(ci)      },
                                                                             { "cc", make_shared<CommandCreateConverter>(cc)  },
 																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
-                                                                            { "mi", make_shared<CommandModifyInput>(mi)      }  };
+                                                                            { "mi", make_shared<CommandModifyInput>(mi)      },
+                                                                            { "mc", make_shared<CommandModifyConverter>(mc)  }  };
 
 
 
