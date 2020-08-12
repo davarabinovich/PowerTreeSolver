@@ -238,6 +238,8 @@ bool IsSinkExsist (string name) { return true; }
 void ConnectSinkTo (string sinkName, string parentName) {}
 void DisconnectSink (string name) {}
 
+string GetTypeOfSink_str (string name) { return string(); }
+
 
 
 
@@ -2438,12 +2440,14 @@ class CommandDisconnectSink : public Command
 	
 		string requestNameAndGet () const
 		{
-
+			cout << "Please enter name" << endl;
+			string newName; getline(cin, newName);
+			return newName;
 		}
 
 		void reportExcecution (string name) const
 		{
-	
+			cout << GetTypeOfSink_str(name) << " \"" << name << " \" is disconnected" << endl;
 		}
 	
 };
@@ -2505,6 +2509,9 @@ static const CommandCreateLoad      cl;
 static const CommandModifyInput     mi;
 static const CommandModifyConverter mc;
 static const CommandModifyLoad      ml;
+static const CommandDisconnectSink  dn;
+
+
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
@@ -2517,7 +2524,8 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
 																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
                                                                             { "mi", make_shared<CommandModifyInput>(mi)      },
                                                                             { "mc", make_shared<CommandModifyConverter>(mc)  },
-                                                                            { "ml", make_shared<CommandModifyLoad>(ml)       }  };
+                                                                            { "ml", make_shared<CommandModifyLoad>(ml)       },
+                                                                            { "dn", make_shared<CommandDisconnectSink>(dn)   }  };
 
 
 
