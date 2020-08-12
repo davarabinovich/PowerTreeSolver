@@ -232,6 +232,9 @@ TreeStructure GetTreeStructure () { return TreeStructure(); }
 bool IsSourceExsist (string name) { return true; }
 string GetSourceType (string name) { return string(); }
 
+string GetTypeOfSource_str (string name) { return string(); }
+
+
 
 bool IsSinkExsist (string name) { return true; }
 
@@ -239,8 +242,6 @@ void ConnectSinkTo (string sinkName, string parentName) {}
 void DisconnectSink (string name) {}
 
 string GetTypeOfSink_str (string name) { return string(); }
-
-
 
 
 
@@ -277,6 +278,10 @@ void SetValueForLoad (string name, double value) {}
 void SetNomVoltageForPowerLoad (string name, double nomVoltage) {}
 
 bool IsLoadExsist (string name) { return true; }
+
+
+
+bool AreParentAndDescendant (string assumedParent, string assumedDescendant) { return false; }
 
 
 
@@ -2411,6 +2416,96 @@ class CommandModifyLoad : public Command
 
 
 
+class CommandMoveSink : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+	
+			if (args.name == "")
+				args.name = requestNameAndGet();
+			if (args.newParentName == "")
+				args.newParentName = requestNewParentNameAndGet();
+			
+			if (!IsSinkExsist(args.name))    throw exception(("There is no sinks with the name \"" + args.name + "\"").c_str());
+			if (!IsSourceExsist(args.newParentName))    throw exception(("There is no sources with the name \"" + 
+				                                                          args.newParentName + "\"").c_str());
+			if (AreParentAndDescendant(args.name, args.newParentName))    
+				throw exception("The desired new parent is a descendant of the moving sink now");
+	
+			ConnectSinkTo(args.name, args.newParentName);
+	
+			reportExcecution(args);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string name = "";
+			string newParentName = "";
+		};
+
+
+
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+
+			if (tokens.empty())    return args;
+
+
+			auto handeledArg = tokens.front();
+			args.name = handeledArg;
+
+			tokens.pop_front();
+			if (tokens.empty())    return args;
+
+
+			handeledArg = tokens.front();
+			args.newParentName = handeledArg;
+
+			tokens.pop_front();
+			if (tokens.empty())    return args;
+
+
+			throw exception("Too many arguments for this command");
+		}
+
+		string requestNameAndGet () const
+		{
+			cout << "Please enter name of the moving sink" << endl;
+			string newName; getline(cin, newName);
+			return newName;
+		}
+
+		string requestNewParentNameAndGet () const
+		{
+			cout << "Please enter name of a desired new parent" << endl;
+			string newName; getline(cin, newName);
+			return newName;
+		}
+
+		void reportExcecution (const Arguments & args) const
+		{
+			cout << GetTypeOfSink_str(args.name) << " \"" << args.name << "\" is connected to the " 
+				 << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\" now" << endl;
+		}
+	
+};
+
+
+
+
+
 class CommandDisconnectSink : public Command
 {
 	
@@ -2447,7 +2542,7 @@ class CommandDisconnectSink : public Command
 
 		void reportExcecution (string name) const
 		{
-			cout << GetTypeOfSink_str(name) << " \"" << name << " \" is disconnected" << endl;
+			cout << GetTypeOfSink_str(name) << " \"" << name << "\" is disconnected" << endl;
 		}
 	
 };
@@ -2509,6 +2604,7 @@ static const CommandCreateLoad      cl;
 static const CommandModifyInput     mi;
 static const CommandModifyConverter mc;
 static const CommandModifyLoad      ml;
+static const CommandMoveSink        ms;
 static const CommandDisconnectSink  dn;
 
 
@@ -2525,6 +2621,7 @@ static const map< string, const shared_ptr<Command> > commandDictionary = { { "c
                                                                             { "mi", make_shared<CommandModifyInput>(mi)      },
                                                                             { "mc", make_shared<CommandModifyConverter>(mc)  },
                                                                             { "ml", make_shared<CommandModifyLoad>(ml)       },
+	                                                                        { "ms", make_shared<CommandMoveSink>(ms)         },
                                                                             { "dn", make_shared<CommandDisconnectSink>(dn)   }  };
 
 
