@@ -69,29 +69,47 @@ EDITING TREE:
 		field's value or nonexistent parent.                                                        
 	If a parameter without key is specified - interprete it as CV.                                  
 																									
-- Modify node                                                                                       
+- Modify input                                                                                       
 	Request a name if it's not specified.                                                           
 	Any parameters except parent may be changed.                                                    
 	Request a new value of changing field if it's not specified.                                    
 	Request some field to changing if no one is specified.                                          
 	Discard this command and show attenting message if the user has entered invalid field or        
 		field's value.                                                                              
-	If a parameter without key is specified - interprete it as CV for sources, resistance for res.  
-		load, current for cur. load and power for pow. load.                                        
+	If a parameter without key is specified - interprete it as CV     
+		
+- Modify converter                                                                                       
+	Request a name if it's not specified.                                                           
+	Any parameters except parent may be changed.                                                    
+	Request a new value of changing field if it's not specified.                                    
+	Request some field to changing if no one is specified.                                          
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value.                                                                              
+	If a parameter without key is specified - interprete it as CV 
+
+- Modify load                                                                                       
+	Request a name if it's not specified.                                                           
+	Any parameters except parent may be changed.                                                    
+	Request a new value of changing field if it's not specified.                                    
+	Request some field to changing if no one is specified.                                          
+	Discard this command and show attenting message if the user has entered invalid field or        
+		field's value.                                                                              
+	If a parameter without key is specified - interprete it as resistance for res.  
+		load, current for cur. load and power for pow. load. 
 																									
 - Delete node                                                                                       
 	Request a name if it's not specified.                                                           
 	Request ToD for sources if it's not specified. By defaul - "delete descendances".               
 	Requies a new parent, if ToD is "reassigne descendances" and a new parent isn't specified.      
 																						           																						
-- Move node                                                                                         
+- Move sink                                                                                        
 	Request a name if it's not specified.                                                           
 	Request a name of new parent if it's not specified.                                             
 	Discard this command and show attenting message if the an invalid new parent's name has         
 		entered.                                                                                    
 	Discard if the object is input.                                                                 
 																									
-- Disconnect node                                                                                   
+- Disconnect sink                                                                                   
 	Request a name if it's not specified.                                                           
 	Discard if the object is input.                                                                 
 

@@ -233,8 +233,12 @@ bool IsSourceExsist (string name) { return true; }
 string GetSourceType (string name) { return string(); }
 
 
+bool IsSinkExsist (string name) { return true; }
 
-void ConnectSinkTo(string sinkName, string parentName) {}
+void ConnectSinkTo (string sinkName, string parentName) {}
+void DisconnectSink (string name) {}
+
+
 
 
 
@@ -252,7 +256,7 @@ bool IsInputExsist (string name) { return true; }
 string CreateConverter () { return string(); }
 void CreateConverter (string name) {}
 
-void RenameConverter(string oldName, string newName) {}
+void RenameConverter (string oldName, string newName) {}
 void SetTypeForConverter (string name, ConverterType type) {}
 void SetCvTypeForConverter (string name, CvType type) {}
 void SetCvValueForConverter (string name, double value) {}
@@ -271,6 +275,7 @@ void SetValueForLoad (string name, double value) {}
 void SetNomVoltageForPowerLoad (string name, double nomVoltage) {}
 
 bool IsLoadExsist (string name) { return true; }
+
 
 
 
@@ -1807,7 +1812,6 @@ class CommandModifyInput : public Command
 				SetCvValueForInput(args.currentName, args.cvValue.second);
 		}
 
-
 		void reportExcecution (const Arguments & args) const
 		{
 			cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
@@ -2264,24 +2268,167 @@ class CommandModifyLoad : public Command
 
 
 
-class CommandDeleteInput : public Command
+//class CommandDeleteInput : public Command
+//{
+//	
+//	public:
+//	
+//		virtual void execute (TokensDeque & tokens) const
+//		{
+//			Arguments args;
+//			try { args = parseArguments(tokens); }
+//			catch (exception& ex) { throw exception(ex.what()); }
+//
+//			if (IsInputExsist(args.name))
+//			{
+//				deleteInput(args);
+//				reportExcecution(args);
+//			}
+//			else
+//				reportNonexsistentInput(args.name);
+//		}
+//	
+//	
+//	
+//	
+//	private:
+//	
+//		struct Arguments
+//		{
+//			string name;
+//
+//		};
+//	
+//	
+//	
+//		Arguments parseArguments (TokensDeque & tokens) const
+//		{
+//			Arguments args;
+//			if (tokens.empty())    return args;
+//
+//			args.currentName = tokens.front();
+//			if (tokens.empty())    return args;
+//
+//			tokens.pop_front();
+//			for (const auto& token : tokens)
+//			{
+//				if (isParamWithKey(token))
+//				{
+//					string key = extractKeyFromToken(token);
+//					if (key == "n")
+//					{
+//						if (args.newName.first == true)    continue;
+//
+//						args.newName.first = true;
+//						args.newName.second = extractParamFromToken(token);
+//					}
+//					else if (key == "t")
+//					{
+//						if (args.type.first == true)    continue;
+//
+//						args.type.first = true;
+//						args.type.second = parseLoadType(extractParamFromToken(token));
+//					}
+//					else if (key == "v")
+//					{
+//						if (args.value.first == true)    continue;
+//
+//						args.value.first = true;
+//						args.value.second = strToDouble(extractParamFromToken(token));
+//					}
+//					else if (key == "n")
+//					{
+//						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+//
+//						if (args.nomVoltage.first == true)    continue;
+//
+//						args.nomVoltage.first = true;
+//						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
+//					}
+//					else
+//						throw exception(string("Unrecognized parameter \"" + key).c_str());
+//				}
+//				else
+//				{
+//					if (isLoadType(token))
+//					{
+//						if (args.type.first == false)
+//						{
+//							args.type.first = true;
+//							args.type.second = parseLoadType(token);
+//							continue;
+//						}
+//					}
+//
+//					if (isFloatNumber(token))
+//					{
+//						if (args.value.first == false)
+//						{
+//							args.value.first = true;
+//							args.value.second = strToDouble(token);
+//							continue;
+//						}
+//
+//						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+//
+//						if (args.nomVoltage.first == false)
+//						{
+//							args.nomVoltage.first = true;
+//							args.nomVoltage.second = strToDouble(token);
+//							continue;
+//						}
+//					}
+//
+//					if (args.newName.first == true)    continue;
+//
+//					args.newName.first = true;
+//					args.newName.second = token;
+//				}
+//			}
+//
+//			return args;
+//		}
+//
+//		void deleteInput (const Arguments & args) const
+//		{
+//
+//		}
+//
+//		void reportExcecution (const Arguments & args) const
+//		{
+//	
+//		}
+//	
+//		void reportNonexsistentInput (const string & name) const
+//		{
+//			cout << "An input \"" << name << "\" doesn't exsist." << endl;
+//		}
+//};
+
+
+
+
+
+class CommandDisconnectSink : public Command
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
+			if (tokens.size() > 1)    throw exception("Too many argumnets for this command");
 
-			if (IsInputExsist(args.name))
-			{
-				deleteInput(args);
-				reportExcecution(args);
-			}
+			string name;
+			if (tokens.size() == 1)
+				name = tokens.front();
 			else
-				reportNonexsistentInput(args.name);
+				name = requestNameAndGet();
+
+			if (!IsSinkExsist(name))    throw exception(   ("There is no sinks with the name \"" + name + "\"").c_str()   );
+	
+			DisconnectSink(name);
+	
+			reportExcecution(name);
 		}
 	
 	
@@ -2289,116 +2436,16 @@ class CommandDeleteInput : public Command
 	
 	private:
 	
-		struct Arguments
-		{
-			string name;
-
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-			if (tokens.empty())    return args;
-
-			args.currentName = tokens.front();
-			if (tokens.empty())    return args;
-
-			tokens.pop_front();
-			for (const auto& token : tokens)
-			{
-				if (isParamWithKey(token))
-				{
-					string key = extractKeyFromToken(token);
-					if (key == "n")
-					{
-						if (args.newName.first == true)    continue;
-
-						args.newName.first = true;
-						args.newName.second = extractParamFromToken(token);
-					}
-					else if (key == "t")
-					{
-						if (args.type.first == true)    continue;
-
-						args.type.first = true;
-						args.type.second = parseLoadType(extractParamFromToken(token));
-					}
-					else if (key == "v")
-					{
-						if (args.value.first == true)    continue;
-
-						args.value.first = true;
-						args.value.second = strToDouble(extractParamFromToken(token));
-					}
-					else if (key == "n")
-					{
-						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
-
-						if (args.nomVoltage.first == true)    continue;
-
-						args.nomVoltage.first = true;
-						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
-					}
-					else
-						throw exception(string("Unrecognized parameter \"" + key).c_str());
-				}
-				else
-				{
-					if (isLoadType(token))
-					{
-						if (args.type.first == false)
-						{
-							args.type.first = true;
-							args.type.second = parseLoadType(token);
-							continue;
-						}
-					}
-
-					if (isFloatNumber(token))
-					{
-						if (args.value.first == false)
-						{
-							args.value.first = true;
-							args.value.second = strToDouble(token);
-							continue;
-						}
-
-						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
-
-						if (args.nomVoltage.first == false)
-						{
-							args.nomVoltage.first = true;
-							args.nomVoltage.second = strToDouble(token);
-							continue;
-						}
-					}
-
-					if (args.newName.first == true)    continue;
-
-					args.newName.first = true;
-					args.newName.second = token;
-				}
-			}
-
-			return args;
-		}
-
-		void deleteInput (const Arguments & args) const
+		string requestNameAndGet () const
 		{
 
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExcecution (string name) const
 		{
 	
 		}
 	
-		void reportNonexsistentInput (const string & name) const
-		{
-			cout << "An input \"" << name << "\" doesn't exsist." << endl;
-		}
 };
 
 
