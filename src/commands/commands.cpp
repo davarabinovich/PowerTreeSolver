@@ -140,7 +140,7 @@ ostream & operator << (ostream & os, const ConverterType & type)
 
 
 
-enum class DeletingMode { WITH_DESCENDANTS, HANG_DESCENDANTS, RECONNECT_DESCENDANTS };
+enum class DeletingMode { WITH_DESCENDANTS, HANG_DESCENDANTS, RECONNECT_DESCENDANTS, NONE };
 
 
 
@@ -229,10 +229,19 @@ TreeStructure GetTreeStructure () { return TreeStructure(); }
 
 
 
+bool IsNodeExsist (string name) { return true; }
+
+string GetTypeOfNode_str (string name) { return string("Converter"); }
+
+
+
 bool IsSourceExsist (string name) { return true; }
 string GetSourceType (string name) { return string(); }
 
 string GetTypeOfSource_str (string name) { return string(); }
+
+void DeleteSourceWithDescendants (string name) {}
+void DeleteSourceAndMoveDescendants (string name, string newParentName = "") {}
 
 
 
@@ -277,6 +286,8 @@ void SetTypeForLoad (string name, LoadType type) {}
 void SetValueForLoad (string name, double value) {}
 void SetNomVoltageForPowerLoad (string name, double nomVoltage) {}
 
+void DeleteLoad (string name) {}
+
 bool IsLoadExsist (string name) { return true; }
 
 
@@ -310,16 +321,7 @@ class Command
 
 
 		
-		static bool isName (const string & str)
-		{
-#pragma todo in my library
-			for (const auto & letter : str)
-				if (!isalpha(letter))
-					return false;
-			return true;
-		};
-
-		static bool isFloatNumber (const string & str)
+		static bool isStringFloatNumber (const string & str)
 		{
 			auto letter_it = str.cbegin();
 
@@ -342,7 +344,7 @@ class Command
 			return true;
 		}
 
-		static bool isCvType (const string & str)
+		static bool isStringCvType (const string & str)
 		{
 			if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
 			if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
@@ -352,7 +354,7 @@ class Command
 
 		static CvType parseCvType (const string & str)
 		{
-			if (!isCvType(str))
+			if (!isStringCvType(str))
 #pragma todo write exceptions message
 				throw exception();
 
@@ -360,7 +362,7 @@ class Command
 			return CvType::VOLTAGE;
 		}
 		
-		static bool isConverterType (const string & str)
+		static bool isStringConverterType (const string & str)
 		{
 			if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
 			if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
@@ -370,7 +372,7 @@ class Command
 
 		static ConverterType parseConverterType (const string & str)
 		{
-			if (!isConverterType(str))
+			if (!isStringConverterType(str))
 #pragma todo write exceptions message
 				throw exception();
 
@@ -378,7 +380,7 @@ class Command
 			return ConverterType::PULSE;
 		}
 
-		static bool isLoadType (const string & str)
+		static bool isStringLoadType (const string & str)
 		{
 			if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
 			if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
@@ -389,12 +391,30 @@ class Command
 
 		static LoadType parseLoadType (const string & str)
 		{
-			if (!isLoadType(str))
+			if (!isStringLoadType(str))
 				throw exception("Invalid type of load");
 
 			if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
 			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CURRENT;
 			return LoadType::POWER;
+		}
+
+		static bool isStringDeletingMode (const string & str)
+		{
+			if (str != "h" && str != "d" && str != "r")    return false;
+			return true;
+		}
+		
+		static DeletingMode parseDeletingMode (const string & str)
+		{
+			if (!isStringDeletingMode(str))
+				throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
+
+			if (str == "d")
+				return DeletingMode::WITH_DESCENDANTS;
+			if (str == "h")
+				return DeletingMode::HANG_DESCENDANTS;
+			return DeletingMode::RECONNECT_DESCENDANTS;
 		}
 };
 
@@ -466,8 +486,8 @@ class CommandCreate : public Command
 			if (tokens.empty()) return args;
 
 			string handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvType(handeledArg))
-				if (!isFloatNumber(handeledArg))
+			if (!isStringCvType(handeledArg))
+				if (!isStringFloatNumber(handeledArg))
 					args.name = handeledArg;
 				else
 				{
@@ -484,7 +504,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isFloatNumber(handeledArg))
+					if (!isStringFloatNumber(handeledArg))
 						#pragma todo write exceptions message
 						throw exception();
 					else
@@ -503,8 +523,8 @@ class CommandCreate : public Command
 			if (tokens.size() == 0)    return args;
 		
 			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvType(handeledArg))
-				if (!isFloatNumber(handeledArg))
+			if (!isStringCvType(handeledArg))
+				if (!isStringFloatNumber(handeledArg))
 					args.inputName = handeledArg;
 				else
 				{
@@ -521,7 +541,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isFloatNumber(handeledArg))
+					if (!isStringFloatNumber(handeledArg))
 #pragma todo write exceptions message
 						throw exception();
 					else
@@ -541,8 +561,8 @@ class CommandCreate : public Command
 			if (tokens.size() == 0)    return args;
 				
 			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvType(handeledArg))
-				if (!isFloatNumber(handeledArg))
+			if (!isStringCvType(handeledArg))
+				if (!isStringFloatNumber(handeledArg))
 #pragma todo write exceptions message
 					throw exception();
 				else
@@ -560,7 +580,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isFloatNumber(handeledArg))
+					if (!isStringFloatNumber(handeledArg))
 #pragma todo write exceptions message
 						throw exception();
 					else
@@ -1153,7 +1173,7 @@ class CommandCreateInput : public Command
 
 			auto handeledArg = tokens.front();
 			
-			if ( !isCvType(handeledArg) && !isFloatNumber(handeledArg) )
+			if ( !isStringCvType(handeledArg) && !isStringFloatNumber(handeledArg) )
 			{
 				args.name = handeledArg;
 
@@ -1162,7 +1182,7 @@ class CommandCreateInput : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isCvType(handeledArg))
+			if (isStringCvType(handeledArg))
 			{
 				args.cvType = parseCvType(handeledArg);
 
@@ -1171,7 +1191,7 @@ class CommandCreateInput : public Command
 				handeledArg = tokens.front();
 			}
 			
-			if (isFloatNumber(handeledArg))
+			if (isStringFloatNumber(handeledArg))
 			{
 				args.cvValue = strToDouble(handeledArg);
 
@@ -1307,7 +1327,7 @@ class CommandCreateConverter : public Command
 
 			auto handeledArg = tokens.front();
 
-			if (!isCvType(handeledArg) && !isConverterType(handeledArg) && !isFloatNumber(handeledArg))
+			if (!isStringCvType(handeledArg) && !isStringConverterType(handeledArg) && !isStringFloatNumber(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -1316,7 +1336,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isCvType(handeledArg))
+			if (isStringCvType(handeledArg))
 			{
 				args.cvType = parseCvType(handeledArg);
 
@@ -1325,7 +1345,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isFloatNumber(handeledArg))
+			if (isStringFloatNumber(handeledArg))
 			{
 				args.cvValue = strToDouble(handeledArg);
 
@@ -1334,7 +1354,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isConverterType(handeledArg))
+			if (isStringConverterType(handeledArg))
 			{
 				args.type = parseConverterType(handeledArg);
 
@@ -1343,7 +1363,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isFloatNumber(handeledArg))
+			if (isStringFloatNumber(handeledArg))
 			{
 				args.efficiency = strToDouble(handeledArg);
 
@@ -1352,7 +1372,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (!isCvType(handeledArg) && !isConverterType(handeledArg) && !isFloatNumber(handeledArg))
+			if (!isStringCvType(handeledArg) && !isStringConverterType(handeledArg) && !isStringFloatNumber(handeledArg))
 			{
 				args.parentName = handeledArg;
 
@@ -1512,7 +1532,7 @@ class CommandCreateLoad : public Command
 
 			auto handeledArg = tokens.front();
 
-			if (!isLoadType(handeledArg) && !isFloatNumber(handeledArg))
+			if (!isStringLoadType(handeledArg) && !isStringFloatNumber(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -1521,7 +1541,7 @@ class CommandCreateLoad : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isLoadType(handeledArg))
+			if (isStringLoadType(handeledArg))
 			{
 				args.type = parseLoadType(handeledArg);
 
@@ -1530,7 +1550,7 @@ class CommandCreateLoad : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isFloatNumber(handeledArg))
+			if (isStringFloatNumber(handeledArg))
 			{
 				args.value = strToDouble(handeledArg);
 
@@ -1544,7 +1564,7 @@ class CommandCreateLoad : public Command
 					if (tokens.empty())    return args;
 					handeledArg = tokens.front();
 
-					if (isFloatNumber(handeledArg))
+					if (isStringFloatNumber(handeledArg))
 					{
 						args.value = strToDouble(handeledArg);
 
@@ -1751,7 +1771,7 @@ class CommandModifyInput : public Command
 				}
 				else
 				{
-					if (isCvType(token))
+					if (isStringCvType(token))
 					{
 						if (args.cvType.first == false)
 						{
@@ -1761,7 +1781,7 @@ class CommandModifyInput : public Command
 						}
 					}
 
-					if (isFloatNumber(token))
+					if (isStringFloatNumber(token))
 					{
 						if (args.cvValue.first == false)
 						{
@@ -1944,7 +1964,7 @@ class CommandModifyConverter : public Command
 				}
 				else
 				{
-					if (isCvType(token))
+					if (isStringCvType(token))
 					{
 						if (args.cvType.first == false)
 						{
@@ -1954,7 +1974,7 @@ class CommandModifyConverter : public Command
 						}
 					}
 
-					if (isConverterType(token))
+					if (isStringConverterType(token))
 					{
 						if (args.type.first == false)
 						{
@@ -1964,7 +1984,7 @@ class CommandModifyConverter : public Command
 						}
 					}
 	
-					if (isFloatNumber(token))
+					if (isStringFloatNumber(token))
 					{
 						if (args.cvValue.first == false)
 						{
@@ -2076,7 +2096,7 @@ class CommandModifyLoad : public Command
 	
 	public:
 	
-		virtual void execute(TokensDeque& tokens) const
+		virtual void execute (TokensDeque & tokens) const
 		{
 			Arguments args;
 			try { args = parseArguments(tokens); }
@@ -2158,7 +2178,7 @@ class CommandModifyLoad : public Command
 				}
 				else
 				{
-					if (isLoadType(token))
+					if (isStringLoadType(token))
 					{
 						if (args.type.first == false)
 						{
@@ -2168,7 +2188,7 @@ class CommandModifyLoad : public Command
 						}
 					}
 	
-					if (isFloatNumber(token))
+					if (isStringFloatNumber(token))
 					{
 						if (args.value.first == false)
 						{
@@ -2275,142 +2295,144 @@ class CommandModifyLoad : public Command
 
 
 
-//class CommandDeleteInput : public Command
-//{
-//	
-//	public:
-//	
-//		virtual void execute (TokensDeque & tokens) const
-//		{
-//			Arguments args;
-//			try { args = parseArguments(tokens); }
-//			catch (exception& ex) { throw exception(ex.what()); }
-//
-//			if (IsInputExsist(args.name))
-//			{
-//				deleteInput(args);
-//				reportExcecution(args);
-//			}
-//			else
-//				reportNonexsistentInput(args.name);
-//		}
-//	
-//	
-//	
-//	
-//	private:
-//	
-//		struct Arguments
-//		{
-//			string name;
-//
-//		};
-//	
-//	
-//	
-//		Arguments parseArguments (TokensDeque & tokens) const
-//		{
-//			Arguments args;
-//			if (tokens.empty())    return args;
-//
-//			args.currentName = tokens.front();
-//			if (tokens.empty())    return args;
-//
-//			tokens.pop_front();
-//			for (const auto& token : tokens)
-//			{
-//				if (isParamWithKey(token))
-//				{
-//					string key = extractKeyFromToken(token);
-//					if (key == "n")
-//					{
-//						if (args.newName.first == true)    continue;
-//
-//						args.newName.first = true;
-//						args.newName.second = extractParamFromToken(token);
-//					}
-//					else if (key == "t")
-//					{
-//						if (args.type.first == true)    continue;
-//
-//						args.type.first = true;
-//						args.type.second = parseLoadType(extractParamFromToken(token));
-//					}
-//					else if (key == "v")
-//					{
-//						if (args.value.first == true)    continue;
-//
-//						args.value.first = true;
-//						args.value.second = strToDouble(extractParamFromToken(token));
-//					}
-//					else if (key == "n")
-//					{
-//						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
-//
-//						if (args.nomVoltage.first == true)    continue;
-//
-//						args.nomVoltage.first = true;
-//						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
-//					}
-//					else
-//						throw exception(string("Unrecognized parameter \"" + key).c_str());
-//				}
-//				else
-//				{
-//					if (isLoadType(token))
-//					{
-//						if (args.type.first == false)
-//						{
-//							args.type.first = true;
-//							args.type.second = parseLoadType(token);
-//							continue;
-//						}
-//					}
-//
-//					if (isFloatNumber(token))
-//					{
-//						if (args.value.first == false)
-//						{
-//							args.value.first = true;
-//							args.value.second = strToDouble(token);
-//							continue;
-//						}
-//
-//						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
-//
-//						if (args.nomVoltage.first == false)
-//						{
-//							args.nomVoltage.first = true;
-//							args.nomVoltage.second = strToDouble(token);
-//							continue;
-//						}
-//					}
-//
-//					if (args.newName.first == true)    continue;
-//
-//					args.newName.first = true;
-//					args.newName.second = token;
-//				}
-//			}
-//
-//			return args;
-//		}
-//
-//		void deleteInput (const Arguments & args) const
-//		{
-//
-//		}
-//
-//		void reportExcecution (const Arguments & args) const
-//		{
-//	
-//		}
-//	
-//		void reportNonexsistentInput (const string & name) const
-//		{
-//			cout << "An input \"" << name << "\" doesn't exsist." << endl;
-//		}
-//};
+class CommandDeleteNode : public Command
+{
+	
+	public:
+	
+		virtual void execute (TokensDeque & tokens) const
+		{
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception& ex) { throw exception(ex.what()); }
+
+			if (!IsNodeExsist(args.name))
+				reportNonexsistentNode(args.name);
+
+			if (IsLoadExsist(args.name))
+			{
+				if (args.mode != DeletingMode::NONE)
+					throw exception("You can't specify a mode by deleting a load");
+				if (args.newParentName != "")
+					throw exception("You shouldn't specify a name of new parent by deleting a load");
+			}
+			else
+			{
+				if ( (args.mode == DeletingMode::WITH_DESCENDANTS) && (args.newParentName != "") )
+					throw exception("You shouldn't specify a name of new parent by deleting a source with its descendants");
+				if ((args.mode == DeletingMode::HANG_DESCENDANTS) && (args.newParentName != ""))
+					throw exception("You shouldn't specify a name of new parent if you want to leave descentants of a deleting source unconnected");
+				if ((args.mode == DeletingMode::RECONNECT_DESCENDANTS) && (args.newParentName == ""))
+					args.newParentName = requestNewParentNameAndGet();
+			}
+
+			deleteNode(args);
+			reportExcecution(args);
+		}
+	
+	
+	
+	
+	private:
+	
+		struct Arguments
+		{
+			string name = "";
+			DeletingMode mode = DeletingMode::HANG_DESCENDANTS;
+			string newParentName = "";
+		};
+	
+	
+	
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+
+			if (tokens.empty())    return args;
+
+
+			auto handeledArg = tokens.front();
+
+			if (!isStringDeletingMode(handeledArg))
+			{
+				args.name = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (isStringDeletingMode(handeledArg))
+			{
+				args.mode = parseDeletingMode(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+
+			if (!isStringDeletingMode(handeledArg))
+			{
+				args.newParentName = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+			}
+
+			throw exception("Too many arguments for this command");
+		}
+
+		
+	
+		void reportNonexsistentNode (const string & name) const
+		{
+			cout << GetTypeOfNode_str(name) << " \"" << name << "\" doesn't exsist." << endl;
+		}
+
+		string requestNewParentNameAndGet() const
+		{
+			cout << "Please enter name of a desired new parent" << endl;
+			string newName; getline(cin, newName);
+			return newName;
+		}
+
+		void deleteNode (const Arguments & args) const
+		{
+			if (IsLoadExsist(args.name))
+			{
+				DeleteLoad(args.name);
+			}
+			else
+			{
+				switch (args.mode)
+				{
+					case DeletingMode::WITH_DESCENDANTS:
+						DeleteSourceWithDescendants(args.name);
+						break;
+
+					case DeletingMode::HANG_DESCENDANTS:
+						DeleteSourceAndMoveDescendants(args.name);
+						break;
+
+					case DeletingMode::RECONNECT_DESCENDANTS:
+						DeleteSourceAndMoveDescendants(args.name, args.newParentName);
+						break;
+
+
+					default:
+						throw exception("Invalid mode of deleting a source");
+				}
+			}
+		}
+
+
+
+		void reportExcecution (const Arguments & args) const
+		{
+			
+		}
+
+};
 
 
 
