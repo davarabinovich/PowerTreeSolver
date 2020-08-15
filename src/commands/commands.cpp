@@ -439,7 +439,7 @@ class CommandCreate : public Command
 			createTreeByArgs(args);
 			createInputByArgs(args);
 
-			reportExcecution(args);
+			reportExecution(args);
 		}
 
 	
@@ -631,7 +631,7 @@ class CommandCreate : public Command
 			SetCvValueForInput(name, args.inputCvValue);
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			string name = args.name;
 			if (name == "")
@@ -734,7 +734,7 @@ class CommandRename : public Command
 			RenameTree(newName);
 
 			Arguments args = { newName, oldName };
-			reportExcecution(args);
+			reportExecution(args);
 		}
 
 
@@ -776,7 +776,7 @@ class CommandRename : public Command
 			return newName;
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
 				 << endl << endl;
@@ -892,7 +892,7 @@ class CommandWithDislayingResults : public Command
 
 		}
 
-		void displaySourceResults(const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void displaySourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			unsigned hierarchy_level = 1) const
 		{
 			shiftSpaces(4 * hierarchy_level);
@@ -919,7 +919,7 @@ class CommandWithDislayingResults : public Command
 				displayLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 		}
 
-		void displayLoadResults(const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void displayLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			                    unsigned hierarchy_level) const
 		{
 			shiftSpaces(4 * (hierarchy_level + 1));
@@ -943,7 +943,7 @@ class CommandWithDislayingResults : public Command
 			cout << endl;
 		}
 
-		bool isResultViewMode(string token) const
+		bool isResultViewMode (string token) const
 		{
 			if (token == "tb" || token == "Tb" || token == "tab" || token == "Tab" ||
 				token == "table" || token == "Table")    return true;
@@ -952,21 +952,21 @@ class CommandWithDislayingResults : public Command
 			return false;
 		}
 	
-		bool isPowerFlag(string token) const
+		bool isPowerFlag (string token) const
 		{
 			if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
 				return true;
 			return false;
 		}
 	
-		bool isSecondaryParamsFlag(string token) const
+		bool isSecondaryParamsFlag (string token) const
 		{
 			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
 				return true;
 			return false;
 		}
 	
-		ResultsView parseResultViewMode(string rwMode) const
+		ResultsView parseResultViewMode (string rwMode) const
 		{
 			if (!isResultViewMode(rwMode))    throw exception("Invalid display results mode");
 	
@@ -1147,7 +1147,7 @@ class CommandCreateInput : public Command
 	
 			createInputByArgs(args);
 	
-			reportExcecution(args);
+			reportExecution(args);
 		}
 	
 	
@@ -1243,7 +1243,7 @@ class CommandCreateInput : public Command
 			SetCvValueForInput(name, args.cvValue);
 		}
 	
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			string name = "\"" + args.name + "\" ";
 
@@ -1296,7 +1296,7 @@ class CommandCreateConverter : public Command
 	
 			createConverterByArgs(args);
 	
-			reportExcecution(args);
+			reportExecution(args);
 		}
 	
 	
@@ -1451,7 +1451,7 @@ class CommandCreateConverter : public Command
 			SetEfficiencyForConverter(name, args.efficiency);
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			bool isFree = args.parentName.empty();
 
@@ -1502,7 +1502,7 @@ class CommandCreateLoad : public Command
 
 			createLoadByArgs(args);
 
-			reportExcecution(args);
+			reportExecution(args);
 		}
 	
 	
@@ -1665,7 +1665,7 @@ class CommandCreateLoad : public Command
 				SetNomVoltageForPowerLoad(name, args.nomVoltage);
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			bool isFree = args.parentName.empty();
 
@@ -1709,7 +1709,7 @@ class CommandModifyInput : public Command
 			if (IsInputExsist(args.currentName))
 			{
 				modifyInputParams(args);
-				reportExcecution(args);
+				reportExecution(args);
 			}
 			else
 				reportNonexsistentInput(args.currentName);
@@ -1839,7 +1839,7 @@ class CommandModifyInput : public Command
 				SetCvValueForInput(args.currentName, args.cvValue.second);
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
 			
@@ -1885,7 +1885,7 @@ class CommandModifyConverter : public Command
 			if (IsConverterExsist(args.currentName))
 			{
 				modifyConverterParams(args);
-				reportExcecution(args);
+				reportExecution(args);
 			}
 			else
 				reportNonexsistentConverter(args.currentName);
@@ -2053,7 +2053,7 @@ class CommandModifyConverter : public Command
 				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
 		}
 	
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
 	
@@ -2105,7 +2105,7 @@ class CommandModifyLoad : public Command
 			if (IsLoadExsist(args.currentName))
 			{
 				modifyLoadParams(args);
-				reportExcecution(args);
+				reportExecution(args);
 			}
 			else
 				reportNonexsistentLoad(args.currentName);
@@ -2257,7 +2257,7 @@ class CommandModifyLoad : public Command
 				SetNomVoltageForPowerLoad(args.currentName, args.nomVoltage.second);
 		}
 	
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
 	
@@ -2327,7 +2327,7 @@ class CommandDeleteNode : public Command
 			}
 
 			deleteNode(args);
-			reportExcecution(args);
+			reportExecution(args);
 		}
 	
 	
@@ -2427,9 +2427,32 @@ class CommandDeleteNode : public Command
 
 
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
+			cout << GetTypeOfNode_str(args.name) << "\"" << args.name << "\" is deleted successfully.";
 			
+			if (IsSourceExsist(args.name))
+			{
+				cout << "Descendants";
+				switch (args.mode)
+				{
+					case DeletingMode::WITH_DESCENDANTS:
+						cout << " are also deleted";
+						break;
+
+					case DeletingMode::HANG_DESCENDANTS:
+						cout << " are left unconnected";
+						break;
+
+					case DeletingMode::RECONNECT_DESCENDANTS:
+						cout << " are connected to the " << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\"";
+						break;
+
+
+					default:
+						throw exception("Invalid mode of deleting a source");
+				}
+			}
 		}
 
 };
@@ -2462,7 +2485,7 @@ class CommandMoveSink : public Command
 	
 			ConnectSinkTo(args.name, args.newParentName);
 	
-			reportExcecution(args);
+			reportExecution(args);
 		}
 	
 	
@@ -2516,7 +2539,7 @@ class CommandMoveSink : public Command
 			return newName;
 		}
 
-		void reportExcecution (const Arguments & args) const
+		void reportExecution (const Arguments & args) const
 		{
 			cout << GetTypeOfSink_str(args.name) << " \"" << args.name << "\" is connected to the " 
 				 << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\" now" << endl;
@@ -2547,7 +2570,7 @@ class CommandDisconnectSink : public Command
 	
 			DisconnectSink(name);
 	
-			reportExcecution(name);
+			reportExecution(name);
 		}
 	
 	
@@ -2562,7 +2585,7 @@ class CommandDisconnectSink : public Command
 			return newName;
 		}
 
-		void reportExcecution (string name) const
+		void reportExecution (string name) const
 		{
 			cout << GetTypeOfSink_str(name) << " \"" << name << "\" is disconnected" << endl;
 		}
@@ -2604,7 +2627,7 @@ private:
 
 
 
-	void reportExcecution(const Arguments& args) const
+	void reportExecution(const Arguments& args) const
 	{
 
 	}
