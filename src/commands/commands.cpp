@@ -45,6 +45,26 @@ double strToDouble (string str)
 	return number;
 }
 
+bool isYes (string str)
+{
+	if ( (str == "y") || (str == "Y") || (str == "yes") || (str == "Yes") )
+		return true;
+	return false;
+}
+
+bool isNo (string str)
+{
+	if ((str == "n") || (str == "N") || (str == "no") || (str == "No"))
+		return true;
+	return false;
+}
+
+bool isBool_str (string str)
+{
+	if (isYes(str) || isNo(str))
+		return true;
+	return false;
+}
 
 
 
@@ -808,11 +828,8 @@ class CommandWithDislayingResults : public Command
 	
 	protected:
 	
-		enum class ResultsView { TABLE, TREE };
-	
 		struct Arguments
 		{
-			ResultsView view = ResultsView::TABLE;
 			bool needsShowPowers = false;
 			bool needsShowSecondaryLoadParams = false;
 		};
@@ -823,9 +840,9 @@ class CommandWithDislayingResults : public Command
 
 
 
-		virtual Arguments parseArguments (TokensDeque & tokens) const
+		Arguments parseArguments (TokensDeque & tokens) const
 		{
-			if (tokens.size() > 3)	throw exception("Too many arguments for this command");
+			if (tokens.size() > 2)	throw exception("Too many arguments for this command");
 
 			Arguments args;
 			if (tokens.size() == 0)    return args;
@@ -833,12 +850,6 @@ class CommandWithDislayingResults : public Command
 			unsigned unparsedArgs_cnt = tokens.size();
 			for (const auto& token : tokens)
 			{
-				if (isResultViewMode(token))
-				{
-					args.view = parseResultViewMode(token);
-					unparsedArgs_cnt--;
-					continue;
-				}
 				if (isPowerFlag(token))
 				{
 					args.needsShowPowers = true;
@@ -858,21 +869,8 @@ class CommandWithDislayingResults : public Command
 		void displayResults (Results results, Arguments args) const
 		{
 			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
-
-			switch (args.view)
-			{
-			case ResultsView::TABLE:
-				displayResultsTable(results, args.needsShowPowers, args.needsShowSecondaryLoadParams);
-				break;
-
-			case ResultsView::TREE:
-				displayResultsTree(results, args.needsShowPowers, args.needsShowSecondaryLoadParams);
-				break;
-
-			default:
-				throw exception("Invalid results display mode");
-			}
-
+			for (auto& input : results.inputs)
+				displaySourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
 			cout << endl;
 		}
 
@@ -880,17 +878,6 @@ class CommandWithDislayingResults : public Command
 
 
 	private:
-
-		void displayResultsTable(Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
-		{
-			for (auto & input : results.inputs)
-				displaySourceResults(input, needsShowPower, needsShowSecondaryLoadParams);
-		}
-
-		void displayResultsTree(Results results, bool needsShowPower, bool needsShowSecondaryLoadParams) const
-		{
-
-		}
 
 		void displaySourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			unsigned hierarchy_level = 1) const
@@ -942,15 +929,6 @@ class CommandWithDislayingResults : public Command
 
 			cout << endl;
 		}
-
-		bool isResultViewMode (string token) const
-		{
-			if (token == "tb" || token == "Tb" || token == "tab" || token == "Tab" ||
-				token == "table" || token == "Table")    return true;
-			if (token == "tr" || token == "Tr" || token == "tree" || token == "Tree")
-				return true;
-			return false;
-		}
 	
 		bool isPowerFlag (string token) const
 		{
@@ -964,15 +942,6 @@ class CommandWithDislayingResults : public Command
 			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
 				return true;
 			return false;
-		}
-	
-		ResultsView parseResultViewMode (string rwMode) const
-		{
-			if (!isResultViewMode(rwMode))    throw exception("Invalid display results mode");
-	
-			if (rwMode == "tb" || rwMode == "Tb" || rwMode == "tab" || rwMode == "Tab" ||
-				rwMode == "table" || rwMode == "Table")    return ResultsView::TABLE;
-			return ResultsView::TREE;
 		}
 
 };
@@ -988,22 +957,19 @@ class CommandSolve : public CommandWithDislayingResults
 	
 		virtual void execute (TokensDeque & tokens) const override
 		{
-			bool needsToDisplayResults = ( tokens.size() != 0 );
-			if (!needsToDisplayResults)
-			{
-				needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
-			}
-
 			Arguments args = parseArguments(tokens);
+
+			if (!args.needsToDisplayResults)
+				args.needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
 
 			Solve();
 			reportCalculationsFinishs();
 
-			if (needsToDisplayResults)
+			if (args.needsToDisplayResults)
 			{
 				Results results = GetResults();
 
-				try { displayResults(results, args); }
+				try { displayResults(results, args.dispParams); }
 				catch (exception & ex) { cout << ex.what(); }
 			}
 		}
@@ -1013,7 +979,38 @@ class CommandSolve : public CommandWithDislayingResults
 	
 	private:
 
-		bool suggestDisplayResultsAndGetAnswer () const
+		struct Arguments
+		{
+			bool needsToDisplayResults = false;
+			CommandWithDislayingResults::Arguments dispParams;
+		};
+
+
+
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+
+			if (tokens.size() == 0)    return args;
+
+			const auto & handeledArg = tokens.front();
+			if (isBool_str(handeledArg))
+			{
+				args.needsToDisplayResults = isYes(handeledArg);
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+			}
+			else
+				throw exception(   string("Invalid argument \"" + handeledArg + "\"").c_str()   );
+
+			if (args.needsToDisplayResults)
+				args.dispParams = CommandWithDislayingResults::parseArguments(tokens);
+			else
+				throw exception("You can't specify structure displaying parameters if you don't wanna show results");
+		}
+
+		[[nodiscard]] bool suggestDisplayResultsAndGetAnswer () const
 		{
 			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
 			cout << "Do you want to see results ?" << endl;
