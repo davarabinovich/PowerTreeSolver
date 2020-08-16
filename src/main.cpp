@@ -2,10 +2,11 @@
 #include <string>
 #include <iomanip>
 
-#include "test_runner/test_runner.h"
 
 #include "commands/commands.h"
 #include "config.h"
+
+#include "tests/tests.h"
 
 
 
@@ -24,7 +25,7 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
-	//test_Commands();
+	TestAll();
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл

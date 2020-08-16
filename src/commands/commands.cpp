@@ -10,17 +10,13 @@
 #include <variant>
 
 
-#pragma todo
-#include <cassert>
-
-
 #include "commands.h"
 
 #include "config.h"
-	
 
 
 
+#include "test_runner/test_runner.h"
 
 
 
@@ -462,7 +458,9 @@ class CommandCreate : public Command
 			reportExecution(args);
 		}
 
-	
+		friend void TestCreateArgumentsParsing();
+
+
 
 
 	private:
@@ -676,52 +674,6 @@ class CommandCreate : public Command
 			if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
 			cout << " is created" << endl << endl;
 		}
-
-
-
-
-	public:
-
-		void test_parseArguments()
-			{
-
-				TokensDeque emptyTokens;
-
-				Arguments emptyArgs;
-
-				auto emptyOut = parseArguments(emptyTokens);
-				assert(emptyArgs == emptyOut);
-
-
-
-				TokensDeque onlyNameTokens = { "name" };
-
-				Arguments onlyNameArgs;
-				onlyNameArgs.name = "name";
-
-				auto onlyNameOut = parseArguments(onlyNameTokens);
-				assert(onlyNameArgs == onlyNameOut);
-
-
-
-				TokensDeque onlyTypeTokens = { "cur" };
-
-				Arguments onlyTypeArgs;
-				onlyTypeArgs.inputCvType = CvType::CURRENT;
-
-				auto onlyTypeOut = parseArguments(onlyTypeTokens);
-				assert(onlyTypeArgs == onlyTypeOut);
-
-
-
-				TokensDeque onlyValueTokens = { "24" };
-
-				Arguments onlyValueArgs;
-				onlyValueArgs.inputCvValue = 24;
-
-				auto onlyValueOut = parseArguments(onlyValueTokens);
-				assert(onlyValueArgs == onlyValueOut);
-			}
 
 };
 
@@ -1006,8 +958,8 @@ class CommandSolve : public CommandWithShowingResults
 
 			if (args.needsToShowResults)
 				args.dispParams = CommandWithShowingResults::parseArguments(tokens);
-			else
-				throw exception("You can't specify structure displaying parameters if you don't wanna show results");
+			
+			throw exception("You can't specify structure displaying parameters if you don't wanna show results");
 		}
 
 		[[nodiscard]] bool suggestShowResultsAndGetAnswer () const
@@ -2597,11 +2549,6 @@ class CommandDisconnectSink : public Command
 
 
 #pragma todo
-void test_Commands()
-{
-	CommandCreate cr;
-	cr.test_parseArguments();
-}
 class CommandT: public Command
 {
 
@@ -2721,4 +2668,67 @@ void executeCommand (string enteredCommand)
 command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
 {
 	return command_mnemonic();
+}
+
+
+
+
+void TestCreateArgumentsParsing()
+{
+	using Arguments = CommandCreate::Arguments;
+
+
+
+
+	{
+		TokensDeque emptyTokens;
+
+		Arguments emptyArgs;
+
+		auto emptyOut = cr.parseArguments(emptyTokens);
+
+		Assert(emptyArgs == emptyOut, "");
+	}
+
+
+
+
+	{
+		TokensDeque onlyNameTokens = { "name" };
+
+		CommandCreate::Arguments onlyNameArgs;
+		onlyNameArgs.name = "name";
+
+		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
+
+		Assert(onlyNameArgs == onlyNameOut, "");
+	}
+
+
+
+
+	{
+		TokensDeque onlyTypeTokens = { "cur" };
+
+		Arguments onlyTypeArgs;
+		onlyTypeArgs.inputCvType = CvType::CURRENT;
+
+		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
+
+		Assert(onlyTypeArgs == onlyTypeOut, "");
+	}
+
+
+
+
+	{
+		TokensDeque onlyValueTokens = { "24" };
+
+		Arguments onlyValueArgs;
+		onlyValueArgs.inputCvValue = 24;
+
+		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
+
+		Assert(onlyValueArgs == onlyValueOut, "");
+	}
 }
