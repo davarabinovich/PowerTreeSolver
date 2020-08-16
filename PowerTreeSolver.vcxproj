@@ -25,7 +25,7 @@
   <ItemGroup>
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
-    <ClInclude Include="src\ya_tests\ya_tests.h" />
+    <ClInclude Include="src\test_runner\test_runner.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="high-level design\commands list.txt" />

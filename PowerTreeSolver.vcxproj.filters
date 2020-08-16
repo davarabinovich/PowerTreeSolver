@@ -29,7 +29,7 @@
     <ClInclude Include="src\commands\commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ya_tests\ya_tests.h">
+    <ClInclude Include="src\test_runner\test_runner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

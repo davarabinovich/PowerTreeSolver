@@ -2,7 +2,7 @@
 #include <string>
 #include <iomanip>
 
-#include "ya_tests/ya_tests.h"
+#include "test_runner/test_runner.h"
 
 #include "commands/commands.h"
 #include "config.h"
