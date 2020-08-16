@@ -341,7 +341,7 @@ class Command
 
 
 		
-		static bool isStringFloatNumber (const string & str)
+		static bool isFloatNumberString (const string & str)
 		{
 			auto letter_it = str.cbegin();
 
@@ -364,7 +364,7 @@ class Command
 			return true;
 		}
 
-		static bool isStringCvType (const string & str)
+		static bool isCvTypeString (const string & str)
 		{
 			if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
 			if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
@@ -374,7 +374,7 @@ class Command
 
 		static CvType parseCvType (const string & str)
 		{
-			if (!isStringCvType(str))
+			if (!isCvTypeString(str))
 #pragma todo write exceptions message
 				throw exception();
 
@@ -382,7 +382,7 @@ class Command
 			return CvType::VOLTAGE;
 		}
 		
-		static bool isStringConverterType (const string & str)
+		static bool isConverterTypeString (const string & str)
 		{
 			if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
 			if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
@@ -392,7 +392,7 @@ class Command
 
 		static ConverterType parseConverterType (const string & str)
 		{
-			if (!isStringConverterType(str))
+			if (!isConverterTypeString(str))
 #pragma todo write exceptions message
 				throw exception();
 
@@ -400,7 +400,7 @@ class Command
 			return ConverterType::PULSE;
 		}
 
-		static bool isStringLoadType (const string & str)
+		static bool isLoadTypeString (const string & str)
 		{
 			if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
 			if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
@@ -411,7 +411,7 @@ class Command
 
 		static LoadType parseLoadType (const string & str)
 		{
-			if (!isStringLoadType(str))
+			if (!isLoadTypeString(str))
 				throw exception("Invalid type of load");
 
 			if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
@@ -419,7 +419,7 @@ class Command
 			return LoadType::POWER;
 		}
 
-		static bool isStringDeletingMode (const string & str)
+		static bool isDeletingModeString (const string & str)
 		{
 			if (str != "h" && str != "d" && str != "r")    return false;
 			return true;
@@ -427,7 +427,7 @@ class Command
 		
 		static DeletingMode parseDeletingMode (const string & str)
 		{
-			if (!isStringDeletingMode(str))
+			if (!isDeletingModeString(str))
 				throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
 
 			if (str == "d")
@@ -506,8 +506,8 @@ class CommandCreate : public Command
 			if (tokens.empty()) return args;
 
 			string handeledArg = tokens.front(); tokens.pop_front();
-			if (!isStringCvType(handeledArg))
-				if (!isStringFloatNumber(handeledArg))
+			if (!isCvTypeString(handeledArg))
+				if (!isFloatNumberString(handeledArg))
 					args.name = handeledArg;
 				else
 				{
@@ -524,7 +524,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isStringFloatNumber(handeledArg))
+					if (!isFloatNumberString(handeledArg))
 						#pragma todo write exceptions message
 						throw exception();
 					else
@@ -543,8 +543,8 @@ class CommandCreate : public Command
 			if (tokens.size() == 0)    return args;
 		
 			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isStringCvType(handeledArg))
-				if (!isStringFloatNumber(handeledArg))
+			if (!isCvTypeString(handeledArg))
+				if (!isFloatNumberString(handeledArg))
 					args.inputName = handeledArg;
 				else
 				{
@@ -561,7 +561,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isStringFloatNumber(handeledArg))
+					if (!isFloatNumberString(handeledArg))
 #pragma todo write exceptions message
 						throw exception();
 					else
@@ -581,8 +581,8 @@ class CommandCreate : public Command
 			if (tokens.size() == 0)    return args;
 				
 			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isStringCvType(handeledArg))
-				if (!isStringFloatNumber(handeledArg))
+			if (!isCvTypeString(handeledArg))
+				if (!isFloatNumberString(handeledArg))
 #pragma todo write exceptions message
 					throw exception();
 				else
@@ -600,7 +600,7 @@ class CommandCreate : public Command
 				if (tokens.size() != 0)
 				{
 					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isStringFloatNumber(handeledArg))
+					if (!isFloatNumberString(handeledArg))
 #pragma todo write exceptions message
 						throw exception();
 					else
@@ -808,7 +808,7 @@ class CommandRename : public Command
 
 
 
-class CommandWithDislayingResults : public Command
+class CommandWithShowingResults : public Command
 {
 	
 	public:
@@ -819,7 +819,7 @@ class CommandWithDislayingResults : public Command
 
 			Results results = GetResults();
 
-			try { displayResults(results, args); }
+			try { showResults(results, args); }
 			catch (exception & ex) { cout << ex.what(); }
 		}
 	
@@ -836,7 +836,7 @@ class CommandWithDislayingResults : public Command
 
 
 
-		CommandWithDislayingResults () {}
+		CommandWithShowingResults () {}
 
 
 
@@ -866,11 +866,11 @@ class CommandWithDislayingResults : public Command
 			return args;
 		}
 
-		void displayResults (Results results, Arguments args) const
+		void showResults (Results results, Arguments args) const
 		{
 			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
 			for (auto& input : results.inputs)
-				displaySourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
+				showSourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
 			cout << endl;
 		}
 
@@ -879,7 +879,7 @@ class CommandWithDislayingResults : public Command
 
 	private:
 
-		void displaySourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void showSourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			unsigned hierarchy_level = 1) const
 		{
 			shiftSpaces(4 * hierarchy_level);
@@ -900,13 +900,13 @@ class CommandWithDislayingResults : public Command
 
 
 			for (const auto & converterSink : source.converterSinks)
-				displaySourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
+				showSourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 
 			for (const auto & loadSink : source.loadSinks)
-				displayLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
+				showLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 		}
 
-		void displayLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
+		void showLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
 			                    unsigned hierarchy_level) const
 		{
 			shiftSpaces(4 * (hierarchy_level + 1));
@@ -950,7 +950,7 @@ class CommandWithDislayingResults : public Command
 
 
 
-class CommandSolve : public CommandWithDislayingResults
+class CommandSolve : public CommandWithShowingResults
 {
 
 	public:
@@ -959,17 +959,17 @@ class CommandSolve : public CommandWithDislayingResults
 		{
 			Arguments args = parseArguments(tokens);
 
-			if (!args.needsToDisplayResults)
-				args.needsToDisplayResults = suggestDisplayResultsAndGetAnswer();
+			if (!args.needsToShowResults)
+				args.needsToShowResults = suggestShowResultsAndGetAnswer();
 
 			Solve();
 			reportCalculationsFinishs();
 
-			if (args.needsToDisplayResults)
+			if (args.needsToShowResults)
 			{
 				Results results = GetResults();
 
-				try { displayResults(results, args.dispParams); }
+				try { showResults(results, args.dispParams); }
 				catch (exception & ex) { cout << ex.what(); }
 			}
 		}
@@ -981,8 +981,8 @@ class CommandSolve : public CommandWithDislayingResults
 
 		struct Arguments
 		{
-			bool needsToDisplayResults = false;
-			CommandWithDislayingResults::Arguments dispParams;
+			bool needsToShowResults = false;
+			CommandWithShowingResults::Arguments dispParams;
 		};
 
 
@@ -996,7 +996,7 @@ class CommandSolve : public CommandWithDislayingResults
 			const auto & handeledArg = tokens.front();
 			if (isBool_str(handeledArg))
 			{
-				args.needsToDisplayResults = isYes(handeledArg);
+				args.needsToShowResults = isYes(handeledArg);
 
 				tokens.pop_front();
 				if (tokens.empty())    return args;
@@ -1004,13 +1004,13 @@ class CommandSolve : public CommandWithDislayingResults
 			else
 				throw exception(   string("Invalid argument \"" + handeledArg + "\"").c_str()   );
 
-			if (args.needsToDisplayResults)
-				args.dispParams = CommandWithDislayingResults::parseArguments(tokens);
+			if (args.needsToShowResults)
+				args.dispParams = CommandWithShowingResults::parseArguments(tokens);
 			else
 				throw exception("You can't specify structure displaying parameters if you don't wanna show results");
 		}
 
-		[[nodiscard]] bool suggestDisplayResultsAndGetAnswer () const
+		[[nodiscard]] bool suggestShowResultsAndGetAnswer () const
 		{
 			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
 			cout << "Do you want to see results ?" << endl;
@@ -1035,13 +1035,13 @@ class CommandSolve : public CommandWithDislayingResults
 
 
 
-class CommandDisplayResults : public CommandWithDislayingResults {};
+class CommandShowResults : public CommandWithShowingResults {};
 
 
 
 
 
-class CommandDisplayStructure : public Command
+class CommandShowStructure : public Command
 {
 	
 	public:
@@ -1170,7 +1170,7 @@ class CommandCreateInput : public Command
 
 			auto handeledArg = tokens.front();
 			
-			if ( !isStringCvType(handeledArg) && !isStringFloatNumber(handeledArg) )
+			if ( !isCvTypeString(handeledArg) && !isFloatNumberString(handeledArg) )
 			{
 				args.name = handeledArg;
 
@@ -1179,7 +1179,7 @@ class CommandCreateInput : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringCvType(handeledArg))
+			if (isCvTypeString(handeledArg))
 			{
 				args.cvType = parseCvType(handeledArg);
 
@@ -1188,7 +1188,7 @@ class CommandCreateInput : public Command
 				handeledArg = tokens.front();
 			}
 			
-			if (isStringFloatNumber(handeledArg))
+			if (isFloatNumberString(handeledArg))
 			{
 				args.cvValue = strToDouble(handeledArg);
 
@@ -1324,7 +1324,7 @@ class CommandCreateConverter : public Command
 
 			auto handeledArg = tokens.front();
 
-			if (!isStringCvType(handeledArg) && !isStringConverterType(handeledArg) && !isStringFloatNumber(handeledArg))
+			if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -1333,7 +1333,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringCvType(handeledArg))
+			if (isCvTypeString(handeledArg))
 			{
 				args.cvType = parseCvType(handeledArg);
 
@@ -1342,7 +1342,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringFloatNumber(handeledArg))
+			if (isFloatNumberString(handeledArg))
 			{
 				args.cvValue = strToDouble(handeledArg);
 
@@ -1351,7 +1351,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringConverterType(handeledArg))
+			if (isConverterTypeString(handeledArg))
 			{
 				args.type = parseConverterType(handeledArg);
 
@@ -1360,7 +1360,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringFloatNumber(handeledArg))
+			if (isFloatNumberString(handeledArg))
 			{
 				args.efficiency = strToDouble(handeledArg);
 
@@ -1369,7 +1369,7 @@ class CommandCreateConverter : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (!isStringCvType(handeledArg) && !isStringConverterType(handeledArg) && !isStringFloatNumber(handeledArg))
+			if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 			{
 				args.parentName = handeledArg;
 
@@ -1529,7 +1529,7 @@ class CommandCreateLoad : public Command
 
 			auto handeledArg = tokens.front();
 
-			if (!isStringLoadType(handeledArg) && !isStringFloatNumber(handeledArg))
+			if (!isLoadTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -1538,7 +1538,7 @@ class CommandCreateLoad : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringLoadType(handeledArg))
+			if (isLoadTypeString(handeledArg))
 			{
 				args.type = parseLoadType(handeledArg);
 
@@ -1547,7 +1547,7 @@ class CommandCreateLoad : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringFloatNumber(handeledArg))
+			if (isFloatNumberString(handeledArg))
 			{
 				args.value = strToDouble(handeledArg);
 
@@ -1561,7 +1561,7 @@ class CommandCreateLoad : public Command
 					if (tokens.empty())    return args;
 					handeledArg = tokens.front();
 
-					if (isStringFloatNumber(handeledArg))
+					if (isFloatNumberString(handeledArg))
 					{
 						args.value = strToDouble(handeledArg);
 
@@ -1768,7 +1768,7 @@ class CommandModifyInput : public Command
 				}
 				else
 				{
-					if (isStringCvType(token))
+					if (isCvTypeString(token))
 					{
 						if (args.cvType.first == false)
 						{
@@ -1778,7 +1778,7 @@ class CommandModifyInput : public Command
 						}
 					}
 
-					if (isStringFloatNumber(token))
+					if (isFloatNumberString(token))
 					{
 						if (args.cvValue.first == false)
 						{
@@ -1961,7 +1961,7 @@ class CommandModifyConverter : public Command
 				}
 				else
 				{
-					if (isStringCvType(token))
+					if (isCvTypeString(token))
 					{
 						if (args.cvType.first == false)
 						{
@@ -1971,7 +1971,7 @@ class CommandModifyConverter : public Command
 						}
 					}
 
-					if (isStringConverterType(token))
+					if (isConverterTypeString(token))
 					{
 						if (args.type.first == false)
 						{
@@ -1981,7 +1981,7 @@ class CommandModifyConverter : public Command
 						}
 					}
 	
-					if (isStringFloatNumber(token))
+					if (isFloatNumberString(token))
 					{
 						if (args.cvValue.first == false)
 						{
@@ -2175,7 +2175,7 @@ class CommandModifyLoad : public Command
 				}
 				else
 				{
-					if (isStringLoadType(token))
+					if (isLoadTypeString(token))
 					{
 						if (args.type.first == false)
 						{
@@ -2185,7 +2185,7 @@ class CommandModifyLoad : public Command
 						}
 					}
 	
-					if (isStringFloatNumber(token))
+					if (isFloatNumberString(token))
 					{
 						if (args.value.first == false)
 						{
@@ -2335,7 +2335,7 @@ class CommandDeleteNode : public Command
 		struct Arguments
 		{
 			string name = "";
-			DeletingMode mode = DeletingMode::HANG_DESCENDANTS;
+			DeletingMode mode = DeletingMode::NONE;
 			string newParentName = "";
 		};
 	
@@ -2350,7 +2350,7 @@ class CommandDeleteNode : public Command
 
 			auto handeledArg = tokens.front();
 
-			if (!isStringDeletingMode(handeledArg))
+			if (!isDeletingModeString(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -2359,7 +2359,7 @@ class CommandDeleteNode : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (isStringDeletingMode(handeledArg))
+			if (isDeletingModeString(handeledArg))
 			{
 				args.mode = parseDeletingMode(handeledArg);
 
@@ -2368,7 +2368,7 @@ class CommandDeleteNode : public Command
 				handeledArg = tokens.front();
 			}
 
-			if (!isStringDeletingMode(handeledArg))
+			if (!isDeletingModeString(handeledArg))
 			{
 				args.newParentName = handeledArg;
 
@@ -2426,7 +2426,7 @@ class CommandDeleteNode : public Command
 
 		void reportExecution (const Arguments & args) const
 		{
-			cout << GetTypeOfNode_str(args.name) << "\"" << args.name << "\" is deleted successfully.";
+			cout << GetTypeOfNode_str(args.name) << " \"" << args.name << "\" is deleted successfully. ";
 			
 			if (IsSourceExsist(args.name))
 			{
@@ -2637,8 +2637,8 @@ private:
 static const CommandCreate cr;
 static const CommandRename rn;
 static const CommandSolve  sv;
-static const CommandDisplayResults   dr;
-static const CommandDisplayStructure ds;
+static const CommandShowResults   sr;
+static const CommandShowStructure ss;
 
 static const CommandCreateInput     ci;
 static const CommandCreateConverter cc;
@@ -2647,24 +2647,26 @@ static const CommandModifyInput     mi;
 static const CommandModifyConverter mc;
 static const CommandModifyLoad      ml;
 static const CommandMoveSink        ms;
-static const CommandDisconnectSink  dn;
+static const CommandDisconnectSink  ds;
+static const CommandDeleteNode      dn;
 
 
 
 static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
 																			{ "rn", make_shared<CommandRename>(rn)           },
 																			{ "sv", make_shared<CommandSolve>(sv)            },
-																			{ "dr", make_shared<CommandDisplayResults>(dr)   },
-																			{ "ds", make_shared<CommandDisplayStructure>(ds) },
+																			{ "sr", make_shared<CommandShowResults>(sr)      },
+																			{ "ss", make_shared<CommandShowStructure>(ss)    },
 
 																			{ "ci", make_shared<CommandCreateInput>(ci)      },
-                                                                            { "cc", make_shared<CommandCreateConverter>(cc)  },
+																			{ "cc", make_shared<CommandCreateConverter>(cc)  },
 																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
-                                                                            { "mi", make_shared<CommandModifyInput>(mi)      },
-                                                                            { "mc", make_shared<CommandModifyConverter>(mc)  },
-                                                                            { "ml", make_shared<CommandModifyLoad>(ml)       },
-	                                                                        { "ms", make_shared<CommandMoveSink>(ms)         },
-                                                                            { "dn", make_shared<CommandDisconnectSink>(dn)   }  };
+																			{ "mi", make_shared<CommandModifyInput>(mi)      },
+																			{ "mc", make_shared<CommandModifyConverter>(mc)  },
+																			{ "ml", make_shared<CommandModifyLoad>(ml)       },
+																			{ "ms", make_shared<CommandMoveSink>(ms)         },
+																			{ "ds", make_shared<CommandDisconnectSink>(ds)   },
+																			{ "dn", make_shared<CommandDeleteNode>(dn)       }  };
 
 
 
