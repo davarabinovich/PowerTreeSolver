@@ -29,6 +29,9 @@
     <ClInclude Include="src\commands\commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ya_tests\ya_tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt">

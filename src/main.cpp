@@ -2,6 +2,8 @@
 #include <string>
 #include <iomanip>
 
+#include "ya_tests/ya_tests.h"
+
 #include "commands/commands.h"
 #include "config.h"
 
