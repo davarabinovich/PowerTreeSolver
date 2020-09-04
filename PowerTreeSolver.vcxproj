@@ -31,16 +31,19 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
+    <ClCompile Include="src\tree\tree_api.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\test_runner\test_runner.h" />
+    <ClInclude Include="src\tree\tree_api.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="high-level design\commands list.txt" />
-    <Text Include="high-level design\tree%27s items and parameters.txt" />
+    <Text Include="high-level design\tree data structure requirements.txt" />
+    <Text Include="high-level design\tree%27s nodes and parameters.txt" />
     <Text Include="todo.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

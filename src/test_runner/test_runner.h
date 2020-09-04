@@ -94,7 +94,7 @@ class TestRunner
 {
 public:
   template <class TestFunc>
-  void RunTest(TestFunc func, const string& test_name) {
+  void RunTest(TestFunc func, const string& test_name = "") {
     try {
       func();
       cerr << test_name << " OK" << endl;
