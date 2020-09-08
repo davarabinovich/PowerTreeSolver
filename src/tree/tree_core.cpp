@@ -4,11 +4,6 @@
 
 
 
-
-
-
-
-
 double PowerTree::ResistiveLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
 	double consumption;
@@ -27,6 +22,10 @@ double PowerTree::ResistiveLoad::calculateConsumption (double parentCvValue, CvT
 	}
 	return consumption;
 }
+
+
+
+
 
 double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
@@ -48,36 +47,6 @@ double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvTyp
 }
 
 
-double PowerTree::PowerLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
-{
-	double consumption;
-	switch (parentCvType)
-	{
-		case CvType::VOLTAGE:
-			consumption = power / nomVoltatge;
-			break;
-
-		case CvType::CURRENT:
-			
-			break;
-
-		default:
-			throw exception("Invalid type of parent's controllable variable in the power load");
-	}
-	return consumption;
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -93,12 +62,18 @@ void PowerTree::Source::calculateLoad () const
 }
 
 
+
+
+
 double PowerTree::Converter::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
 	calculateLoad();
 	double consumption = recudeLoadToInput(parentCvValue, parentCvType) + getSelfConsumption(parentCvValue, parentCvType);
 	return consumption;
 }
+
+
+
 
 
 double PowerTree::Converter::getSelfConsumption (double parentCvValue, CvType parentCvType) const
@@ -116,6 +91,10 @@ double PowerTree::PulseConverter::recudeLoadToInput (double parentCvValue, CvTyp
 	double reducedLoad = load * cvValue / (parentCvValue * efficiency);
 	return reducedLoad;
 }
+
+
+
+
 
 double PowerTree::LinearConverter::recudeLoadToInput (double parentCvValue, CvType parentCvType) const
 {
@@ -136,7 +115,18 @@ double PowerTree::LinearConverter::recudeLoadToInput (double parentCvValue, CvTy
 	return reducedLoad;
 }
 
-void PowerTree::calculate() const
+
+
+
+
+PowerTree::PowerTree (key nm)
+{
+
+}
+
+
+
+void PowerTree::calculate () const
 {
 	for (const auto & input_ptr : inputs)
 	{
@@ -144,5 +134,3 @@ void PowerTree::calculate() const
 		input.calculateLoad();
 	}
 }
-
-

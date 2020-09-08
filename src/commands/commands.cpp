@@ -168,8 +168,8 @@ class Command
 				throw exception("Invalid type of load");
 
 			if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
-			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CURRENT;
-			return LoadType::POWER;
+			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CONSTANT_CURRENT;
+			return LoadType::ENERGY;
 		}
 
 		static bool isDeletingModeString (const string & str)
@@ -624,7 +624,7 @@ class CommandWithShowingResults : public Command
 
 			if (load.type == LoadType::RESISTIVE)
 				cout << "Ohm";
-			else if (load.type == LoadType::CURRENT)
+			else if (load.type == LoadType::CONSTANT_CURRENT)
 				cout << "A";
 			else
 				cout << "W";
@@ -632,7 +632,7 @@ class CommandWithShowingResults : public Command
 			if (needsShowPower)
 				cout << ", " << load.power << " W";
 
-			if (load.type == LoadType::POWER)
+			if (load.type == LoadType::ENERGY)
 				if (needsShowSecondaryLoadParams)
 					cout << load.secondaryParam << " V";
 
@@ -1261,7 +1261,7 @@ class CommandCreateLoad : public Command
 				args.value = strToDouble(handeledArg);
 
 				tokens.pop_front();
-				if (args.type != LoadType::POWER) 
+				if (args.type != LoadType::ENERGY) 
 				{
 					if (tokens.empty())    return args;
 				}
@@ -1314,11 +1314,11 @@ class CommandCreateLoad : public Command
 					mainParam = "resistance";
 					break;
 
-				case LoadType::CURRENT:
+				case LoadType::CONSTANT_CURRENT:
 					mainParam = "current";
 					break;
 
-				case LoadType::POWER:
+				case LoadType::ENERGY:
 						mainParam = "power";
 						break;
 			
@@ -1367,7 +1367,7 @@ class CommandCreateLoad : public Command
 
 			SetTypeForLoad(name, args.type);
 			SetValueForLoad(name, args.value);
-			if (args.type == LoadType::POWER)
+			if (args.type == LoadType::ENERGY)
 				SetNomVoltageForPowerLoad(name, args.nomVoltage);
 		}
 
@@ -1379,9 +1379,9 @@ class CommandCreateLoad : public Command
 			string name = "\"" + args.name + "\" ";
 
 			string valueUnit = "Ohm";
-			if (args.type == LoadType::CURRENT)
+			if (args.type == LoadType::CONSTANT_CURRENT)
 				valueUnit = "A";
-			else if (args.type == LoadType::POWER)
+			else if (args.type == LoadType::ENERGY)
 				valueUnit = "W";
 
 
@@ -1872,7 +1872,7 @@ class CommandModifyLoad : public Command
 					}
 					else if (key == "n")
 					{
-						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+						if (args.type.second != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
 						
 						if (args.nomVoltage.first == true)    continue;
 	
@@ -1903,7 +1903,7 @@ class CommandModifyLoad : public Command
 							continue;
 						}
 
-						if (args.type.second != LoadType::POWER)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+						if (args.type.second != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
 
 						if (args.nomVoltage.first == false)
 						{
@@ -1976,9 +1976,9 @@ class CommandModifyLoad : public Command
 				cout << endl << "    Value - " << args.value.second;
 	
 				string valueUnit = "Ohm";
-				if (args.type.second == LoadType::CURRENT)
+				if (args.type.second == LoadType::CONSTANT_CURRENT)
 					valueUnit = "A";
-				else if (args.type.second == LoadType::POWER)
+				else if (args.type.second == LoadType::ENERGY)
 					valueUnit = "W";
 				cout << " " << valueUnit;
 			}

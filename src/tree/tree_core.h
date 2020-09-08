@@ -46,8 +46,8 @@ inline const string operator + (const string & str, const CvType & tp)
 }
 
 
-
-enum class LoadType { RESISTIVE, CURRENT, POWER };
+#pragma todo add diode load
+enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY };
 
 inline ostream& operator << (ostream & os, const LoadType & type)
 {
@@ -55,9 +55,9 @@ inline ostream& operator << (ostream & os, const LoadType & type)
 	{
 	case LoadType::RESISTIVE:
 		return os << "resistive";
-	case LoadType::CURRENT:
+	case LoadType::CONSTANT_CURRENT:
 		return os << "current";
-	case LoadType::POWER:
+	case LoadType::ENERGY:
 		return os << "power";
 
 	default:
@@ -69,7 +69,7 @@ inline const string operator + (const LoadType & tp, const string & str)
 {
 	if (tp == LoadType::RESISTIVE)
 		return ("resistive" + str);
-	if (tp == LoadType::CURRENT)
+	if (tp == LoadType::CONSTANT_CURRENT)
 		return ("current" + str);
 	return ("power" + str);
 }
@@ -78,7 +78,7 @@ inline const string operator + (const string & str, const LoadType & tp)
 {
 	if (tp == LoadType::RESISTIVE)
 		return (str + "resistive");
-	if (tp == LoadType::CURRENT)
+	if (tp == LoadType::CONSTANT_CURRENT)
 		return (str + "current");
 	return (str + "power");
 }
@@ -114,102 +114,64 @@ class PowerTree
 
 	public:
 
+		using key = string; 
 		
+		
+		
+		PowerTree (key name = "");
+
+
+
+
 	private:
 		
-		using key = string;
-
-
-
 		key name;
 
 
 
 		class Node
 		{
-
+			
 		};
-
 
 		class Sink : public Node
 		{
-
 			public:
-
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const = 0;
-
 		};
-
 
 		class Load : public Sink
 		{
-
 			public:
-
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override = 0;
-
 		};
-
 
 		class ResistiveLoad : public Load
 		{
-
 			public:
-
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override;
 
 
-
-
 			private:
-
 				double resistance;
-
 		};
 
 		class CurrentLoad : public Load
 		{
 #pragma todo to forbid connect it to the current source
 			public:
-
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvtype) const override;
 
 
-
-
 			private:
-
 				double current;
-
 		};
 
-		class PowerLoad : public Load
-		{
-
-
-			public:
-
-				virtual double calculateConsumption (double cvValue, CvType parentCvtype) const override;
-
-
-
-
-			private:
-
-				double power;
-				double nomVoltatge;
-
-		};
-
-
+		
 		class Source : public Node
 		{
-			
 			public:
-
 				virtual void calculateLoad () const;
-
-
 
 
 			protected:
@@ -220,12 +182,8 @@ class PowerTree
 				mutable double load = NAN;
 
 
-
-
 			private:
-
 				map< key, shared_ptr<Sink> > sinks;
-
 		};
 
 		class Input : public Source
@@ -238,51 +196,30 @@ class PowerTree
 		{
 #pragma todo to forbid connect some converters to the converters with current output
 			public:
-
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override;
 
 
-
-
 			protected:
-
 				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const = 0;
-
-
 
 				double efficiency = 100.0;
 
 
-
-
 			private:
-
 				double getSelfConsumption (double parentCvValue, CvType parentCvType) const;
-
 		};
-
 
 		class PulseConverter : public Converter
 		{
-
 			protected:
-
 				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const;
-
 		};
 
 		class LinearConverter : public Converter
 		{
-
 			protected:
-
 				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const;
-
 		};
-
-
-
-
 
 
 
