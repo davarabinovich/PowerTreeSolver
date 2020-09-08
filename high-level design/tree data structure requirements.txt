@@ -1,1 +1,6 @@
 
+Required operation:
+- Exsisting a single tree
+- Creating node by key
+- Reading and writing node's parameters by key
+- 
