@@ -178,7 +178,7 @@ class PowerTree
 
 				CvType cvType;
 				double cvValue;
-
+#pragma todo remove mutable
 				mutable double load = NAN;
 
 
