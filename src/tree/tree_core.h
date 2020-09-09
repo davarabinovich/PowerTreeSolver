@@ -171,6 +171,8 @@ class PowerTree
 		class Source : public Node
 		{
 			public:
+				using DescendantsMap = map< key, shared_ptr<Sink> >;
+
 				virtual void calculateLoad () const;
 
 
@@ -183,7 +185,7 @@ class PowerTree
 
 
 			private:
-				map< key, shared_ptr<Sink> > sinks;
+				DescendantsMap descendants;
 		};
 
 		class Input : public Source
@@ -223,12 +225,29 @@ class PowerTree
 
 
 
-		map< key, shared_ptr<Input> > inputs;
+		map<key, Input> inputs;
 
 
 
 
 	public:
+
+		using DescendantsMap = Source::DescendantsMap;
+
+
+
+		void addInput (key name);
+		void addConverter (key name, key parentName = "");
+		void addLoad (key name, key parentName = "");
+
+		void moveSubnetTo (key subnetHeadName, key newParentName);
+		void disconnectSubnet (key subnetHeadName);
+
+		const DescendantsMap & getDescendants (key headName);
+
+		void deleteNode(key name, key descendantsNewParentName = "");
+		void deleteSubnet(key name);
+
 
 		void calculate () const;
 

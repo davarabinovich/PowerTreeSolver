@@ -53,7 +53,7 @@ double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvTyp
 void PowerTree::Source::calculateLoad () const
 {
 	double tempLoad = 0.0;
-	for (const auto& sink_ptr : sinks)
+	for (const auto& sink_ptr : descendants)
 	{
 		const auto& sink = *sink_ptr.second;
 		tempLoad += sink.calculateConsumption(cvValue, cvType);
@@ -128,9 +128,9 @@ PowerTree::PowerTree (key nm)
 
 void PowerTree::calculate () const
 {
-	for (const auto & input_ptr : inputs)
+	for (const auto & input_pair : inputs)
 	{
-		const auto & input = *input_ptr.second;
+		const auto & input = input_pair.second;
 		input.calculateLoad();
 	}
 }
