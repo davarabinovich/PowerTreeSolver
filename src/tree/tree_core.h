@@ -173,15 +173,13 @@ class PowerTree
 			public:
 				using DescendantsMap = map< key, shared_ptr<Sink> >;
 
-				virtual void calculateLoad () const;
+				double calculateLoad () const;
 
 
 			protected:
 
 				CvType cvType;
 				double cvValue;
-#pragma todo remove mutable
-				mutable double load = NAN;
 
 
 			private:
@@ -208,24 +206,26 @@ class PowerTree
 
 
 			private:
-				double getSelfConsumption (double parentCvValue, CvType parentCvType) const;
+				double getSelfConsumption (double parentCvValue, CvType parentCvType, double load) const;
 		};
 
 		class PulseConverter : public Converter
 		{
 			protected:
-				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const;
+				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const;
 		};
 
 		class LinearConverter : public Converter
 		{
 			protected:
-				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const;
+				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const;
 		};
 
 
 
-		map<key, Input> inputs;
+		map< key, shared_ptr<Input> > inputs;
+		map< key, shared_ptr<Sink> > freeSinks;
+		map< key, shared_ptr<Sink> > connectedSinks;
 
 
 
@@ -243,7 +243,7 @@ class PowerTree
 		void moveSubnetTo (key subnetHeadName, key newParentName);
 		void disconnectSubnet (key subnetHeadName);
 
-		const DescendantsMap & getDescendants (key headName);
+		DescendantsMap & getDescendants (key headName);
 
 		void deleteNode(key name, key descendantsNewParentName = "");
 		void deleteSubnet(key name);

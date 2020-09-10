@@ -50,15 +50,15 @@ double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvTyp
 
 
 
-void PowerTree::Source::calculateLoad () const
+double PowerTree::Source::calculateLoad () const
 {
-	double tempLoad = 0.0;
+	double load = 0.0;
 	for (const auto& sink_ptr : descendants)
 	{
 		const auto& sink = *sink_ptr.second;
-		tempLoad += sink.calculateConsumption(cvValue, cvType);
+		load += sink.calculateConsumption(cvValue, cvType);
 	}
-	load = tempLoad;
+	return load;
 }
 
 
@@ -67,8 +67,8 @@ void PowerTree::Source::calculateLoad () const
 
 double PowerTree::Converter::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
-	calculateLoad();
-	double consumption = recudeLoadToInput(parentCvValue, parentCvType) + getSelfConsumption(parentCvValue, parentCvType);
+	double load = calculateLoad();
+	double consumption = recudeLoadToInput(parentCvValue, parentCvType) + getSelfConsumption(parentCvValue, parentCvType, load);
 	return consumption;
 }
 
@@ -76,7 +76,7 @@ double PowerTree::Converter::calculateConsumption (double parentCvValue, CvType 
 
 
 
-double PowerTree::Converter::getSelfConsumption (double parentCvValue, CvType parentCvType) const
+double PowerTree::Converter::getSelfConsumption (double parentCvValue, CvType parentCvType, double load) const
 {
 	double selfConsumption = (1 - efficiency) * cvValue * load;
 	return selfConsumption;
@@ -86,7 +86,7 @@ double PowerTree::Converter::getSelfConsumption (double parentCvValue, CvType pa
 
 
 
-double PowerTree::PulseConverter::recudeLoadToInput (double parentCvValue, CvType parentCvType) const
+double PowerTree::PulseConverter::reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const
 {
 	double reducedLoad = load * cvValue / (parentCvValue * efficiency);
 	return reducedLoad;
@@ -96,7 +96,7 @@ double PowerTree::PulseConverter::recudeLoadToInput (double parentCvValue, CvTyp
 
 
 
-double PowerTree::LinearConverter::recudeLoadToInput (double parentCvValue, CvType parentCvType) const
+double PowerTree::LinearConverter::reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const
 {
 	double reducedLoad;
 	switch (cvType)
@@ -121,16 +121,73 @@ double PowerTree::LinearConverter::recudeLoadToInput (double parentCvValue, CvTy
 
 PowerTree::PowerTree (key nm)
 {
+	if (nm == "")    throw exception("Name of tree can't be empty");
 
+	name = nm;
 }
 
 
 
+
+void PowerTree::addInput (key name)
+{
+	if (name == "")    throw exception("Name of node can't be empty");
+	if (inputs.count(name) > 0) throw
+
+	inputs[name];
+}
+
+ 
+void PowerTree::addConverter (key name, key parentName)
+{
+
+}
+
+
+void PowerTree::addLoad (key name, key parentName)
+{
+
+}
+
+
+void PowerTree::moveSubnetTo (key subnetHeadName, key newParentName)
+{
+
+}
+
+
+void PowerTree::disconnectSubnet (key subnetHeadName)
+{
+
+}
+
+
+PowerTree::DescendantsMap & PowerTree::getDescendants (key headName)
+{
+#todo pragma add validation
+	return DescendantsMap();
+}
+
+
+void PowerTree::deleteNode (key name, key descendantsNewParentName)
+{
+
+}
+
+
+void PowerTree::deleteSubnet (key name)
+{
+
+}
+
+
 void PowerTree::calculate () const
 {
-	for (const auto & input_pair : inputs)
+	for (const auto & input_ptr : inputs)
 	{
-		const auto & input = input_pair.second;
+		const auto & input = *input_ptr.second;
 		input.calculateLoad();
 	}
+
+#pragma todo needs to return result yet
 }
