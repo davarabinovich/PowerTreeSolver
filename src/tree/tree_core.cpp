@@ -4,6 +4,24 @@
 
 
 
+string PowerTree::Node::getTypeOfNode_str () const
+{
+	return "node";
+}
+
+
+
+
+
+string PowerTree::Load::getTypeOfNode_str () const
+{
+	return "load";
+}
+
+
+
+
+
 double PowerTree::ResistiveLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
 	double consumption;
@@ -50,12 +68,18 @@ double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvTyp
 
 
 
+void PowerTree::Source::connectNewDescendant (key newDescendantName, shared_ptr<Sink> sink_ptr)
+{
+	descendants[newDescendantName] = sink_ptr;
+}
+
+
 double PowerTree::Source::calculateLoad () const
 {
 	double load = 0.0;
-	for (const auto& sink_ptr : descendants)
+	for (const auto & sink_ptr : descendants)
 	{
-		const auto& sink = *sink_ptr.second;
+		const auto & sink = *sink_ptr.second;
 		load += sink.calculateConsumption(cvValue, cvType);
 	}
 	return load;
@@ -63,6 +87,21 @@ double PowerTree::Source::calculateLoad () const
 
 
 
+
+
+string PowerTree::Input::getTypeOfNode_str () const
+{
+	return "input";
+}
+
+
+
+
+
+string PowerTree::Converter::getTypeOfNode_str () const
+{
+	return "converter";
+}
 
 
 double PowerTree::Converter::calculateConsumption (double parentCvValue, CvType parentCvType) const
@@ -119,9 +158,9 @@ double PowerTree::LinearConverter::reduceLoadToInput (double parentCvValue, CvTy
 
 
 
-PowerTree::PowerTree (key nm)
+PowerTree::PowerTree (string nm)
 {
-	if (nm == "")    throw exception("Name of tree can't be empty");
+	ensureIsNameNotEmpty(nm, "tree");
 
 	name = nm;
 }
@@ -131,22 +170,74 @@ PowerTree::PowerTree (key nm)
 
 void PowerTree::addInput (key name)
 {
-	if (name == "")    throw exception("Name of node can't be empty");
-	if (inputs.count(name) > 0) throw
+	ensureIsNameNotEmpty(name, "node");
+	ensureIsNodeNotExsisting(name);
 
-	inputs[name];
+	inputs[name] = make_shared<Input>();
 }
 
  
-void PowerTree::addConverter (key name, key parentName)
+void PowerTree::addConverter (key name, key parentName, ConverterType type)
 {
+	ensureIsNameNotEmpty(name, "node");
+	ensureIsNodeNotExsisting(name);
+	if (parentName != "")    ensureIsSourceExsisting(parentName);
 
+	shared_ptr<Sink> newConverter_ptr;
+	switch (type)
+	{
+		case ConverterType::PULSE:
+			newConverter_ptr = make_shared<PulseConverter>();
+			break;
+
+		case ConverterType::LINEAR:
+			newConverter_ptr = make_shared<LinearConverter>();
+			break;
+
+		default:
+			throw exception("Invalid type of converter");
+	}
+	converters[name] = newConverter_ptr;
+
+	if (parentName != "")
+	{
+		if (isSuchConverter(parentName))
+			converters[parentName] ->connectNewDescendant(name, newConverter_ptr);
+		if (isSuchInput(parentName))
+			inputs[parentName] ->connectNewDescendant(name, newConverter_ptr);
+	}
 }
 
 
 void PowerTree::addLoad (key name, key parentName)
 {
+	ensureIsNameNotEmpty(name, "node");
+	ensureIsNodeNotExsisting(name);
+	if (parentName != "")    ensureIsSourceExsisting(parentName);
 
+	shared_ptr<Sink> newConverter_ptr;
+	switch (type)
+	{
+	case ConverterType::PULSE:
+		newConverter_ptr = make_shared<PulseConverter>();
+		break;
+
+	case ConverterType::LINEAR:
+		newConverter_ptr = make_shared<LinearConverter>();
+		break;
+
+	default:
+		throw exception("Invalid type of converter");
+	}
+	converters[name] = newConverter_ptr;
+
+	if (parentName != "")
+	{
+		if (isSuchConverter(parentName))
+			converters[parentName]->connectNewDescendant(name, newConverter_ptr);
+		if (isSuchInput(parentName))
+			inputs[parentName]->connectNewDescendant(name, newConverter_ptr);
+	}
 }
 
 
@@ -162,10 +253,15 @@ void PowerTree::disconnectSubnet (key subnetHeadName)
 }
 
 
-PowerTree::DescendantsMap & PowerTree::getDescendants (key headName)
+void PowerTree::moveAllDescendantsTo (key parentName, key newParentName)
 {
-#todo pragma add validation
-	return DescendantsMap();
+
+}
+
+
+void PowerTree::disconnectAllDescendants (key parentName)
+{
+
 }
 
 
@@ -188,6 +284,54 @@ void PowerTree::calculate () const
 		const auto & input = *input_ptr.second;
 		input.calculateLoad();
 	}
+}
 
-#pragma todo needs to return result yet
+
+void PowerTree::ensureIsNodeNotExsisting (key name) const
+{
+	string exsistingNodeType_str;
+	if (isSuchInput(name))
+		exsistingNodeType_str = "input";
+	else if (isSuchConverter(name))
+		exsistingNodeType_str = "converter";
+	else if (IsSuchLoad(name))
+		exsistingNodeType_str = "load";
+
+	throw exception( string("The " + exsistingNodeType_str + "with such a name already exsist").c_str() );
+}
+
+
+void PowerTree::ensureIsSourceExsisting (key name) const
+{
+	if (isSuchSource(name))
+		return;
+
+	throw exception( string("There is no sources with the name " + name).c_str() );
+}
+
+
+bool PowerTree::isSuchSource (key name) const
+{
+	bool result = (isSuchInput(name) && isSuchConverter(name));
+	return result;
+}
+
+
+bool PowerTree::isSuchInput (key name) const
+{
+	bool result = (inputs.count(name) > 0);
+	return result;
+}
+
+
+bool PowerTree::isSuchConverter (key name) const
+{
+	bool result = (converters.count(name) > 0);
+	return result;
+}
+
+bool PowerTree::IsSuchLoad (key name) const
+{
+	bool result = (loads.count(name) > 0);
+	return result;
 }

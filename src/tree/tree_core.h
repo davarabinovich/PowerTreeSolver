@@ -15,6 +15,24 @@ using namespace std;
 
 
 
+#pragma todo carry over to library
+inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
+{
+	if (name != "")    return;
+	
+	string message;
+	if (itemType_str == "")
+		message = string("Name can't be empry");
+	else
+		message = string("Name of " + itemType_str + " can't be empty");
+		
+	throw exception( message.c_str() );
+}
+
+
+
+
+
 enum class CvType { VOLTAGE, CURRENT };
 
 inline ostream & operator << (ostream & os, const CvType & type)
@@ -49,7 +67,7 @@ inline const string operator + (const string & str, const CvType & tp)
 #pragma todo add diode load
 enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY };
 
-inline ostream& operator << (ostream & os, const LoadType & type)
+inline ostream & operator << (ostream & os, const LoadType & type)
 {
 	switch (type)
 	{
@@ -114,16 +132,16 @@ class PowerTree
 
 	public:
 
-		using key = string; 
-		
-		
-		
-		PowerTree (key name = "");
+		PowerTree (string name = "");
 
 
 
 
 	private:
+
+		using key = string;
+
+
 		
 		key name;
 
@@ -131,7 +149,8 @@ class PowerTree
 
 		class Node
 		{
-			
+			public:
+				virtual string getTypeOfNode_str () const;
 		};
 
 		class Sink : public Node
@@ -143,6 +162,8 @@ class PowerTree
 		class Load : public Sink
 		{
 			public:
+				string getTypeOfNode_str() const override;
+
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override = 0;
 		};
 
@@ -173,11 +194,11 @@ class PowerTree
 			public:
 				using DescendantsMap = map< key, shared_ptr<Sink> >;
 
+				void connectNewDescendant (key newDescendantName, shared_ptr<Sink> sink_ptr);
 				double calculateLoad () const;
 
 
 			protected:
-
 				CvType cvType;
 				double cvValue;
 
@@ -188,14 +209,18 @@ class PowerTree
 
 		class Input : public Source
 		{
-
+			public:
+				string getTypeOfNode_str() const override;
 		};
 
 
 		class Converter : public Source, Sink
 		{
 #pragma todo to forbid connect some converters to the converters with current output
+#pragma todo remove all constructors, as well as for load, node, sink and source
 			public:
+				string getTypeOfNode_str() const override;
+
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override;
 
 
@@ -223,32 +248,41 @@ class PowerTree
 
 
 
-		map< key, shared_ptr<Input> > inputs;
-		map< key, shared_ptr<Sink> > freeSinks;
-		map< key, shared_ptr<Sink> > connectedSinks;
+		map< key, shared_ptr<Input>     > inputs;
+		map< key, shared_ptr<Converter> > converters;
+		map< key, shared_ptr<Load>      > loads;
 
 
 
 
 	public:
 
-		using DescendantsMap = Source::DescendantsMap;
-
-
-
+#pragma todo the following must be const
 		void addInput (key name);
-		void addConverter (key name, key parentName = "");
+		void addConverter (key name, key parentName = "", ConverterType type = ConverterType::PULSE);
 		void addLoad (key name, key parentName = "");
 
 		void moveSubnetTo (key subnetHeadName, key newParentName);
 		void disconnectSubnet (key subnetHeadName);
 
-		DescendantsMap & getDescendants (key headName);
+		void moveAllDescendantsTo (key parentName, key newParentName);
+		void disconnectAllDescendants (key parentName);
 
-		void deleteNode(key name, key descendantsNewParentName = "");
-		void deleteSubnet(key name);
+		void deleteNode (key name, key descendantsNewParentName = "");
+		void deleteSubnet (key name);
 
 
 		void calculate () const;
 
+
+
+		void ensureIsNodeNotExsisting (key name) const;
+		void ensureIsSourceExsisting (key name) const;
+
+
+
+		bool isSuchSource (key name) const;
+		bool isSuchInput (key name) const;
+		bool isSuchConverter (key name) const;
+		bool IsSuchLoad (key name) const;
 };
