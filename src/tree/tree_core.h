@@ -32,7 +32,7 @@ inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
 
 
 
-
+#pragma todo these must be not here
 enum class CvType { VOLTAGE, CURRENT };
 
 inline ostream & operator << (ostream & os, const CvType & type)
@@ -177,7 +177,7 @@ class PowerTree
 				double resistance;
 		};
 
-		class CurrentLoad : public Load
+		class ConstantCurrentLoad : public Load
 		{
 #pragma todo to forbid connect it to the current source
 			public:
@@ -194,8 +194,11 @@ class PowerTree
 			public:
 				using DescendantsMap = map< key, shared_ptr<Sink> >;
 
-				void connectNewDescendant (key newDescendantName, shared_ptr<Sink> sink_ptr);
+				void connectDescendant (key descendantName, shared_ptr<Sink> sink_ptr);
+				void deleteDescendant (key descendantName);
+				DescendantsMap & getAllDescendants ();
 				double calculateLoad () const;
+				bool isSuchDescendant (key descendantName) const;
 
 
 			protected:
@@ -213,8 +216,8 @@ class PowerTree
 				string getTypeOfNode_str() const override;
 		};
 
-
-		class Converter : public Source, Sink
+#pragma "exercises: compiler couldn't convert sh_ptr<Conv> to sh_ptr<Sink> while inheritance from Sink was a private"
+		class Converter : public Source, public Sink
 		{
 #pragma todo to forbid connect some converters to the converters with current output
 #pragma todo remove all constructors, as well as for load, node, sink and source
@@ -225,7 +228,7 @@ class PowerTree
 
 
 			protected:
-				virtual double recudeLoadToInput (double parentCvValue, CvType parentCvType) const = 0;
+				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const = 0;
 
 				double efficiency = 100.0;
 
@@ -237,13 +240,13 @@ class PowerTree
 		class PulseConverter : public Converter
 		{
 			protected:
-				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const;
+				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const override;
 		};
 
 		class LinearConverter : public Converter
 		{
 			protected:
-				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const;
+				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const override;
 		};
 
 
@@ -260,22 +263,29 @@ class PowerTree
 #pragma todo the following must be const
 		void addInput (key name);
 		void addConverter (key name, key parentName = "", ConverterType type = ConverterType::PULSE);
-		void addLoad (key name, key parentName = "");
+		void addLoad (key name, key parentName = "", LoadType type = LoadType::CONSTANT_CURRENT);
 
 		void moveSubnetTo (key subnetHeadName, key newParentName);
-		void disconnectSubnet (key subnetHeadName);
+		void disconnectSubnet (key headerName);
 
 		void moveAllDescendantsTo (key parentName, key newParentName);
 		void disconnectAllDescendants (key parentName);
 
 		void deleteNode (key name, key descendantsNewParentName = "");
-		void deleteSubnet (key name);
+		void deleteSubnet (key headerName);
 
 
 		void calculate () const;
 
 
 
+		void validateArgsForNewSink (key name, key parentName) const;
+		void writeNewSinkToSource (key name, key parentName, shared_ptr<Sink> newSink_ptr);
+		void deleteSubnetPointers (key headerName);
+
+
+
+		void ensureIsNodeExsisting (key name) const;
 		void ensureIsNodeNotExsisting (key name) const;
 		void ensureIsSourceExsisting (key name) const;
 

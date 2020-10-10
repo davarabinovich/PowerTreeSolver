@@ -4,6 +4,12 @@
 
 
 
+#pragma todo carry on lib
+#define AUTO_CONST_REF auto const &
+
+
+
+
 string PowerTree::Node::getTypeOfNode_str () const
 {
 	return "node";
@@ -45,7 +51,7 @@ double PowerTree::ResistiveLoad::calculateConsumption (double parentCvValue, CvT
 
 
 
-double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
+double PowerTree::ConstantCurrentLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
 	double consumption;
 	switch (parentCvType)
@@ -68,9 +74,21 @@ double PowerTree::CurrentLoad::calculateConsumption (double parentCvValue, CvTyp
 
 
 
-void PowerTree::Source::connectNewDescendant (key newDescendantName, shared_ptr<Sink> sink_ptr)
+void PowerTree::Source::connectDescendant (key descendantName, shared_ptr<Sink> sink_ptr)
 {
-	descendants[newDescendantName] = sink_ptr;
+	descendants[descendantName] = sink_ptr;
+}
+
+
+void PowerTree::Source::deleteDescendant (key descendantName)
+{
+	descendants.erase(descendantName);
+}
+
+
+PowerTree::Source::DescendantsMap & PowerTree::Source::getAllDescendants ()
+{
+	return descendants;
 }
 
 
@@ -83,6 +101,14 @@ double PowerTree::Source::calculateLoad () const
 		load += sink.calculateConsumption(cvValue, cvType);
 	}
 	return load;
+}
+
+
+bool PowerTree::Source::isSuchDescendant(key descendantName) const
+{
+	if (descendants.count(descendantName) > 0)
+		return true;
+	return false;
 }
 
 
@@ -107,7 +133,7 @@ string PowerTree::Converter::getTypeOfNode_str () const
 double PowerTree::Converter::calculateConsumption (double parentCvValue, CvType parentCvType) const
 {
 	double load = calculateLoad();
-	double consumption = recudeLoadToInput(parentCvValue, parentCvType) + getSelfConsumption(parentCvValue, parentCvType, load);
+	double consumption = reduceLoadToInput(parentCvValue, parentCvType, load) + getSelfConsumption(parentCvValue, parentCvType, load);
 	return consumption;
 }
 
@@ -179,11 +205,9 @@ void PowerTree::addInput (key name)
  
 void PowerTree::addConverter (key name, key parentName, ConverterType type)
 {
-	ensureIsNameNotEmpty(name, "node");
-	ensureIsNodeNotExsisting(name);
-	if (parentName != "")    ensureIsSourceExsisting(parentName);
+	validateArgsForNewSink(name, parentName);
 
-	shared_ptr<Sink> newConverter_ptr;
+	shared_ptr<Converter> newConverter_ptr;
 	switch (type)
 	{
 		case ConverterType::PULSE:
@@ -199,45 +223,31 @@ void PowerTree::addConverter (key name, key parentName, ConverterType type)
 	}
 	converters[name] = newConverter_ptr;
 
-	if (parentName != "")
-	{
-		if (isSuchConverter(parentName))
-			converters[parentName] ->connectNewDescendant(name, newConverter_ptr);
-		if (isSuchInput(parentName))
-			inputs[parentName] ->connectNewDescendant(name, newConverter_ptr);
-	}
+	writeNewSinkToSource(name, parentName, newConverter_ptr);
 }
 
 
-void PowerTree::addLoad (key name, key parentName)
+void PowerTree::addLoad (key name, key parentName, LoadType type)
 {
-	ensureIsNameNotEmpty(name, "node");
-	ensureIsNodeNotExsisting(name);
-	if (parentName != "")    ensureIsSourceExsisting(parentName);
+	validateArgsForNewSink(name, parentName);
 
-	shared_ptr<Sink> newConverter_ptr;
+	shared_ptr<Load> newLoad_ptr;
 	switch (type)
 	{
-	case ConverterType::PULSE:
-		newConverter_ptr = make_shared<PulseConverter>();
-		break;
+		case LoadType::RESISTIVE:
+			newLoad_ptr = make_shared<ResistiveLoad>();
+			break;
 
-	case ConverterType::LINEAR:
-		newConverter_ptr = make_shared<LinearConverter>();
-		break;
+		case LoadType::CONSTANT_CURRENT:
+			newLoad_ptr = make_shared<ConstantCurrentLoad>();
+			break;
 
-	default:
-		throw exception("Invalid type of converter");
+		default:
+			throw exception("Invalid type of converter");
 	}
-	converters[name] = newConverter_ptr;
+	loads[name] = newLoad_ptr;
 
-	if (parentName != "")
-	{
-		if (isSuchConverter(parentName))
-			converters[parentName]->connectNewDescendant(name, newConverter_ptr);
-		if (isSuchInput(parentName))
-			inputs[parentName]->connectNewDescendant(name, newConverter_ptr);
-	}
+	writeNewSinkToSource(name, parentName, newLoad_ptr);
 }
 
 
@@ -247,9 +257,27 @@ void PowerTree::moveSubnetTo (key subnetHeadName, key newParentName)
 }
 
 
-void PowerTree::disconnectSubnet (key subnetHeadName)
+void PowerTree::disconnectSubnet (key headerName)
 {
+#pragma todo check deleting via console messages in destructors
+	ensureIsNodeExsisting(headerName);
 
+	shared_ptr<Source> source;
+	for (AUTO_CONST_REF converter : converters)
+		if (converter.second ->isSuchDescendant(headerName))
+		{
+			source = converter.second;
+			break;
+		}
+	if (source.use_count() == 0)
+		for (AUTO_CONST_REF input : inputs)
+			if (input.second ->isSuchDescendant(headerName))
+			{
+				source = input.second;
+				break;
+			}
+
+	source->deleteDescendant(headerName);
 }
 
 
@@ -267,13 +295,15 @@ void PowerTree::disconnectAllDescendants (key parentName)
 
 void PowerTree::deleteNode (key name, key descendantsNewParentName)
 {
-
+	ensureIsNodeExsisting(name);
+	if (descendantsNewParentName != "")    ensureIsSourceExsisting(descendantsNewParentName);
 }
 
 
-void PowerTree::deleteSubnet (key name)
+void PowerTree::deleteSubnet (key headerName)
 {
-
+	disconnectSubnet(headerName);
+	deleteSubnetPointers(headerName);
 }
 
 
@@ -287,9 +317,71 @@ void PowerTree::calculate () const
 }
 
 
+void PowerTree::validateArgsForNewSink (key name, key parentName) const
+{
+	ensureIsNameNotEmpty(name, "node");
+	ensureIsNodeNotExsisting(name);
+	if (parentName != "")    ensureIsSourceExsisting(parentName);
+}
+
+
+void PowerTree::writeNewSinkToSource (key name, key parentName, shared_ptr<Sink> newSink_ptr)
+{
+	if (parentName != "")
+	{
+		if (isSuchConverter(parentName))
+			converters[parentName]->connectDescendant(name, newSink_ptr);
+		if (isSuchInput(parentName))
+			inputs[parentName]->connectDescendant(name, newSink_ptr);
+	}
+}
+
+
+void PowerTree::deleteSubnetPointers(key headerName)
+{
+	if (IsSuchLoad(headerName))
+	{
+		loads.erase(headerName);
+		return;
+	}
+
+	shared_ptr<Source> header_ptr;
+	if (isSuchConverter(headerName))
+		header_ptr = converters[headerName];
+	else if (isSuchInput(headerName))
+		header_ptr = inputs[headerName];
+
+	auto & headersDescendants = header_ptr->getAllDescendants();
+	for (AUTO_CONST_REF descendant : headersDescendants)
+	{
+		deleteSubnetPointers(descendant.first);
+	}
+
+	if (isSuchConverter(headerName))
+		converters.erase(headerName);
+	else if (isSuchInput(headerName))
+		inputs.erase(headerName);
+}
+
+
+void PowerTree::ensureIsNodeExsisting (key name) const
+{
+	bool isNodeExsisting = false;
+	if (isSuchInput(name))
+		isNodeExsisting = true;
+	else if (isSuchConverter(name))
+		isNodeExsisting = true;
+	else if (IsSuchLoad(name))
+		isNodeExsisting = true;
+
+	if (!isNodeExsisting)
+		throw exception(string("A node with a name " + name + " isn't exsisting").c_str());
+}
+
+
 void PowerTree::ensureIsNodeNotExsisting (key name) const
 {
-	string exsistingNodeType_str;
+	string exsistingNodeType_str = "";
 	if (isSuchInput(name))
 		exsistingNodeType_str = "input";
 	else if (isSuchConverter(name))
@@ -297,7 +389,8 @@ void PowerTree::ensureIsNodeNotExsisting (key name) const
 	else if (IsSuchLoad(name))
 		exsistingNodeType_str = "load";
 
-	throw exception( string("The " + exsistingNodeType_str + "with such a name already exsist").c_str() );
+	if (exsistingNodeType_str != "")
+		throw exception( string("The " + exsistingNodeType_str + "with such a name already exsist").c_str() );
 }
 
 
