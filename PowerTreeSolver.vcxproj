@@ -29,17 +29,20 @@
   <ItemGroup>
     <ClCompile Include="src\commands\commands.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\power_tree\tree_api.cpp" />
+    <ClCompile Include="src\power_tree\tree_core.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
-    <ClCompile Include="src\tree\tree_core.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\lib\ciflib.h" />
+    <ClInclude Include="src\power_tree\power_tree_api.h" />
+    <ClInclude Include="src\power_tree\power_tree_core.h" />
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\test_runner\test_runner.h" />
-    <ClInclude Include="src\tree\tree_api.h" />
-    <ClInclude Include="src\tree\tree_core.h" />
+    <ClInclude Include="src\tree\tree.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="high-level design\commands list.txt" />
@@ -120,9 +123,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
-    <SourcePath>$(ProjectDir)\src</SourcePath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\src</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(ProjectDir)\lib</LibraryPath>
+    <SourcePath>$(ProjectDir)\src; $(ProjectDir)\src\lib </SourcePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\src; $(ProjectDir)\src\lib; $(SolutionDir)\src\lib</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(ProjectDir)\lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Testing|Win32'">
     <LinkIncremental>true</LinkIncremental>

@@ -8,26 +8,14 @@
 #include <memory>
 
 
+#include "lib/ciflib.h"
+
+
+
 
 
 using namespace std;
 
-
-
-
-#pragma todo carry over to library
-inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
-{
-	if (name != "")    return;
-	
-	string message;
-	if (itemType_str == "")
-		message = string("Name can't be empry");
-	else
-		message = string("Name of " + itemType_str + " can't be empty");
-		
-	throw exception( message.c_str() );
-}
 
 
 
@@ -148,10 +136,7 @@ class PowerTree
 
 
 		class Node
-		{
-			public:
-				virtual string getTypeOfNode_str () const;
-		};
+		{ };
 
 		class Sink : public Node
 		{
@@ -162,9 +147,13 @@ class PowerTree
 		class Load : public Sink
 		{
 			public:
-				string getTypeOfNode_str() const override;
+				Load (const Load & otherLoad) = delete;
+				Load (Load && otherLoad) = delete;
 
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override = 0;
+
+			protected:
+				Load () {};
 		};
 
 		class ResistiveLoad : public Load
@@ -194,59 +183,61 @@ class PowerTree
 			public:
 				using DescesDictionary = map< key, shared_ptr<Sink> >;
 
+				Source (const Source & otherSource) = delete;
+				Source (Source && otherSource) = delete;
+
 				void connectDesc (key descName, shared_ptr<Sink> sink_ptr);
 				void deleteDesc (key descName);
 				const DescesDictionary & getAllDesces () const;
 				double calculateLoad () const;
 				bool isSuchDesc (key descName) const;
-
+				void setCvType (CvType type);
+				void setValue (double value);
 
 			protected:
 				CvType cvType;
 				double cvValue;
 
+				Source () {};
 
 			private:
 				DescesDictionary desces;
 		};
 
 		class Input : public Source
-		{
-			public:
-				string getTypeOfNode_str() const override;
-		};
+		{ };
 
-#pragma "exercises: compiler couldn't convert sh_ptr<Conv> to sh_ptr<Sink> while inheritance from Sink was a private"
+#pragma //"exercises: compiler couldn't convert sh_ptr<Conv> to sh_ptr<Sink> while inheritance from Sink was a private"
 		class Converter : public Source, public Sink
 		{
 #pragma todo to forbid connect some converters to the converters with current output
-#pragma todo remove all constructors, as well as for load, node, sink and source
 			public:
-				string getTypeOfNode_str() const override;
+				Converter (const Converter & otherConverter) = delete;
+				Converter (Converter && otherConverter) = delete;
 
 				virtual double calculateConsumption (double parentCvValue, CvType parentCvType) const override;
 
-
 			protected:
-				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const = 0;
+				Converter () {};
+
+				virtual double reduceLoadToInput (double parentCvValue, double load) const = 0;
 
 				double efficiency = 100.0;
 
-
 			private:
-				double getSelfConsumption (double parentCvValue, CvType parentCvType, double load) const;
+				double getSelfConsumption (double load) const;
 		};
 
 		class PulseConverter : public Converter
 		{
 			protected:
-				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const override;
+				virtual double reduceLoadToInput (double parentCvValue, double load) const override;
 		};
 
 		class LinearConverter : public Converter
 		{
 			protected:
-				virtual double reduceLoadToInput (double parentCvValue, CvType parentCvType, double load) const override;
+				virtual double reduceLoadToInput (double parentCvValue, double load) const override;
 		};
 
 
@@ -260,23 +251,28 @@ class PowerTree
 
 	public:
 
-#pragma todo the following must be const
 		void addInput (key name);
 		void addConverter (key name, key parentName = "", ConverterType type = ConverterType::PULSE);
 		void addLoad (key name, key parentName = "", LoadType type = LoadType::CONSTANT_CURRENT);
 
 		void moveSubnetTo (key subnetHeadName, key newParentName);
 		void disconnectSubnet (key headerName);
-
 		void moveAllDescesTo (key parentName, key newParentName);
 		void disconnectAllDesces (key parentName);
 
 		void deleteNode (key name, key descesNewParentName = "");
 		void deleteSubnet (key headerName);
 
+		void setNodeName (key oldName, key newName);
+		void setSourceCvType (key inputName, CvType type, double value = NAN);
+		void setSourceValue (key inputName, double value);
+		void setConverterType (key converterName, ConverterType type);
+		void setConverterEfficiency (key converterName, double efficiency);
+		void setLoadValue (key loadName, double value);
+		
+		
 
 		void calculate () const;
-
 
 
 		void validateArgsForNewSink (key name, key parentName) const;
@@ -289,8 +285,6 @@ class PowerTree
 		const shared_ptr<Sink> findSinkByKey (key name) const;
 		const Source::DescesDictionary & findDescesByKey (key name) const;
 
-
-
 		void ensureIsNodeExsisting (key name) const;
 		void ensureIsNodeNotExsisting (key name) const;
 		void ensureIsSourceExsisting (key name) const;
@@ -298,11 +292,10 @@ class PowerTree
 		void ensureIsSecondNotFirstsDesc (key firstName, key secondName) const;
 		void ensureIsConvertersDescNotExsisting (key descName, key converterName) const;
 
-
-
 		bool isSuchSource (key name) const;
 		bool isSuchSink (key name) const;
 		bool isSuchInput (key name) const;
 		bool isSuchConverter (key name) const;
 		bool isSuchLoad (key name) const;
+
 };

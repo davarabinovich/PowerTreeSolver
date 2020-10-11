@@ -27,7 +27,10 @@
     <ClCompile Include="src\test_runner\test_runner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tree\tree_core.cpp">
+    <ClCompile Include="src\power_tree\tree_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\power_tree\tree_core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,10 +47,16 @@
     <ClInclude Include="src\tests\tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tree\tree_api.h">
+    <ClInclude Include="src\lib\ciflib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tree\tree_core.h">
+    <ClInclude Include="src\power_tree\power_tree_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\power_tree\power_tree_core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tree\tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
