@@ -184,10 +184,10 @@ class Command
 				throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
 
 			if (str == "d")
-				return DeletingMode::WITH_DESCENDANTS;
+				return DeletingMode::WITH_DESCES;
 			if (str == "h")
-				return DeletingMode::HANG_DESCENDANTS;
-			return DeletingMode::RECONNECT_DESCENDANTS;
+				return DeletingMode::HANG_DESCES;
+			return DeletingMode::RECONNECT_DESCES;
 		}
 };
 
@@ -2024,11 +2024,11 @@ class CommandDeleteNode : public Command
 			}
 			else
 			{
-				if ( (args.mode == DeletingMode::WITH_DESCENDANTS) && (args.newParentName != "") )
+				if ( (args.mode == DeletingMode::WITH_DESCES) && (args.newParentName != "") )
 					throw exception("You shouldn't specify a name of new parent by deleting a source with its descendants");
-				if ((args.mode == DeletingMode::HANG_DESCENDANTS) && (args.newParentName != ""))
+				if ((args.mode == DeletingMode::HANG_DESCES) && (args.newParentName != ""))
 					throw exception("You shouldn't specify a name of new parent if you want to leave descentants of a deleting source unconnected");
-				if ((args.mode == DeletingMode::RECONNECT_DESCENDANTS) && (args.newParentName == ""))
+				if ((args.mode == DeletingMode::RECONNECT_DESCES) && (args.newParentName == ""))
 					args.newParentName = requestNewParentNameAndGet();
 			}
 
@@ -2112,15 +2112,15 @@ class CommandDeleteNode : public Command
 			{
 				switch (args.mode)
 				{
-					case DeletingMode::WITH_DESCENDANTS:
+					case DeletingMode::WITH_DESCES:
 						DeleteSourceWithDescendants(args.name);
 						break;
 
-					case DeletingMode::HANG_DESCENDANTS:
+					case DeletingMode::HANG_DESCES:
 						DeleteSourceAndMoveDescendants(args.name);
 						break;
 
-					case DeletingMode::RECONNECT_DESCENDANTS:
+					case DeletingMode::RECONNECT_DESCES:
 						DeleteSourceAndMoveDescendants(args.name, args.newParentName);
 						break;
 
@@ -2142,15 +2142,15 @@ class CommandDeleteNode : public Command
 				cout << "Descendants";
 				switch (args.mode)
 				{
-					case DeletingMode::WITH_DESCENDANTS:
+					case DeletingMode::WITH_DESCES:
 						cout << " are also deleted";
 						break;
 
-					case DeletingMode::HANG_DESCENDANTS:
+					case DeletingMode::HANG_DESCES:
 						cout << " are left unconnected";
 						break;
 
-					case DeletingMode::RECONNECT_DESCENDANTS:
+					case DeletingMode::RECONNECT_DESCES:
 						cout << " are connected to the " << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\"";
 						break;
 

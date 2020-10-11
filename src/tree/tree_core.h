@@ -121,7 +121,7 @@ inline ostream & operator << (ostream & os, const ConverterType & type)
 
 
 
-enum class DeletingMode { WITH_DESCENDANTS, HANG_DESCENDANTS, RECONNECT_DESCENDANTS, NONE };
+enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
 
 
 
@@ -192,13 +192,13 @@ class PowerTree
 		class Source : public Node
 		{
 			public:
-				using DescendantsMap = map< key, shared_ptr<Sink> >;
+				using DescesDictionary = map< key, shared_ptr<Sink> >;
 
-				void connectDescendant (key descendantName, shared_ptr<Sink> sink_ptr);
-				void deleteDescendant (key descendantName);
-				const DescendantsMap & getAllDescendants () const;
+				void connectDesc (key descName, shared_ptr<Sink> sink_ptr);
+				void deleteDesc (key descName);
+				const DescesDictionary & getAllDesces () const;
 				double calculateLoad () const;
-				bool isSuchDescendant (key descendantName) const;
+				bool isSuchDesc (key descName) const;
 
 
 			protected:
@@ -207,7 +207,7 @@ class PowerTree
 
 
 			private:
-				DescendantsMap descendants;
+				DescesDictionary desces;
 		};
 
 		class Input : public Source
@@ -268,10 +268,10 @@ class PowerTree
 		void moveSubnetTo (key subnetHeadName, key newParentName);
 		void disconnectSubnet (key headerName);
 
-		void moveAllDescendantsTo (key parentName, key newParentName);
-		void disconnectAllDescendants (key parentName);
+		void moveAllDescesTo (key parentName, key newParentName);
+		void disconnectAllDesces (key parentName);
 
-		void deleteNode (key name, key descendantsNewParentName = "");
+		void deleteNode (key name, key descesNewParentName = "");
 		void deleteSubnet (key headerName);
 
 
@@ -281,21 +281,27 @@ class PowerTree
 
 		void validateArgsForNewSink (key name, key parentName) const;
 		void writeNewSinkToSource (key sinkName, key parentName, shared_ptr<Sink> newSink_ptr);
+		void disconnectSubnetWithoutChecking (key headerName);
+		void disconnectSubnetWithoutChecking (key headerName, key parentName);
 		void deleteSubnetPointers (key headerName);
-		Source & findParent (key name) const;
-		const Source & findSourceByKey (key name) const;
+		shared_ptr<Source> findParent (key name) const;
+		const shared_ptr<Source> findSourceByKey (key name) const;
 		const shared_ptr<Sink> findSinkByKey (key name) const;
-		const Source::DescendantsMap & findDescendantsByKey (key name) const;
+		const Source::DescesDictionary & findDescesByKey (key name) const;
 
 
 
 		void ensureIsNodeExsisting (key name) const;
 		void ensureIsNodeNotExsisting (key name) const;
 		void ensureIsSourceExsisting (key name) const;
+		void ensureIsSinkExsisting (key name) const;
+		void ensureIsSecondNotFirstsDesc (key firstName, key secondName) const;
+		void ensureIsConvertersDescNotExsisting (key descName, key converterName) const;
 
 
 
 		bool isSuchSource (key name) const;
+		bool isSuchSink (key name) const;
 		bool isSuchInput (key name) const;
 		bool isSuchConverter (key name) const;
 		bool isSuchLoad (key name) const;

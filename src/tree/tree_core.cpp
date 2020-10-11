@@ -74,28 +74,28 @@ double PowerTree::ConstantCurrentLoad::calculateConsumption (double parentCvValu
 
 
 
-void PowerTree::Source::connectDescendant (key descendantName, shared_ptr<Sink> sink_ptr)
+void PowerTree::Source::connectDesc (key descName, shared_ptr<Sink> sink_ptr)
 {
-	descendants[descendantName] = sink_ptr;
+	desces[descName] = sink_ptr;
 }
 
 
-void PowerTree::Source::deleteDescendant (key descendantName)
+void PowerTree::Source::deleteDesc (key descName)
 {
-	descendants.erase(descendantName);
+	desces.erase(descName);
 }
 
 
-const PowerTree::Source::DescendantsMap & PowerTree::Source::getAllDescendants () const
+const PowerTree::Source::DescesDictionary & PowerTree::Source::getAllDesces () const
 {
-	return descendants;
+	return desces;
 }
 
 
 double PowerTree::Source::calculateLoad () const
 {
 	double load = 0.0;
-	for (const auto & sink_ptr : descendants)
+	for (const auto & sink_ptr : desces)
 	{
 		const auto & sink = *sink_ptr.second;
 		load += sink.calculateConsumption(cvValue, cvType);
@@ -104,9 +104,9 @@ double PowerTree::Source::calculateLoad () const
 }
 
 
-bool PowerTree::Source::isSuchDescendant (key descendantName) const
+bool PowerTree::Source::isSuchDesc (key descName) const
 {
-	if (descendants.count(descendantName) > 0)
+	if (desces.count(descName) > 0)
 		return true;
 	return false;
 }
@@ -256,11 +256,13 @@ void PowerTree::addLoad (key name, key parentName, LoadType type)
 
 void PowerTree::moveSubnetTo (key headerName, key newParentName)
 {
+	ensureIsSinkExsisting(headerName);
 	ensureIsSourceExsisting(newParentName);
+	ensureIsSecondNotFirstsDesc(headerName, newParentName);
 
 
-	disconnectSubnet(headerName);
-	auto newParentDescendants = findDescendantsByKey(newParentName);
+	disconnectSubnetWithoutChecking(headerName);
+	auto newParentsDesces = findDescesByKey(newParentName);
 	auto header_ptr = findSinkByKey(headerName);
 	writeNewSinkToSource(headerName, newParentName, header_ptr);
 }
@@ -269,32 +271,45 @@ void PowerTree::moveSubnetTo (key headerName, key newParentName)
 void PowerTree::disconnectSubnet (key headerName)
 {
 #pragma todo check deleting via console messages in destructors
-	ensureIsNodeExsisting(headerName);
-
-
-	Source & source = findParent(headerName);
-	source.deleteDescendant(headerName);
+	ensureIsSinkExsisting(headerName);
+	disconnectSubnetWithoutChecking(headerName);
 }
 
 
-void PowerTree::moveAllDescendantsTo (key parentName, key newParentName)
+void PowerTree::moveAllDescesTo (key parentName, key newParentName)
 {
+	ensureIsSourceExsisting(parentName);
+	ensureIsSourceExsisting(newParentName);
+	ensureIsSecondNotFirstsDesc(newParentName, parentName);
 
+	auto parent_ptr = findSourceByKey(parentName);
+	auto desces = parent_ptr->getAllDesces();
+	for (AUTO_CONST_REF desc : desces)
+	{
+		disconnectSubnetWithoutChecking(desc.first, parentName);
+		writeNewSinkToSource(desc.first, newParentName, desc.second);
+	}
 }
 
 
-void PowerTree::disconnectAllDescendants (key parentName)
+void PowerTree::disconnectAllDesces (key parentName)
 {
+	ensureIsSourceExsisting(parentName);
 
+	auto parent_ptr = findSourceByKey(parentName);
+	auto desces = parent_ptr->getAllDesces();
+	for (AUTO_CONST_REF desc : desces)
+		disconnectSubnetWithoutChecking(desc.first, parentName);
 }
 
 
-void PowerTree::deleteNode (key name, key descendantsNewParentName)
+void PowerTree::deleteNode (key name, key descesNewParentName)
 {
-	if (descendantsNewParentName != "")    ensureIsSourceExsisting(descendantsNewParentName);
+	ensureIsNodeExsisting(name);
+	if (descesNewParentName != "")    ensureIsSourceExsisting(descesNewParentName);
 
 
-	disconnectSubnet(name);
+	disconnectSubnetWithoutChecking(name);
 
 	if (isSuchLoad(name))
 	{
@@ -302,11 +317,11 @@ void PowerTree::deleteNode (key name, key descendantsNewParentName)
 		return;
 	}
 
-	auto descendants = findDescendantsByKey(name);
-	for (AUTO_CONST_REF descendant : descendants)
+	auto desces = findDescesByKey(name);
+	for (AUTO_CONST_REF desc : desces)
 	{
-		descendants.erase(descendant.first);
-		writeNewSinkToSource(descendant.first, descendantsNewParentName, descendant.second);
+		desces.erase(desc.first);
+		writeNewSinkToSource(desc.first, descesNewParentName, desc.second);
 	}
 
 	if (isSuchConverter(name))
@@ -318,7 +333,10 @@ void PowerTree::deleteNode (key name, key descendantsNewParentName)
 
 void PowerTree::deleteSubnet (key headerName)
 {
-	disconnectSubnet(headerName);
+	ensureIsNodeExsisting(headerName);
+
+
+	disconnectSubnetWithoutChecking(headerName);
 	deleteSubnetPointers(headerName);
 }
 
@@ -346,10 +364,24 @@ void PowerTree::writeNewSinkToSource (key sinkName, key parentName, shared_ptr<S
 	if (parentName != "")
 	{
 		if (isSuchConverter(parentName))
-			converters[parentName] ->connectDescendant(sinkName, newSink_ptr);
+			converters[parentName] ->connectDesc(sinkName, newSink_ptr);
 		if (isSuchInput(parentName))
-			inputs[parentName] ->connectDescendant(sinkName, newSink_ptr);
+			inputs[parentName] ->connectDesc(sinkName, newSink_ptr);
 	}
+}
+
+
+void PowerTree::disconnectSubnetWithoutChecking (key headerName)
+{
+	auto source = findParent(headerName);
+	source->deleteDesc(headerName);
+}
+
+
+void PowerTree::disconnectSubnetWithoutChecking (key headerName, key parentName)
+{
+	auto source_ptr = findSourceByKey(headerName);
+	source_ptr->deleteDesc(headerName);
 }
 
 
@@ -361,10 +393,10 @@ void PowerTree::deleteSubnetPointers(key headerName)
 		return;
 	}
 
-	AUTO_CONST_REF headersDescendants = findDescendantsByKey(headerName);
-	for (AUTO_CONST_REF descendant : headersDescendants)
+	AUTO_CONST_REF headersDesces = findDescesByKey(headerName);
+	for (AUTO_CONST_REF desc : headersDesces)
 	{
-		deleteSubnetPointers(descendant.first);
+		deleteSubnetPointers(desc.first);
 	}
 
 	if (isSuchConverter(headerName))
@@ -374,24 +406,24 @@ void PowerTree::deleteSubnetPointers(key headerName)
 }
 
 
-PowerTree::Source & PowerTree::findParent (key name) const
+shared_ptr<PowerTree::Source> PowerTree::findParent (key name) const
 {
 	for (AUTO_CONST_REF converter : converters)
-		if (converter.second ->isSuchDescendant(name))
-			return *(converter.second);
+		if (converter.second ->isSuchDesc(name))
+			return converter.second;
 
 	for (AUTO_CONST_REF input : inputs)
-		if (input.second->isSuchDescendant(name))
-			return *(input.second);
+		if (input.second->isSuchDesc(name))
+			return input.second;
 }
 
 
-const PowerTree::Source & PowerTree::findSourceByKey (key name) const
+const shared_ptr<PowerTree::Source> PowerTree::findSourceByKey (key name) const
 {
 	if (isSuchConverter(name))
-		return *( converters.at(name) );
+		return converters.at(name);
 	else if (isSuchInput(name))
-		return *( inputs.at(name) );
+		return inputs.at(name);
 }
 
 
@@ -404,10 +436,11 @@ const shared_ptr<PowerTree::Sink> PowerTree::findSinkByKey (key name) const
 }
 
 
-const PowerTree::Source::DescendantsMap & PowerTree::findDescendantsByKey (key name) const
+const PowerTree::Source::DescesDictionary
+& PowerTree::findDescesByKey (key name) const
 {
 	auto header = findSourceByKey(name);
-	return header.getAllDescendants();
+	return header->getAllDesces();
 }
 
 
@@ -450,9 +483,51 @@ void PowerTree::ensureIsSourceExsisting (key name) const
 }
 
 
+void PowerTree::ensureIsSinkExsisting(key name) const
+{
+	if (isSuchSink(name))
+		return;
+
+	throw exception(string("There is no sinks with the name " + name).c_str());
+}
+
+
+void PowerTree::ensureIsSecondNotFirstsDesc(key firstName, key secondName) const
+{
+	if (isSuchLoad(firstName) || isSuchInput(secondName))
+		return;
+	ensureIsConvertersDescNotExsisting(secondName, firstName);
+}
+
+
+void PowerTree::ensureIsConvertersDescNotExsisting (key checkedDescName, key converterName) const
+{
+	if (converterName == checkedDescName)    throw exception("Such an operation follows to closing a converter on itself");
+
+	AUTO_CONST_REF convertersDesces = converters.at(converterName) ->getAllDesces();
+
+	for (AUTO_CONST_REF convertersDesc : convertersDesces)
+	{
+		if (isSuchLoad(convertersDesc.first))
+			continue;
+
+		if (convertersDesc.first == checkedDescName)    throw exception ("Such an operation follows to closing a loop on the tree's structure");
+
+		ensureIsConvertersDescNotExsisting(checkedDescName, convertersDesc.first);
+	}
+}
+
+
 bool PowerTree::isSuchSource (key name) const
 {
 	bool result = (isSuchInput(name) && isSuchConverter(name));
+	return result;
+}
+
+
+bool PowerTree::isSuchSink(key name) const
+{
+	bool result = (isSuchConverter(name) && isSuchLoad(name));
 	return result;
 }
 
