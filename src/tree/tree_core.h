@@ -196,7 +196,7 @@ class PowerTree
 
 				void connectDescendant (key descendantName, shared_ptr<Sink> sink_ptr);
 				void deleteDescendant (key descendantName);
-				DescendantsMap & getAllDescendants ();
+				const DescendantsMap & getAllDescendants () const;
 				double calculateLoad () const;
 				bool isSuchDescendant (key descendantName) const;
 
@@ -280,8 +280,12 @@ class PowerTree
 
 
 		void validateArgsForNewSink (key name, key parentName) const;
-		void writeNewSinkToSource (key name, key parentName, shared_ptr<Sink> newSink_ptr);
+		void writeNewSinkToSource (key sinkName, key parentName, shared_ptr<Sink> newSink_ptr);
 		void deleteSubnetPointers (key headerName);
+		Source & findParent (key name) const;
+		const Source & findSourceByKey (key name) const;
+		const shared_ptr<Sink> findSinkByKey (key name) const;
+		const Source::DescendantsMap & findDescendantsByKey (key name) const;
 
 
 
@@ -294,5 +298,5 @@ class PowerTree
 		bool isSuchSource (key name) const;
 		bool isSuchInput (key name) const;
 		bool isSuchConverter (key name) const;
-		bool IsSuchLoad (key name) const;
+		bool isSuchLoad (key name) const;
 };
