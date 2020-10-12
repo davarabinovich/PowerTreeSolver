@@ -2,14 +2,12 @@
 #pragma once
 
 
-#include <memory>
 #include <set>
 #include <map>
 
 
 
 
-using std::shared_ptr;
 using std::set;
 using std::map;
 using std::exception;
@@ -28,10 +26,11 @@ class Tree
 
 
 
-		void addRoot (key name);
-		void pushFrontRoot (key name, key oldRootName);
-		void insertDesc (key name, key parentName);
-		void pushBackLeaf (key name, key parentName);
+		void addRoot(key name, const Type & content = 0);
+		void pushFrontRoot(key name, key oldRootName, const Type & content = 0);
+		void insertDesc(key name, key parentName, const Type & content = 0);
+		void insertDesc(key name, key parentName, key descName, const Type & content = 0);
+		void pushBackLeaf(key name, key parentName, const Type & content = 0);
 
 		void popFrontRoot (key name);
 		void eraseDesc (key name);
@@ -46,8 +45,8 @@ class Tree
 		void freeNode(key name);
 		void freeNode(key name, key newDescesParentName);
 
-		shared_ptr<Type> get (key name);
-		const shared_ptr<Type> at (key name) const;
+		Type & operator [] (key name);
+		const Type & at (key name) const;
 
 
 
@@ -63,11 +62,12 @@ class Tree
 
 				const Type & get () const;
 				Type & getToModify ();
-				void record (const Type& origin);
+				void record (const Type & origin);
 				void setParent (Node * parent);
-				void removeParent ();
+				void disconnectFromParent ();
 				void addDesc (Node * desc);
-				void removeDesc (Node * desc);
+				void disconnectDesc (Node * desc);
+				void disconnectAllDesces ();
 				bool hasParent () const;
 				Node * getParent () const;
 				bool hasDesces () const;
@@ -88,7 +88,13 @@ class Tree
 
 
 
-		map<key, Node *> roots;
+		map<key, Node *> nodes;
+		set<Node *> roots;
+
+
+
+		Node * createFreeNode (const Type & content = 0);
+		Node * createRoot (const Type & content = 0);
 	
 };
 
@@ -151,7 +157,7 @@ inline void Tree<Type, key>::Node::setParent (Node * prnt)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::removeParent ()
+inline void Tree<Type, key>::Node::disconnectFromParent ()
 {
 	parent_ptr = nullptr;
 }
@@ -167,12 +173,19 @@ inline void Tree<Type, key>::Node::addDesc (Node * desc)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::removeDesc (Node * desc)
+inline void Tree<Type, key>::Node::disconnectDesc (Node * desc)
 {
 	if (desc == nullptr)    throw exception("Null pointer as descendant is not allowed");
 	if (desces.count(desc) == 0)    throw exception("There no such a descendant");
 
 	desces.erase(desc);
+}
+
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::Node::disconnectAllDesces ()
+{
+	desces.clear();
 }
 
 
@@ -213,4 +226,74 @@ template<typename Type, typename key>
 inline Tree<Type, key>::Node::~Node ()
 {
 	delete content;
+}
+
+
+
+
+
+
+
+
+
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::addRoot (key name, const Type & content)
+{
+	createRoot(content);
+}
+
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::pushFrontRoot (key name, key oldRootName, const Type & content)
+{
+	Node * newRoot_ptr = createRoot(content);
+
+	roots.erase(oldRootName);
+	newRoot_ptr->addDesc(oldRootName);
+	nodes[oldRootName] ->setParent(name);
+}
+
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::insertDesc (key name, key parentName, const Type & content)
+{
+	Node * newNode_ptr = createFreeNode(content);
+
+	Node * parent_ptr = nodes[parentName];
+	parent_ptr->disconnectAllDesces();
+	parent_ptr->addDesc(newNode_ptr);
+
+
+}
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::insertDesc (key name, key parentName, key descName, const Type& content)
+{
+}
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::pushBackLeaf(key name, key parentName, const Type& content)
+{
+}
+
+
+template<typename Type, typename key>
+inline typename Tree<Type, key>::Node * Tree<Type, key>::createFreeNode (const Type & content)
+{
+	Node * newNode_ptr = new Node(content);
+	nodes[key] = newNode_ptr;
+
+	return newNode_ptr;
+}
+
+
+template<typename Type, typename key>
+inline typename Tree<Type, key>::Node * Tree<Type, key>::createRoot (const Type & content)
+{
+	Node * newRoot_ptr = new Node(content);
+	nodes[key] = newRoot_ptr;
+	roots[key] = newRoot_ptr;
+
+	return newRoot_ptr;
 }
