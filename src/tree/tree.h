@@ -57,9 +57,13 @@ class Tree
 		class Node
 		{
 			public:
-				Node (Node * parent = nullptr);
+				Node(Node * parent = nullptr);
+				Node (typename const Type & content, Node * parent = nullptr);
 				Node (Node && otherNode);
 
+				const Type & get () const;
+				Type & getToModify ();
+				void record (const Type& origin);
 				void setParent (Node * parent);
 				void removeParent ();
 				void addDesc (Node * desc);
@@ -76,7 +80,7 @@ class Tree
 				Node (const Node & otherNode) = delete;
 				Node operator = (const Node & otherNode) = delete;
 				
-				shared_ptr<Type> content;
+				typename Type * content;
 
 				Node * parent_ptr = nullptr;
 				set<Node *> desces;
@@ -94,13 +98,48 @@ class Tree
 
 template<typename Type, typename key>
 inline Tree<Type, key>::Node::Node (Node * prnt)
-	: parent_ptr(prnt) {;}
+	: parent_ptr(prnt) 
+{
+	content = new Type();
+}
+
+
+template<typename Type, typename key>
+inline Tree<Type, key>::Node::Node (typename const Type & cntnt, Node * prnt)
+	: parent_ptr(prnt) 
+{
+	content = new Type();
+	*content = cntnt;
+}
 
 
 template<typename Type, typename key>
 inline Tree<Type, key>::Node::Node (Node && otherNode)
 {
 #pragma todo
+}
+
+
+
+
+template<typename Type, typename key>
+inline const Type & Tree<Type, key>::Node::get () const
+{
+	return *content;
+}
+
+
+template<typename Type, typename key>
+inline Type & Tree<Type, key>::Node::getToModify ()
+{
+	return *content;
+}
+
+
+template<typename Type, typename key>
+inline void Tree<Type, key>::Node::record (const Type & origin)
+{
+	*content = origin;
 }
 
 
@@ -126,6 +165,7 @@ inline void Tree<Type, key>::Node::addDesc (Node * desc)
 	desces.insert(desc);
 }
 
+
 template<typename Type, typename key>
 inline void Tree<Type, key>::Node::removeDesc (Node * desc)
 {
@@ -134,6 +174,7 @@ inline void Tree<Type, key>::Node::removeDesc (Node * desc)
 
 	desces.erase(desc);
 }
+
 
 template<typename Type, typename key>
 inline bool Tree<Type, key>::Node::hasParent () const
@@ -145,7 +186,31 @@ inline bool Tree<Type, key>::Node::hasParent () const
 
 
 template<typename Type, typename key>
-inline Tree<Type, key>::Node * Tree<Type, key>::Node::getParent() const
+inline typename Tree<Type, key>::Node * Tree<Type, key>::Node::getParent () const
 {
-	return NULL;
+	return parent_ptr;
+}
+
+
+template<typename Type, typename key>
+inline bool Tree<Type, key>::Node::hasDesces () const
+{
+	bool result = desces.empty();
+	return result;
+}
+
+
+template<typename Type, typename key>
+inline set<typename Tree<Type, key>::Node *> & Tree<Type, key>::Node::getDesces () const
+{
+	return desces;
+}
+
+
+
+
+template<typename Type, typename key>
+inline Tree<Type, key>::Node::~Node ()
+{
+	delete content;
 }
