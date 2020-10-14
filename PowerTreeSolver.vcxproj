@@ -33,6 +33,7 @@
     <ClCompile Include="src\power_tree\tree_core.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
+    <ClCompile Include="src\tree\forest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\commands\commands.h" />
