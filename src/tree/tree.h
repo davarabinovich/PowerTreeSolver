@@ -22,12 +22,12 @@ using std::swap;
 
 
 template <typename Type, typename key>
-class Tree
+class Forest
 {
 
 	public:
 
-		Tree () {};
+		Forest () {};
 
 
 
@@ -40,11 +40,11 @@ class Tree
 		void popFrontRoot (key name);
 		void eraseDesc (key name);
 		void eraseDesc (key name, key newParentName);
-		void popBackSubnet (key headerName);
+		void popBackSubtree (key headerName);
 		void popBackLeaf (key name);
 
-		void moveSubnet (key headerName, key newParentName);
-		void freeSubnet (key headerName);
+		void moveSubtree (key headerName, key newParentName);
+		void freeSubtree (key headerName);
 		void moveNode (key name, key newParentName);
 		void moveNode (key name, key newParentName, key newDescesParentName);
 		void freeNode (key name);
@@ -57,7 +57,7 @@ class Tree
 
 
 
-		~Tree ();
+		~Forest ();
 
 
 
@@ -82,7 +82,7 @@ class Tree
 				bool hasParent () const;
 				Node * getParent () const;
 				bool hasDesces () const;
-				set<Node *> * getDesces () const;
+				const set<Node *> & getDesces () const;
 
 				~Node ();
 
@@ -109,7 +109,9 @@ class Tree
 
 		void deleteNode (Node * node_ptr);
 		void convertDescesToRoots (Node * node_ptr);
-	
+
+		void deleteAllDescesSubtrees (Node * parent_ptr);
+
 };
 
 
@@ -122,7 +124,7 @@ class Tree
 
 
 template<typename Type, typename key>
-inline Tree<Type, key>::Node::Node (Node * prnt)
+inline Forest<Type, key>::Node::Node (Node * prnt)
 	: parent_ptr(prnt) 
 {
 	content = new Type();
@@ -131,7 +133,7 @@ inline Tree<Type, key>::Node::Node (Node * prnt)
 
 
 template<typename Type, typename key>
-inline Tree<Type, key>::Node::Node (typename const Type & cntnt, Node * prnt)
+inline Forest<Type, key>::Node::Node (typename const Type & cntnt, Node * prnt)
 	: parent_ptr(prnt) 
 {
 	content = new Type();
@@ -142,7 +144,7 @@ inline Tree<Type, key>::Node::Node (typename const Type & cntnt, Node * prnt)
 
 
 template<typename Type, typename key>
-inline Tree<Type, key>::Node::Node (Node && otherNode)
+inline Forest<Type, key>::Node::Node (Node && otherNode)
 {
 #pragma todo
 }
@@ -151,42 +153,42 @@ inline Tree<Type, key>::Node::Node (Node && otherNode)
 
 
 template<typename Type, typename key>
-inline const Type & Tree<Type, key>::Node::get () const
+inline const Type & Forest<Type, key>::Node::get () const
 {
 	return *content;
 }
 
 
 template<typename Type, typename key>
-inline Type & Tree<Type, key>::Node::getToModify ()
+inline Type & Forest<Type, key>::Node::getToModify ()
 {
 	return *content;
 }
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::record (const Type & origin)
+inline void Forest<Type, key>::Node::record (const Type & origin)
 {
 	*content = origin;
 }
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::setParent (Node * prnt)
+inline void Forest<Type, key>::Node::setParent (Node * prnt)
 {
 	parent_ptr = prnt;
 }
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::disconnectFromParent ()
+inline void Forest<Type, key>::Node::disconnectFromParent ()
 {
 	parent_ptr = nullptr;
 }
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::addDesc (Node * desc)
+inline void Forest<Type, key>::Node::addDesc (Node * desc)
 {
 	if (desc == nullptr)    throw exception("Null pointer as descendant is not allowed");
 	
@@ -195,7 +197,7 @@ inline void Tree<Type, key>::Node::addDesc (Node * desc)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::disconnectDesc (Node * desc)
+inline void Forest<Type, key>::Node::disconnectDesc (Node * desc)
 {
 	if (desc == nullptr)    throw exception("Null pointer as descendant is not allowed");
 	if (desces_ptr->count(desc) == 0)    throw exception("There no such a descendant");
@@ -205,14 +207,14 @@ inline void Tree<Type, key>::Node::disconnectDesc (Node * desc)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::Node::disconnectAllDesces ()
+inline void Forest<Type, key>::Node::disconnectAllDesces ()
 {
 	desces_ptr->clear();
 }
 
 
 template<typename Type, typename key>
-inline bool Tree<Type, key>::Node::hasParent () const
+inline bool Forest<Type, key>::Node::hasParent () const
 {
 	if (parent_ptr == nullptr)
 		return false;
@@ -221,23 +223,23 @@ inline bool Tree<Type, key>::Node::hasParent () const
 
 
 template<typename Type, typename key>
-inline typename Tree<Type, key>::Node * Tree<Type, key>::Node::getParent () const
+inline typename Forest<Type, key>::Node * Forest<Type, key>::Node::getParent () const
 {
 	return parent_ptr;
 }
 
 
 template<typename Type, typename key>
-inline bool Tree<Type, key>::Node::hasDesces () const
+inline bool Forest<Type, key>::Node::hasDesces () const
 {
 	bool result = desces_ptr->empty();
 	return result;
 }
 
 template<typename Type, typename key>
-inline set<typename Tree<Type, key>::Node *> * Tree<Type, key>::Node::getDesces () const
+inline const set<typename Forest<Type, key>::Node *> & Forest<Type, key>::Node::getDesces () const
 {
-	return desces_ptr;
+	return *desces_ptr;
 }
 
 
@@ -247,7 +249,7 @@ inline set<typename Tree<Type, key>::Node *> * Tree<Type, key>::Node::getDesces 
 
 
 template<typename Type, typename key>
-inline Tree<Type, key>::Node::~Node ()
+inline Forest<Type, key>::Node::~Node ()
 {
 	delete desces_ptr;
 	delete content;
@@ -263,14 +265,14 @@ inline Tree<Type, key>::Node::~Node ()
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::addRoot (key name, const Type & content)
+inline void Forest<Type, key>::addRoot (key name, const Type & content)
 {
 	createRoot(content);
 }
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::pushFrontRoot (key name, key oldRootName, const Type & content)
+inline void Forest<Type, key>::pushFrontRoot (key name, key oldRootName, const Type & content)
 {
 	Node * newRoot_ptr = createRoot(content);
 
@@ -281,7 +283,7 @@ inline void Tree<Type, key>::pushFrontRoot (key name, key oldRootName, const Typ
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::insertDesc (key name, key parentName, const Type & content)
+inline void Forest<Type, key>::insertDesc (key name, key parentName, const Type & content)
 {
 	Node * newNode_ptr = createFreeNode(content);
 
@@ -297,7 +299,7 @@ inline void Tree<Type, key>::insertDesc (key name, key parentName, const Type & 
 }
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::insertDesc (key name, key parentName, key descName, const Type & content)
+inline void Forest<Type, key>::insertDesc (key name, key parentName, key descName, const Type & content)
 {
 	Node * newNode_ptr = createFreeNode(content);
 
@@ -316,7 +318,7 @@ inline void Tree<Type, key>::insertDesc (key name, key parentName, key descName,
 }
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::pushBackLeaf (key name, key parentName, const Type & content)
+inline void Forest<Type, key>::pushBackLeaf (key name, key parentName, const Type & content)
 {
 	Node * newLeaf_ptr = createFreeNode(content);
 
@@ -327,7 +329,7 @@ inline void Tree<Type, key>::pushBackLeaf (key name, key parentName, const Type 
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::popFrontRoot (key name)
+inline void Forest<Type, key>::popFrontRoot (key name)
 {
 #pragma todo validate execution deleting function for limit cases (e. g. roots)
 	Node * deletedRoot_ptr = nodes[name];
@@ -339,7 +341,7 @@ inline void Tree<Type, key>::popFrontRoot (key name)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::eraseDesc (key name)
+inline void Forest<Type, key>::eraseDesc (key name)
 {
 	Node * deletedNode_ptr = nodes[name];
 	convertDescesToRoots();
@@ -349,11 +351,11 @@ inline void Tree<Type, key>::eraseDesc (key name)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::eraseDesc (key name, key newParentName)
+inline void Forest<Type, key>::eraseDesc (key name, key newParentName)
 {
 	Node * deletedNode_ptr = nodes[name];
 	
-	AUTO_CONST_REF desces = *( deletedNode_ptr->getDesces() );
+	AUTO_CONST_REF desces = deletedNode_ptr->getDesces();
 	for (auto & desc : desces)
 	{
 		nodes[newParentName] ->addDesc(desc);
@@ -364,17 +366,20 @@ inline void Tree<Type, key>::eraseDesc (key name, key newParentName)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::popBackSubnet (key headerName)
+inline void Forest<Type, key>::popBackSubtree (key headerName)
 {
 	Node * header_ptr = nodes[headerName];
 	header_ptr->getParent() ->disconnectDesc(header_ptr);
 
-	
+	deleteAllDescesSubtrees(header_ptr);
+	deleteNode(header_ptr);
 }
 
 
+
+
 template<typename Type, typename key>
-inline void Tree<Type, key>::popBackLeaf (key name)
+inline void Forest<Type, key>::popBackLeaf (key name)
 {
 	Node * deletedLeaf_ptr = nodes[name];
 	deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
@@ -384,7 +389,7 @@ inline void Tree<Type, key>::popBackLeaf (key name)
 
 
 template<typename Type, typename key>
-inline typename Tree<Type, key>::Node * Tree<Type, key>::createFreeNode (key name, const Type & content)
+inline typename Forest<Type, key>::Node * Forest<Type, key>::createFreeNode (key name, const Type & content)
 {
 	Node * newNode_ptr = new Node(content);
 	nodes[name] = newNode_ptr;
@@ -394,7 +399,7 @@ inline typename Tree<Type, key>::Node * Tree<Type, key>::createFreeNode (key nam
 
 
 template<typename Type, typename key>
-inline typename Tree<Type, key>::Node * Tree<Type, key>::createRoot (key name, const Type & content)
+inline typename Forest<Type, key>::Node * Forest<Type, key>::createRoot (key name, const Type & content)
 {
 	Node * newRoot_ptr = new Node(content);
 	nodes[name] = newRoot_ptr;
@@ -405,7 +410,7 @@ inline typename Tree<Type, key>::Node * Tree<Type, key>::createRoot (key name, c
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::deleteNode (Node * node_ptr)
+inline void Forest<Type, key>::deleteNode (Node * node_ptr)
 {
 	nodes.erase(node_ptr);
 	delete node_ptr;
@@ -413,12 +418,23 @@ inline void Tree<Type, key>::deleteNode (Node * node_ptr)
 
 
 template<typename Type, typename key>
-inline void Tree<Type, key>::convertDescesToRoots (Node * node_ptr)
+inline void Forest<Type, key>::convertDescesToRoots (Node * node_ptr)
 {
-	AUTO_CONST_REF desces = *( node_ptr->getDesces() );
+	AUTO_CONST_REF desces = node_ptr->getDesces();
 	for (auto & desc : desces)
 	{
 		desc->disconnectFromParent();
 		roots.insert();
 	}
+}
+
+template<typename Type, typename key>
+inline void Forest<Type, key>::deleteAllDescesSubtrees (Node * parent_ptr)
+{
+	AUTO_CONST_REF desces = parent_ptr->getDesces();
+	for (auto & desc : desces)
+		if ( desc->hasDesces() )
+			deleteAllDescesSubtrees(desc);
+
+	deleteNode(parent_ptr);
 }
