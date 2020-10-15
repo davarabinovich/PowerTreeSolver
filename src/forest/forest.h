@@ -37,42 +37,43 @@ class Forest
 		void insertDesc (key name, key parentName, key descName, const Type & content = 0);
 		void pushBackLeaf (key name, key parentName, const Type & content = 0);
 
-		void popFrontRoot (key name);
-		void eraseDesc (key name);
-		void eraseDesc (key name, key newDescesParentName);
-		void popBackSubtree (key headerName);
-		void popBackLeaf (key name);
-
-		void moveSubtree (key headerName, key newParentName);
-		void freeSubtree (key headerName);
-		void moveNode (key name, key newParentName);
-		void moveNode (key name, key newParentName, key newDescesParentName);
-		void freeNode (key name);
-		void freeNode (key name, key newDescesParentName);
-
-		Type & operator [] (key name);
-		const Type & at (key name) const;
-
-		bool isExsist (key name) const;
-
-
-
-		~Forest ();
-
-
-
-
-	private:
+//		void popFrontRoot (key name);
+//		void eraseDesc (key name);
+//		void eraseDesc (key name, key newDescesParentName);
+//		void popBackSubtree (key headerName);
+//		void popBackLeaf (key name);
+//
+//		void moveSubtree (key headerName, key newParentName);
+//		void freeSubtree (key headerName);
+//		void moveNode (key name, key newParentName);
+//		void moveNode (key name, key newParentName, key newDescesParentName);
+//		void freeNode (key name);
+//		void freeNode (key name, key newDescesParentName);
+//
+//		Type & operator [] (key name);
+//		const Type & at (key name) const;
+//
+//		bool isExsist (key name) const;
+//
+//
+//
+//		~Forest ();
+//
+//
+//
+//
+//	private:
 
 		class Node
 		{
 			public:
-				Node (Node * parent = nullptr);
-				Node (typename const Type & content, Node * parent = nullptr);
+				Node (key name, Node * parent = nullptr);
+				Node (key name, typename const Type & content, Node * parent = nullptr);
 				Node (Node && otherNode);
 
 				const Type & get () const;
 				Type & getToModify ();
+				key getName () const;
 				void record (const Type & origin);
 				void setParent (Node * parent);
 				void disconnectFromParent ();
@@ -85,8 +86,6 @@ class Forest
 				const set<Node *> & getDesces () const;
 				set<Node *> * getDescesSet () const;
 
-				bool operator < (const Node & second) const;
-
 				~Node ();
 
 
@@ -94,6 +93,7 @@ class Forest
 				Node (const Node & otherNode) = delete;
 				Node operator = (const Node & otherNode) = delete;
 				
+				key name;
 				typename Type * content;
 
 				Node * parent_ptr;
@@ -110,7 +110,7 @@ class Forest
 		Node * createFreeNode (key name, const Type & content = 0);
 		Node * createRoot (key name, const Type & content = 0);
 
-		void deleteNode (Node * node_ptr);
+		void deleteNode (key name);
 		void deleteAllDescesSubtrees (Node * parent_ptr);
 
 		void convertDescesToRoots (Node * node_ptr);
@@ -124,8 +124,4 @@ class Forest
 
 
 
-
-
-
-
-
+#include "forest/forest_defs.h"

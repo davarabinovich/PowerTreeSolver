@@ -33,9 +33,6 @@
     <ClCompile Include="src\power_tree\tree_core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tree\forest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\config.h">
@@ -59,7 +56,10 @@
     <ClInclude Include="src\power_tree\power_tree_core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tree\tree.h">
+    <ClInclude Include="src\forest\forest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\forest\forest_defs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

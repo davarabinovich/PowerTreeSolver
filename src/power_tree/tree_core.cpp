@@ -1,8 +1,8 @@
 
-//#include "tree/tree.h"
+#include "forest/forest.h"
 #include "power_tree/power_tree_core.h"
 
-
+static Forest forest();
 
 
 double PowerTree::ResistiveLoad::calculateConsumption (double parentCvValue, CvType parentCvType) const

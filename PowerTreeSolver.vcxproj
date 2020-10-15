@@ -33,17 +33,17 @@
     <ClCompile Include="src\power_tree\tree_core.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
-    <ClCompile Include="src\tree\forest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\forest\forest.h" />
+    <ClInclude Include="src\forest\forest_defs.h" />
     <ClInclude Include="src\lib\ciflib.h" />
     <ClInclude Include="src\power_tree\power_tree_api.h" />
     <ClInclude Include="src\power_tree\power_tree_core.h" />
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\test_runner\test_runner.h" />
-    <ClInclude Include="src\tree\tree.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="high-level design\commands list.txt" />

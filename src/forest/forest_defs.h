@@ -1,20 +1,20 @@
 
-#include "tree/tree.h"
+#include "forest/forest.h"
 
 
 
 
 
-Forest::Node::Node (Node * prnt)
-	: parent_ptr(prnt) 
+inline Forest::Node::Node (key nm, Node * prnt)
+	: name(nm), parent_ptr(prnt) 
 {
 	content = new Type();
 	desces_ptr = new set<Node *>();
 }
 
 
-Forest::Node::Node (typename const Type & cntnt, Node * prnt)
-	: parent_ptr(prnt) 
+inline Forest::Node::Node (key nm, typename const Type & cntnt, Node * prnt)
+	: name(nm),  parent_ptr(prnt) 
 {
 	content = new Type();
 	*content = cntnt;
@@ -23,7 +23,7 @@ Forest::Node::Node (typename const Type & cntnt, Node * prnt)
 }
 
 
-Forest::Node::Node (Node && otherNode)
+inline Forest::Node::Node (Node && otherNode)
 {
 #pragma todo
 }
@@ -41,6 +41,14 @@ inline const Type & Forest::Node::get () const
 inline Type & Forest::Node::getToModify ()
 {
 	return *content;
+}
+
+
+
+
+inline key Forest::Node::getName () const
+{
+	return name;
 }
 
 
@@ -121,20 +129,13 @@ inline const set<typename Forest::Node *> & Forest::Node::getDesces () const
 }
 
 
-set<Forest::Node *> * Forest::Node::getDescesSet () const
+inline set<Forest::Node *> * Forest::Node::getDescesSet () const
 {
 	return desces_ptr;
 }
 
 
 
-
-
-
-bool Forest::Node:: operator < (const Node & second) const
-{
-	return false;
-}
 
 inline Forest::Node::~Node ()
 {
@@ -161,8 +162,8 @@ inline void Forest::addRoot (key name, const Type & content)
 
 inline void Forest::pushFrontRoot (key name, key oldRootName, const Type & content)
 {
-	Node * newRoot_ptr = createRoot(name, content);
-	Node * oldRoot_ptr = nodes[oldRootName];
+	auto newRoot_ptr = createRoot(name, content);
+	auto oldRoot_ptr = nodes[oldRootName];
 
 	roots.erase(oldRoot_ptr);
 	newRoot_ptr->addDesc(oldRoot_ptr);
@@ -173,26 +174,26 @@ inline void Forest::pushFrontRoot (key name, key oldRootName, const Type & conte
 
 inline void Forest::insertDesc (key name, key parentName, const Type & content)
 {
-	//Node * newNode_ptr = createFreeNode(name, content);
+	auto newNode_ptr = createFreeNode(name, content);
 
-	//Node * parent_ptr = nodes[parentName];
+	auto parent_ptr = nodes[parentName];
 	//swap( newNode_ptr->getDescesSet(), parent_ptr->getDescesSet() );
-	//parent_ptr->addDesc(newNode_ptr);
+	parent_ptr->addDesc(newNode_ptr);
 
-	//if (!parent_ptr->hasParent())
-	//{
-	//	roots.erase(parent_ptr);
-	//	roots.insert(newNode_ptr);
-	//}
+	if (!parent_ptr->hasParent())
+	{
+		roots.erase(parent_ptr);
+		roots.insert(newNode_ptr);
+	}
 }
 
 
 inline void Forest::insertDesc (key name, key parentName, key descName, const Type & content)
 {
-	Node * newNode_ptr = createFreeNode(name, content);
+	auto newNode_ptr = createFreeNode(name, content);
 
-	Node * parent_ptr = nodes[parentName];
-	Node * desc_ptr   = nodes[descName];
+	auto parent_ptr = nodes[parentName];
+	auto desc_ptr   = nodes[descName];
 	parent_ptr->addDesc(newNode_ptr);
 	parent_ptr->disconnectDesc(desc_ptr);
 	desc_ptr->setParent(newNode_ptr);
@@ -208,130 +209,130 @@ inline void Forest::insertDesc (key name, key parentName, key descName, const Ty
 
 inline void Forest::pushBackLeaf (key name, key parentName, const Type & content)
 {
-	Node * newLeaf_ptr = createFreeNode(name, content);
+	auto newLeaf_ptr = createFreeNode(name, content);
 
-	Node * parent_ptr = nodes[parentName];
+	auto parent_ptr = nodes[parentName];
 	parent_ptr->addDecs(newLeaf_ptr);
 	newLeaf_ptr->setParent(parent_ptr);
 }
 
 
 
-inline void Forest::popFrontRoot (key name)
-{
-#pragma todo validate execution deleting function for limit cases (e. g. roots)
-	Node * deletedRoot_ptr = nodes[name];
-	convertDescesToRoots();
-
-	roots.erase(deletedRoot_ptr);
-	deleteNode(deletedRoot_ptr);
-}
-
-
-
-inline void Forest::eraseDesc (key name)
-{
-	Node * deletedNode_ptr = nodes[name];
-	convertDescesToRoots(deletedNode_ptr);
-
-	popBackLeaf(name);
-}
-
-
-
-inline void Forest::eraseDesc (key name, key newDescesParentName)
-{
-	Node * deletedNode_ptr = nodes[name];
-	moveAllDescesTo(deletedNode_ptr, newDescesParentName);
-
-	popBackLeaf(name);
-}
-
-
-
-inline void Forest::popBackSubtree (key headerName)
-{
-	Node * header_ptr = nodes[headerName];
-	header_ptr->getParent() ->disconnectDesc(header_ptr);
-
-	deleteAllDescesSubtrees(header_ptr);
-	deleteNode(header_ptr);
-}
-
-
-
-inline void Forest::popBackLeaf (key name)
-{
-	Node * deletedLeaf_ptr = nodes[name];
-	deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
-
-	deleteNode(deletedLeaf_ptr);
-}
-
-
-
-inline void Forest::moveSubtree (key headerName, key newParentName)
-{
-	Node * header_ptr = nodes[headerName];
-	Node * parent_ptr = header_ptr->getParent();
-	parent_ptr->disconnectDesc(header_ptr);
-	header_ptr->disconnectFromParent();
-
-	Node * newParent_ptr = nodes[newParentName];
-	newParentName->addDesc(header_ptr);
-	header_ptr->setParent(newParent_ptr);
-}
-
-
-
-inline void Forest::freeSubtree (key headerName)
-{
-	Node * header_ptr = nodes[headerName];
-	Node * parent_ptr = header_ptr->getParent();
-	parent_ptr->disconnectDesc(header_ptr);
-	header_ptr->disconnectFromParent();
-
-	roots.insert(header_ptr);
-}
-
-
-
-inline void Forest::moveNode (key name, key newParentName)
-{
-	Node * node_ptr = nodes[name];
-	convertDescesToRoots(node_ptr);
-
-	popBackLeaf(name);
-}
-
-
-
-inline void Forest::moveNode (key name, key newParentName, key newDescesParentName)
-{
-
-}
-
-
-
-inline void Forest::freeNode (key name)
-{
-}
-
-
-
-inline void Forest::freeNode (key name, key newDescesParentName)
-{
-	Node * node_ptr = nodes[name];
-	moveAllDescesTo(node_ptr, newDescesParentName);
-
-	roots.insert(node_ptr);
-}
-
-
-
+//inline void Forest::popFrontRoot (key name)
+//{
+//#pragma todo validate execution deleting function for limit cases (e. g. roots)
+//	Node * deletedRoot_ptr = nodes[name];
+//	convertDescesToRoots();
+//
+//	roots.erase(deletedRoot_ptr);
+//	deleteNode(deletedRoot_ptr);
+//}
+//
+//
+//
+//inline void Forest::eraseDesc (key name)
+//{
+//	Node * deletedNode_ptr = nodes[name];
+//	convertDescesToRoots(deletedNode_ptr);
+//
+//	popBackLeaf(name);
+//}
+//
+//
+//
+//inline void Forest::eraseDesc (key name, key newDescesParentName)
+//{
+//	Node * deletedNode_ptr = nodes[name];
+//	moveAllDescesTo(deletedNode_ptr, newDescesParentName);
+//
+//	popBackLeaf(name);
+//}
+//
+//
+//
+//inline void Forest::popBackSubtree (key headerName)
+//{
+//	Node * header_ptr = nodes[headerName];
+//	header_ptr->getParent() ->disconnectDesc(header_ptr);
+//
+//	deleteAllDescesSubtrees(header_ptr);
+//	deleteNode(header_ptr);
+//}
+//
+//
+//
+//inline void Forest::popBackLeaf (key name)
+//{
+//	Node * deletedLeaf_ptr = nodes[name];
+//	deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
+//
+//	deleteNode(deletedLeaf_ptr);
+//}
+//
+//
+//
+//inline void Forest::moveSubtree (key headerName, key newParentName)
+//{
+//	Node * header_ptr = nodes[headerName];
+//	Node * parent_ptr = header_ptr->getParent();
+//	parent_ptr->disconnectDesc(header_ptr);
+//	header_ptr->disconnectFromParent();
+//
+//	Node * newParent_ptr = nodes[newParentName];
+//	newParentName->addDesc(header_ptr);
+//	header_ptr->setParent(newParent_ptr);
+//}
+//
+//
+//
+//inline void Forest::freeSubtree (key headerName)
+//{
+//	Node * header_ptr = nodes[headerName];
+//	Node * parent_ptr = header_ptr->getParent();
+//	parent_ptr->disconnectDesc(header_ptr);
+//	header_ptr->disconnectFromParent();
+//
+//	roots.insert(header_ptr);
+//}
+//
+//
+//
+//inline void Forest::moveNode (key name, key newParentName)
+//{
+//	Node * node_ptr = nodes[name];
+//	convertDescesToRoots(node_ptr);
+//
+//	popBackLeaf(name);
+//}
+//
+//
+//
+//inline void Forest::moveNode (key name, key newParentName, key newDescesParentName)
+//{
+//
+//}
+//
+//
+//
+//inline void Forest::freeNode (key name)
+//{
+//}
+//
+//
+//
+//inline void Forest::freeNode (key name, key newDescesParentName)
+//{
+//	Node * node_ptr = nodes[name];
+//	moveAllDescesTo(node_ptr, newDescesParentName);
+//
+//	roots.insert(node_ptr);
+//}
+//
+//
+//
 inline typename Forest::Node * Forest::createFreeNode (key name, const Type & content)
 {
-	Node * newNode_ptr = new Node(content);
+	auto newNode_ptr = new Node(name, content);
 	nodes[name] = newNode_ptr;
 
 	return newNode_ptr;
@@ -341,7 +342,7 @@ inline typename Forest::Node * Forest::createFreeNode (key name, const Type & co
 
 inline typename Forest::Node * Forest::createRoot (key name, const Type & content)
 {
-	Node * newRoot_ptr = new Node(content);
+	auto newRoot_ptr = new Node(name, content);
 	nodes[name] = newRoot_ptr;
 	roots.insert(newRoot_ptr);
 
@@ -350,9 +351,10 @@ inline typename Forest::Node * Forest::createRoot (key name, const Type & conten
 
 
 
-inline void Forest::deleteNode (Node * node_ptr)
+inline void Forest::deleteNode (key name)
 {
-	nodes.erase(node_ptr);
+	auto node_ptr = nodes[name];
+	nodes.erase(name);
 	delete node_ptr;
 }
 
@@ -365,7 +367,7 @@ inline void Forest::deleteAllDescesSubtrees (Node * parent_ptr)
 		if ( desc->hasDesces() )
 			deleteAllDescesSubtrees(desc);
 
-	deleteNode(parent_ptr);
+	deleteNode( parent_ptr->getName() );
 }
 
 
@@ -376,7 +378,7 @@ inline void Forest::convertDescesToRoots (Node * node_ptr)
 	for (auto & desc : desces)
 	{
 		desc->disconnectFromParent();
-		roots.insert();
+		roots.insert(desc);
 	}
 }
 
@@ -394,13 +396,10 @@ inline void Forest::moveAllDescesTo (Node * node_ptr, key newParentName)
 inline void Forest::cutLinkBetween (Node * parent_ptr, Node * desc_ptr)
 {
 	parent_ptr->disconnectDesc(desc_ptr);
-	desc_ptr->discoonectFromParetn();
+	desc_ptr->disconnectFromParent();
 }
 
 
-inline void Forest::connectNodes(Node* parent_ptr, Node* desc_ptr)
+inline void Forest::connectNodes (Node * parent_ptr, Node * desc_ptr)
 {
 }
-
-
-
