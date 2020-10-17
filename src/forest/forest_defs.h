@@ -369,6 +369,17 @@ inline key Forest::getParentKey (key name) const
 }
 
 
+inline Forest::~Forest ()
+{
+	for (auto node_rec : nodes)
+	{
+		auto node = node_rec.second;
+		delete ( node->getDescesSet() );
+		delete node;
+	}
+}
+
+
 
 inline typename Forest::Node * Forest::createFreeNode (key name, const Type & content)
 {
