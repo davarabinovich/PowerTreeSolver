@@ -37,35 +37,37 @@ class Forest
 		void insertDesc (key name, key parentName, key descName, const Type & content = 0);
 		void pushBackLeaf (key name, key parentName, const Type & content = 0);
 
-//		void popFrontRoot (key name);
-//		void eraseDesc (key name);
-//		void eraseDesc (key name, key newDescesParentName);
-//		void popBackSubtree (key headerName);
-//		void popBackLeaf (key name);
-//
-//		void moveSubtree (key headerName, key newParentName);
-//		void freeSubtree (key headerName);
-//		void moveNode (key name, key newParentName);
-//		void moveNode (key name, key newParentName, key newDescesParentName);
-//		void freeNode (key name);
-//		void freeNode (key name, key newDescesParentName);
-//
-//		Type & operator [] (key name);
-//		const Type & at (key name) const;
-//
-//		bool isExsist (key name) const;
-//
-//
-//
-//		~Forest ();
-//
-//
-//
-//
-//	private:
+		void popFrontRoot (key name);
+		void eraseDesc (key name);
+		void eraseDesc (key name, key newDescesParentName);
+		void popBackSubtree (key headerName);
+		void popBackLeaf (key name);
+
+		void moveSubtree (key headerName, key newParentName);
+		void freeSubtree (key headerName);
+		void moveNode (key name, key newParentName);
+		void moveNode (key name, key newParentName, key newDescesParentName);
+		void freeNode (key name);
+		void freeNode (key name, key newDescesParentName);
+
+		Type & operator [] (key name);
+		const Type & at (key name) const;
+
+		bool isExsist (key name) const;
+		key getParentKey (key name) const;
+
+
+
+		~Forest ();
+
+
+
+
+	private:
 
 		class Node
 		{
+#pragma todo think about deleting of getName and name
 			public:
 				Node (key name, Node * parent = nullptr);
 				Node (key name, typename const Type & content, Node * parent = nullptr);
