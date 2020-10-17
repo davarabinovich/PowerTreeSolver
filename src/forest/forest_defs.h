@@ -152,7 +152,7 @@ inline Forest::Node::~Node ()
 
 
 
-
+#pragma todo refactor auxiliary functions
 inline void Forest::addRoot (key name, const Type & content)
 {
 	createRoot(name, content);

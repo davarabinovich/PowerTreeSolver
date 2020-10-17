@@ -30,7 +30,7 @@
     <ClCompile Include="src\power_tree\tree_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\power_tree\tree_core.cpp">
+    <ClCompile Include="src\electric_net\electric_net.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,13 +53,13 @@
     <ClInclude Include="src\power_tree\power_tree_api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\power_tree\power_tree_core.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\forest\forest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\forest\forest_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\electric_net\electric_net.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
