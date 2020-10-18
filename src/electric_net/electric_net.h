@@ -117,13 +117,13 @@ namespace electirc_net
 
 	
 	
-
+	using key = string;
 	class ElectricNet
 	{
 	
 		public:
 			
-			using key = string;
+			//using key = string;
 
 
 
@@ -186,14 +186,52 @@ namespace electirc_net
 
 		private:
 				
-	
+			struct Source
+			{
+				CvType type = CvType::VOLTAGE;
+				double value = 0.0;
+			};
+
+			struct Input
+			{
+				Source source;
+			};
+
+			struct Converter
+			{
+				Source source;
+				ConverterType type = ConverterType::PULSE;
+				double efficiency = 100.0;
+			};
+
+			struct OneParamLoad
+			{
+				double mainParam = 100.0;
+			};
+			
+			struct TwoParamLoad
+			{
+				double secondaryParam = 100.0;
+			};
+
+			struct Load
+			{
+				LoadType type = LoadType::CONSTANT_CURRENT;
+				variant<OneParamLoad, TwoParamLoad> params = OneParamLoad();
+			};
+
+
+			struct ElectricNode
+			{
+				variant<Input, Converter, Load> nodeParams;
+			};
 
 			
 
 			
 			string name;
 
-			Forest<key, int> net;
+			Forest<string, ElectricNode> net;
 
 	};
 	

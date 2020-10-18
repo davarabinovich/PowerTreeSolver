@@ -17,6 +17,10 @@ namespace electirc_net
 
 	void ElectricNet::addInput (key name, CvType type, double cvValue)
 	{
+		if (name == "") throw exception("Name of input can't be empty");
+
+		ElectricNode a();
+		net.addRoot(name, a);
 
 	}
 
