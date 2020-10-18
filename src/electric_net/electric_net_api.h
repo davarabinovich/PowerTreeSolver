@@ -2,11 +2,16 @@
 #pragma once
 
 
-#include "power_tree/power_tree_core.h"
+#include "electric_net/electric_net.h"
+
 
 #include "config.h"
 
 
+
+using namespace electirc_net;
+
+enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
 
 
 struct Results

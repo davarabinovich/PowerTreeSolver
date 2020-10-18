@@ -10,7 +10,7 @@
 #include <variant>
 
 
-#include "power_tree/power_tree_api.h"
+#include "electric_net/electric_net_api.h"
 
 #include "commands.h"
 
@@ -23,57 +23,8 @@
 
 
 
-#pragma todo carry over to library
-void shiftSpaces (unsigned spaces_qty)
-{
-	for (; spaces_qty != 0; spaces_qty--)
-		cout << " ";
-}
-
-void scrollInteratorToNewWord_unsafe(string::const_iterator & char_it)
-{
-	while (*char_it == ' ') char_it++;
-}
-
-double strToDouble (string str)
-{
-	double number = atof(str.c_str());
-	if ( (number == 0.0) && (str != "0.0") )
-		throw exception("There is no floating-point number");
-	return number;
-}
-
-bool isYes (string str)
-{
-	if ( (str == "y") || (str == "Y") || (str == "yes") || (str == "Yes") )
-		return true;
-	return false;
-}
-
-bool isNo (string str)
-{
-	if ((str == "n") || (str == "N") || (str == "no") || (str == "No"))
-		return true;
-	return false;
-}
-
-bool isBool_str (string str)
-{
-	if (isYes(str) || isNo(str))
-		return true;
-	return false;
-}
-
-
-
-
-
-
-
 
 using TokensDeque = deque<string>;
-
-
 
 
 

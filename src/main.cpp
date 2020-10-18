@@ -29,8 +29,8 @@ int main (int argc, char * argv [], char * envp [])
 	// Переменное количество аргументов команд
 	// API в отдельный файл
 	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
-	cout.setf(ios::fixed);
-	cout << setprecision(3);
+	cout.setf(std::ios::fixed);
+	cout << std::setprecision(3);
 
 
 

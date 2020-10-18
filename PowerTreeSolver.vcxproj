@@ -30,7 +30,6 @@
     <ClCompile Include="src\commands\commands.cpp" />
     <ClCompile Include="src\electric_net\electric_net.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\power_tree\tree_api.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
   </ItemGroup>
@@ -38,10 +37,10 @@
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\electric_net\electric_net.h" />
+    <ClInclude Include="src\electric_net\electric_net_api.h" />
     <ClInclude Include="src\forest\forest.h" />
     <ClInclude Include="src\forest\forest_defs.h" />
     <ClInclude Include="src\lib\ciflib.h" />
-    <ClInclude Include="src\power_tree\power_tree_api.h" />
     <ClInclude Include="src\tests\tests.h" />
     <ClInclude Include="src\test_runner\test_runner.h" />
   </ItemGroup>

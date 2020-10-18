@@ -2,11 +2,13 @@
 #pragma once
 
 
+#include <iostream>
 #include <string>
 
 
 
 
+using std::cout;
 using std::string;
 using std::exception;
 
@@ -29,4 +31,50 @@ inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
 		message = string("Name of " + itemType_str + " can't be empty");
 
 	throw exception(message.c_str());
+}
+
+
+inline void shiftSpaces (unsigned spaces_qty)
+{
+	for (; spaces_qty != 0; spaces_qty--)
+		cout << " ";
+}
+
+
+inline void scrollInteratorToNewWord_unsafe(string::const_iterator & char_it)
+{
+	while (*char_it == ' ') char_it++;
+}
+
+
+inline double strToDouble (string str)
+{
+	double number = atof(str.c_str());
+	if ( (number == 0.0) && (str != "0.0") )
+		throw exception("There is no floating-point number");
+	return number;
+}
+
+
+inline bool isYes (string str)
+{
+	if ( (str == "y") || (str == "Y") || (str == "yes") || (str == "Yes") )
+		return true;
+	return false;
+}
+
+
+inline bool isNo (string str)
+{
+	if ((str == "n") || (str == "N") || (str == "no") || (str == "No"))
+		return true;
+	return false;
+}
+
+
+inline bool isBool_str (string str)
+{
+	if (isYes(str) || isNo(str))
+		return true;
+	return false;
 }
