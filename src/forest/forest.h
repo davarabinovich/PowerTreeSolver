@@ -19,9 +19,8 @@ using std::swap;
 
 
 
-using Type = int;
-using key = string;
 
+template <typename Type, typename key>
 class Forest
 {
 

@@ -193,7 +193,7 @@ namespace electirc_net
 			
 			string name;
 
-			Forest net;
+			Forest<key, int> net;
 
 	};
 	
