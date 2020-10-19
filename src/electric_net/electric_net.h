@@ -22,6 +22,10 @@ using namespace std;
 
 namespace electirc_net
 {
+	enum class DeviceType { INPUT, CONVERTER, LOAD };
+
+
+
 	enum class CvType { VOLTAGE, CURRENT };
 	
 	inline ostream & operator << (ostream & os, const CvType & type)
@@ -197,11 +201,15 @@ namespace electirc_net
 		private:
 				
 			struct ElectricNode
-			{};
+			{
+				ElectricNode (DeviceType type);
+
+				const DeviceType type;
+			};
 
 			struct Source : ElectricNode
 			{
-				Source (CvType type, double value);
+				Source (DeviceType devType, CvType type, double value);
 
 				CvType type = CvType::VOLTAGE;
 				double cvValue = 0.0;
@@ -220,7 +228,7 @@ namespace electirc_net
 				double efficiency = 100.0;
 			};
 
-			struct Load
+			struct Load : ElectricNode
 			{
 				LoadType type = LoadType::CONSTANT_CURRENT;
 			};
@@ -237,9 +245,9 @@ namespace electirc_net
 
 
 			
-			string name;
+			string title;
 
-			Forest<string, shared_ptr<ElectricNode> > net;
+			Forest< string, shared_ptr<ElectricNode> > net;
 
 	};
 	

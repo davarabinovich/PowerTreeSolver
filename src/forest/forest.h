@@ -41,9 +41,12 @@ class Forest
 		void eraseDesc (key name, key newDescesParentName);
 		void popBackSubtree (key headerName);
 		void popBackLeaf (key name);
+		void eraseAllDesces (key parentName);
 
 		void moveSubtree (key headerName, key newParentName);
 		void freeSubtree (key headerName);
+		void moveAllDesces (key parentName, key newParentName);
+		void freeAllDesces (key parentName);
 		void moveNode (key name, key newParentName);
 		void moveNode (key name, key newParentName, key newDescesParentName);
 		void freeNode (key name);
