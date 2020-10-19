@@ -20,7 +20,7 @@ using std::swap;
 
 
 
-template <typename Type, typename key>
+template <typename key, typename Type>
 class Forest
 {
 

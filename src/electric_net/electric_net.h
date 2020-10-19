@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 #include <sstream>
-#include <variant>
+#include <memory>
 
 
 #include "forest/forest.h"
@@ -117,27 +117,37 @@ namespace electirc_net
 
 	
 	
-	using key = string;
+
 	class ElectricNet
 	{
 	
 		public:
 			
-			//using key = string;
+			using key = string;
 
-
-
+			
+			
 			ElectricNet (string name);
 
 
 
 			void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0);
-			void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+			void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
 							   double cvValue = 0.0, double efficiency = 100.0);
-			void addResistiveLoad (key name, double resistance);
-			void addConstantCurrentLoad (key name, double current);
-			void addDiodeLoad (key name, double forwardVoltage, double forwardCurrent);
-			void addEnergyLoad (key name, double nomPower, double nomVoltage);
+			void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
+							   double efficiency = 100.0);
+			void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+							   double cvValue = 0.0, double efficiency = 100.0);
+			void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
+								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
+			
+
+			template <typename type, class Other>
+			void addLoad (key name, key sourceName, Other loadParams);
+
+			template <typename type, class Other>
+			void addLoad (key name, Other loadParams);
+
 
 			void deleteInput (key name, key newSourceName);
 			void deleteInput (key name);
@@ -186,53 +196,69 @@ namespace electirc_net
 
 		private:
 				
-			struct Source
+			struct ElectricNode
+			{};
+
+			struct Source : ElectricNode
 			{
+				Source (CvType type, double value);
+
 				CvType type = CvType::VOLTAGE;
-				double value = 0.0;
+				double cvValue = 0.0;
 			};
 
-			struct Input
+			struct Input : Source
 			{
-				Source source;
+				Input (CvType type, double value);
 			};
 
-			struct Converter
+			struct Converter : Source
 			{
-				Source source;
+				Converter (CvType cvType, double value, ConverterType type, double efficiency);
+
 				ConverterType type = ConverterType::PULSE;
 				double efficiency = 100.0;
-			};
-
-			struct OneParamLoad
-			{
-				double mainParam = 100.0;
-			};
-			
-			struct TwoParamLoad
-			{
-				double secondaryParam = 100.0;
 			};
 
 			struct Load
 			{
 				LoadType type = LoadType::CONSTANT_CURRENT;
-				variant<OneParamLoad, TwoParamLoad> params = OneParamLoad();
 			};
 
-
-			struct ElectricNode
+			struct OneParamLoad : Load
 			{
-				variant<Input, Converter, Load> nodeParams;
+				double mainParam = 100.0;
+			};
+			
+			struct TwoParamLoad : OneParamLoad
+			{
+				double secondaryParam = 100.0;
 			};
 
-			
 
 			
 			string name;
 
-			Forest<string, ElectricNode> net;
+			Forest<string, shared_ptr<ElectricNode> > net;
 
 	};
 	
+
+
+
+	template<typename type, class Other>
+	inline void ElectricNet::addLoad (key name, key sourceName, Other loadParams)
+	{
+		auto newLoad_ptr = make_shared<type>(loadParams);
+		net.pushBackLeaf(name, sourceName, newLoad_ptr);
+	}
+
+
+	template<typename type, class Other>
+	inline void ElectricNet::addLoad (key name, Other loadParams)
+	{
+		auto newLoad_ptr = make_shared<type>(loadParams);
+		net.addRoot(name, newLoad_ptr);
+	}
+
 }

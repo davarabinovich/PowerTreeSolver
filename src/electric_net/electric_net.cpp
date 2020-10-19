@@ -17,41 +17,56 @@ namespace electirc_net
 
 	void ElectricNet::addInput (key name, CvType type, double cvValue)
 	{
-		if (name == "") throw exception("Name of input can't be empty");
+#pragma all checking
+		auto newInput_ptr = make_shared<Input>(type, cvValue);
+		net.addRoot(name, newInput_ptr);
+	}
 
-		ElectricNode a();
-		net.addRoot(name, a);
-
+	void ElectricNet::addConverter (key name, key sourceName, ConverterType type, CvType cvType, double cvValue, double efficiency)
+	{
+		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
+		net.pushBackLeaf(name, sourceName, newConverter_ptr);
 	}
 
 
 	void ElectricNet::addConverter (key name, ConverterType type, CvType cvType, double cvValue, double efficiency)
 	{
-
+		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
+		net.addRoot(name, newConverter_ptr);
 	}
 
 
-	void ElectricNet::addResistiveLoad (key name, double resistance)
+	void ElectricNet::insertConverter (key name, key sourceName, ConverterType type, CvType cvType, double cvValue, double efficiency)
 	{
-
+		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
+		net.insertDesc(name, sourceName, newConverter_ptr);
 	}
 
-
-	void ElectricNet::addConstantCurrentLoad (key name, double current)
+	void ElectricNet::insertConverter (key name, key sourceName, key sinkName, ConverterType type, CvType cvType, double cvValue, double efficiency)
 	{
-
+		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
+		net.insertDesc(name, sourceName, sinkName, newConverter_ptr);
 	}
 
 
-	void ElectricNet::addDiodeLoad (key name, double forwardVoltage, double forwardCurrent)
-	{
-
-	}
 
 
-	void ElectricNet::addEnergyLoad (key name, double nomPower, double nomVoltage)
-	{
 
-	}
+	ElectricNet::Source::Source (CvType tp, double value)
+		: type(tp), cvValue(value) {;}
+
+
+
+
+
+	ElectricNet::Input::Input (CvType type, double cvValue)
+		: Source(type, cvValue) {;}
+
+
+
+
+
+	ElectricNet::Converter::Converter (CvType cvType, double value, ConverterType tp, double effcnc)
+		: Source(cvType, value), type(tp), efficiency(effcnc) {;}
 
 }

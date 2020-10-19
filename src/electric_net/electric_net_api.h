@@ -10,7 +10,7 @@
 
 
 using namespace electirc_net;
-
+static ElectricNet en();
 enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
 
 
