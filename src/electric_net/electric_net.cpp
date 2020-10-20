@@ -115,108 +115,135 @@ namespace electirc_net
 
 	void ElectricNet::setSourceCvType (key name, CvType newType)
 	{
-		auto z = net[name].get();
-		auto a = dynamic_cast<Source *>(z);
-		/*auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
-		source_ptr->type = newType;*/
+		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
+		source_ptr->type = newType;
 	}
 
 
-	//void ElectricNet::setSourceCvValue (key name, double newValue)
-	//{
-	//	auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
-	//	source_ptr->cvValue = newValue;
-	//}
+	void ElectricNet::setSourceCvValue (key name, double newValue)
+	{
+		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
+		source_ptr->cvValue = newValue;
+	}
 
 
-	//void ElectricNet::setConverterType (key name, ConverterType newType)
-	//{
-	//	auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
-	//	converter_ptr->type = newType;
-	//}
+	void ElectricNet::setConverterType (key name, ConverterType newType)
+	{
+		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
+		converter_ptr->type = newType;
+	}
 
 
-	//void ElectricNet::setConverterEfficienct (key name, double newEfficiency)
-	//{
-	//	auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
-	//	converter_ptr->efficiency = newEfficiency;
-	//}
+	void ElectricNet::setConverterEfficienct (key name, double newEfficiency)
+	{
+		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
+		converter_ptr->efficiency = newEfficiency;
+	}
 
 
-	//void ElectricNet::setLoadType (key name, LoadType newType)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<Load>( net[name] );
-	//	load_ptr->type = newType;
-	//}
+	void ElectricNet::setLoadType (key name, LoadType newType)
+	{
+		auto load_ptr = dynamic_pointer_cast<Load>( net[name] );
+		load_ptr->type = newType;
+	}
 
 
-	//void ElectricNet::setLoadResistance (key name, double resistance)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
-	//	load_ptr->mainParam = resistance;
-	//}
+	void ElectricNet::setLoadResistance (key name, double resistance)
+	{
+		auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
+		load_ptr->param = resistance;
+	}
 
 
-	//void ElectricNet::setLoadCurrent (key name, double current)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
-	//	load_ptr->mainParam = current;
-	//}
+	void ElectricNet::setLoadCurrent (key name, double current)
+	{
+		auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
+		load_ptr->param = current;
+	}
 
 
-	//void ElectricNet::setLoadForawrdVoltage (key name, double forwardVoltage)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-	//	load_ptr->mainParam = forwardVoltage;
-	//}
+	void ElectricNet::setLoadForawrdVoltage (key name, double forwardVoltage)
+	{
+		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		load_ptr->mainParam = forwardVoltage;
+	}
 
 
-	//void ElectricNet::setLoadForwardCurrent (key name, double forwardCurrent)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-	//	load_ptr->secondaryParam = forwardCurrent;
-	//}
+	void ElectricNet::setLoadForwardCurrent (key name, double forwardCurrent)
+	{
+		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		load_ptr->secondaryParam = forwardCurrent;
+	}
 
 
-	//void ElectricNet::setLoadNomPower (key name, double nomPower)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-	//	load_ptr->mainParam = nomPower;
-	//}
+	void ElectricNet::setLoadNomPower (key name, double nomPower)
+	{
+		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		load_ptr->mainParam = nomPower;
+	}
 
 
-	//void ElectricNet::setLoadNomVoltage (key name, double nomVoltage)
-	//{
-	//	auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-	//	load_ptr->secondaryParam = nomVoltage;
-	//}
+	void ElectricNet::setLoadNomVoltage (key name, double nomVoltage)
+	{
+		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		load_ptr->secondaryParam = nomVoltage;
+	}
 
 
 
 
 	
+	ElectricNet::ElectricNode::ElectricNode (DeviceType tp)
+		: type(tp)    {;}
+
+
+
+
+
 	ElectricNet::Source::Source (DeviceType devType, CvType tp, double value)
-		: ElectricNode(devType), type(tp), cvValue(value) {;}
+		: ElectricNode(devType), type(tp), cvValue(value)    {;}
 
 
 
 
 
 	ElectricNet::Input::Input (CvType type, double cvValue)
-		: Source(DeviceType::INPUT, type, cvValue) {;}
+		: Source(DeviceType::INPUT, type, cvValue)    {;}
 
 
 
 
 
 	ElectricNet::Converter::Converter (CvType cvType, double value, ConverterType tp, double effcnc)
-		: Source(DeviceType::CONVERTER, cvType, value), type(tp), efficiency(effcnc) {;}
+		: Source(DeviceType::CONVERTER, cvType, value), type(tp), efficiency(effcnc)    {;}
 
 
 
 
 
-	ElectricNet::ElectricNode::ElectricNode (DeviceType tp)
-		: type(tp) {;}
+	ElectricNet::Load::Load (LoadType tp)
+		: ElectricNode(DeviceType::LOAD), type(tp)    {;}
+
+
+
+
+
+	ElectricNet::OneParamLoad::OneParamLoad (LoadType tp, double param)
+		: Load(tp), param(param)    
+	{
+		if (tp == LoadType::DIODE)     throw exception("Diode load must have two parameters");
+		if (tp == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
+	}
+	
+
+
+
+
+	ElectricNet::TwoParamLoad::TwoParamLoad(LoadType tp, double firstParam, double secondParam)
+		: Load(tp), mainParam(firstParam), secondaryParam(secondParam)    
+	{
+		if (tp == LoadType::RESISTIVE)    throw exception("Resistive load can have only one parameter");
+		if (tp == LoadType::CONSTANT_CURRENT)    throw exception("Constant current load can have only one parameter");
+	}
 
 }

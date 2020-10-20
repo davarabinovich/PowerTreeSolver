@@ -141,7 +141,7 @@ namespace electirc_net
 			void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
 							   double efficiency = 100.0);
 			void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
-							   double cvValue = 0.0, double efficiency = 100.0);
+							      double cvValue = 0.0, double efficiency = 100.0);
 			void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
 								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
 			
@@ -203,6 +203,7 @@ namespace electirc_net
 			struct ElectricNode
 			{
 				ElectricNode (DeviceType type);
+				virtual ~ElectricNode ()    {;}
 
 				const DeviceType type;
 			};
@@ -211,8 +212,8 @@ namespace electirc_net
 			{
 				Source (DeviceType devType, CvType type, double value);
 
-				CvType type = CvType::VOLTAGE;
-				double cvValue = 0.0;
+				CvType type;
+				double cvValue;
 			};
 
 			struct Input : Source
@@ -224,23 +225,30 @@ namespace electirc_net
 			{
 				Converter (CvType cvType, double value, ConverterType type, double efficiency);
 
-				ConverterType type = ConverterType::PULSE;
-				double efficiency = 100.0;
+				ConverterType type;
+				double efficiency;
 			};
 
 			struct Load : ElectricNode
 			{
-				LoadType type = LoadType::CONSTANT_CURRENT;
+				Load (LoadType type);
+
+				LoadType type;
 			};
 
 			struct OneParamLoad : Load
 			{
-				double mainParam = 100.0;
+				OneParamLoad (LoadType type, double param);
+
+				double param;
 			};
 			
-			struct TwoParamLoad : OneParamLoad
+			struct TwoParamLoad : Load
 			{
-				double secondaryParam = 100.0;
+				TwoParamLoad (LoadType type, double firstParam, double secondParam);
+
+				double mainParam;
+				double secondaryParam;
 			};
 
 
