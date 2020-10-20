@@ -56,7 +56,7 @@
     <ClInclude Include="src\electric_net\electric_net.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\electric_net\electric_net_api.h">
+    <ClInclude Include="src\electric_net\electric_net_if.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

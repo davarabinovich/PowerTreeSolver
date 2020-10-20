@@ -37,7 +37,7 @@
     <ClInclude Include="src\commands\commands.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\electric_net\electric_net.h" />
-    <ClInclude Include="src\electric_net\electric_net_api.h" />
+    <ClInclude Include="src\electric_net\electric_net_if.h" />
     <ClInclude Include="src\forest\forest.h" />
     <ClInclude Include="src\forest\forest_defs.h" />
     <ClInclude Include="src\lib\ciflib.h" />

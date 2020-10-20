@@ -7,7 +7,7 @@
 
 
 
-namespace electirc_net
+namespace electric_net
 {
 
 	ElectricNet::ElectricNet (string nm)
@@ -47,6 +47,46 @@ namespace electirc_net
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.insertDesc(name, sourceName, sinkName, newConverter_ptr);
+	}
+
+
+	void ElectricNet::addResistiveLoad(key name, key sourceName, double resistance)
+	{
+	}
+
+
+	void ElectricNet::addResistiveLoad(key name, double resistance)
+	{
+	}
+
+
+	void ElectricNet::addConstantCurrentLoad(key name, key sourceName, double current)
+	{
+	}
+
+
+	void ElectricNet::addConstantCurrentLoad(key name, double current)
+	{
+	}
+
+
+	void ElectricNet::addDiodeLoad(key name, key sourceName, double forwardVoltage, double forwardCurrent)
+	{
+	}
+
+
+	void ElectricNet::addDiodeLoad(key name, double forwardVoltage, double forwardCurrent)
+	{
+	}
+
+
+	void ElectricNet::addEnergyLoad(key name, key sourceName, double nowPower, double nomVoltage)
+	{
+	}
+
+
+	void ElectricNet::addEnergyLoad(key name, double nowPower, double nomVoltage)
+	{
 	}
 
 

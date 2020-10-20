@@ -8,7 +8,7 @@
 #include <variant>
 
 
-#include "electric_net/electric_net_api.h"
+#include "electric_net/electric_net_if.h"
 
 
 #include "commands.h"
@@ -142,7 +142,7 @@ namespace commands
 	
 	
 	class CommandCreate : public Command
-{
+	{
 
 	public:
 
@@ -150,7 +150,7 @@ namespace commands
 		{
 			Arguments args;			
 			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
+			catch (exception & ex) { throw exception(ex.what()); }
 
 			if (args.name == "")
 				args.name = suggestEnterNameAndGet();
@@ -160,8 +160,6 @@ namespace commands
 
 			reportExecution(args);
 		}
-
-		friend void TestCreateArgumentsParsing();
 
 
 
@@ -335,7 +333,7 @@ namespace commands
 		void createTreeByArgs (const Arguments & args) const
 		{
 			if (args.name.empty())
-				CreateTree();
+				;//ElecticNet::CreateTree();
 			else
 				CreateTree(args.name);
 		}
