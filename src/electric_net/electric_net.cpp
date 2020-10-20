@@ -109,7 +109,7 @@ namespace electirc_net
 
 	void ElectricNet::renameNode (key name, key newName)
 	{
-
+		net.renameNode(name, newName);
 	}
 
 

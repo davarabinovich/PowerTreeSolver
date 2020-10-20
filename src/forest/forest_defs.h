@@ -56,6 +56,51 @@ inline key Forest<key, Type>::Node::getName () const
 
 
 template <typename key, typename Type>
+inline bool Forest<key, Type>::Node::hasParent () const
+{
+	if (parent_ptr == nullptr)
+		return false;
+	return true;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::Node * Forest<key, Type>::Node::getParent () const
+{
+	return parent_ptr;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::Node::hasDesces () const
+{
+	bool result = desces_ptr->empty();
+	return result;
+}
+
+
+template <typename key, typename Type>
+inline const typename set<typename Forest<key, Type>::Node *> & Forest<key, Type>::Node::getDesces () const
+{
+	return *desces_ptr;
+}
+
+
+template <typename key, typename Type>
+inline set<typename Forest<key, Type>::Node *> * Forest<key, Type>::Node::getDescesSet () const
+{
+	return desces_ptr;
+}
+
+
+template<typename key, typename Type>
+inline void Forest<key, Type>::Node::rename (key newName)
+{
+	name = newName;
+}
+
+
+template <typename key, typename Type>
 inline void Forest<key, Type>::Node::record (const Type & origin)
 {
 	*content = origin;
@@ -102,44 +147,6 @@ inline void Forest<key, Type>::Node::disconnectAllDesces ()
 }
 
 
-template <typename key, typename Type>
-inline bool Forest<key, Type>::Node::hasParent () const
-{
-	if (parent_ptr == nullptr)
-		return false;
-	return true;
-}
-
-
-template <typename key, typename Type>
-inline typename Forest<key, Type>::Node * Forest<key, Type>::Node::getParent () const
-{
-	return parent_ptr;
-}
-
-
-template <typename key, typename Type>
-inline bool Forest<key, Type>::Node::hasDesces () const
-{
-	bool result = desces_ptr->empty();
-	return result;
-}
-
-
-template <typename key, typename Type>
-inline const typename set<typename Forest<key, Type>::Node *> & Forest<key, Type>::Node::getDesces () const
-{
-	return *desces_ptr;
-}
-
-
-template <typename key, typename Type>
-inline set<typename Forest<key, Type>::Node *> * Forest<key, Type>::Node::getDescesSet () const
-{
-	return desces_ptr;
-}
-
-
 
 
 template <typename key, typename Type>
@@ -148,7 +155,6 @@ inline Forest<key, Type>::Node::~Node ()
 	delete desces_ptr;
 	delete content;
 }
-
 
 
 
@@ -367,10 +373,22 @@ inline void Forest<key, Type>::freeNode (key name)
 template <typename key, typename Type>
 inline void Forest<key, Type>::freeNode (key name, key newDescesParentName)
 {
-	Node * node_ptr = nodes[name];
+	auto node_ptr = nodes[name];
 	moveAllDescesTo(node_ptr, newDescesParentName);
 
 	roots.insert(node_ptr);
+}
+
+
+template<typename key, typename Type>
+inline void Forest<key, Type>::renameNode (key oldName, key newName)
+{
+	auto node_ptr = nodes[oldName];
+	
+	node_ptr->rename(newName);
+
+	nodes.erase(oldName);
+	nodes[newName] = node_ptr;
 }
 
 

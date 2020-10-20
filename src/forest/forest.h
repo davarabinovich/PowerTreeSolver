@@ -52,6 +52,8 @@ class Forest
 		void freeNode (key name);
 		void freeNode (key name, key newDescesParentName);
 
+		void renameNode (key oldName, key newName);
+
 		Type & operator [] (key name);
 		const Type & at (key name) const;
 
@@ -78,17 +80,18 @@ class Forest
 				const Type & get () const;
 				Type & getToModify ();
 				key getName () const;
+				bool hasParent () const;
+				Node * getParent () const;
+				bool hasDesces () const;
+				const set<Node *> & getDesces () const;
+				set<Node *> * getDescesSet () const;
+				void rename (key newName);
 				void record (const Type & origin);
 				void setParent (Node * parent);
 				void disconnectFromParent ();
 				void addDesc (Node * desc);
 				void disconnectDesc (Node * desc);
 				void disconnectAllDesces ();
-				bool hasParent () const;
-				Node * getParent () const;
-				bool hasDesces () const;
-				const set<Node *> & getDesces () const;
-				set<Node *> * getDescesSet () const;
 
 				~Node ();
 
