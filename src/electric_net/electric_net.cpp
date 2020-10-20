@@ -1,7 +1,4 @@
 
-#include "forest/forest.h"
-
-
 #include "electric_net.h"
 
 
@@ -304,9 +301,20 @@ namespace electric_net
 	}
 
 
+	void ElectricNet::calculte ()
+	{
+
+	}
+
+
 
 
 	
+
+
+
+
+
 	ElectricNet::ElectricNode::ElectricNode (DeviceType tp)
 		: type(tp)    {;}
 

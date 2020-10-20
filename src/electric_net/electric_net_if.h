@@ -2,171 +2,120 @@
 #pragma once
 
 
-#include "electric_net/electric_net.h"
+#include <sstream>
 
 
 #include "config.h"
 
 
 
-using namespace electric_net;
-//static ElectricNet en();
-enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
 
-
-struct Results
-{
-	struct Load
-	{
-		string name;
-		LoadType type;
-		double value;
-		double power;
-		double secondaryParam;
-	};
-
-	struct Source
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-		double avValue;
-		double power;
-
-		vector<Source> converterSinks;
-		vector<Load>   loadSinks;
-	};
-
-
-	vector<Source> inputs;
-};
-
-struct TreeStructure
-{
-	struct Load
-	{
-		string name;
-		LoadType type;
-		double value;
-	};
-
-	struct Converter
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-		ConverterType type;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-	struct Input
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-
-
-
-	vector<Input> inputs;
-	vector<Converter> flyingConverters;
-	vector<Load> flyingLoads;
-};
-
-
-
-
-bool IsThereSomeTree() { return true; }
-
-void CreateTree() {}
-void CreateTree(string name) {}
-
-void RenameTree(string name) {}
-
-void Solve() {}
-Results GetResults() { return Results(); }
-
-string GetNameOfTree() { return string(); }
-TreeStructure GetTreeStructure() { return TreeStructure(); }
-
-
-
-bool IsNodeExsist(string name) { return true; }
-
-string GetTypeOfNode_str(string name) { return string("Converter"); }
-
-
-
-bool IsSourceExsist(string name) { return true; }
-string GetSourceType(string name) { return string(); }
-
-string GetTypeOfSource_str(string name) { return string(); }
-
-void DeleteSourceWithDescendants(string name) {}
-void DeleteSourceAndMoveDescendants(string name, string newParentName = "") {}
-
-
-
-bool IsSinkExsist(string name) { return true; }
-
-void ConnectSinkTo(string sinkName, string parentName) {}
-void DisconnectSink(string name) {}
-
-string GetTypeOfSink_str(string name) { return string(); }
-
-
-
-string CreateInput() { return string(); }
-void CreateInput(string name) {}
-
-void RenameInput(string oldName, string newName) {}
-void SetCvTypeForInput(string name, CvType type) {}
-void SetCvValueForInput(string name, double cvValue) {}
-
-bool IsInputExsist(string name) { return true; }
-
-
-
-string CreateConverter() { return string(); }
-void CreateConverter(string name) {}
-
-void RenameConverter(string oldName, string newName) {}
-void SetTypeForConverter(string name, ConverterType type) {}
-void SetCvTypeForConverter(string name, CvType type) {}
-void SetCvValueForConverter(string name, double value) {}
-void SetEfficiencyForConverter(string name, double efficiency) {}
-
-bool IsConverterExsist(string name) { return true; }
-
-
-
-string CreateLoad() { return string(); }
-void CreateLoad(string name) {}
-
-void RenameLoad(string oldName, string newName) {}
-void SetTypeForLoad(string name, LoadType type) {}
-void SetValueForLoad(string name, double value) {}
-void SetNomVoltageForPowerLoad(string name, double nomVoltage) {}
-
-void DeleteLoad(string name) {}
-
-bool IsLoadExsist(string name) { return true; }
-
-
-
-bool AreParentAndDescendant(string assumedParent, string assumedDescendant) { return false; }
+using std::ostream;
 
 
 
 
 namespace electric_net
 {
+
+	enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
+	
+	
+	
+	enum class CvType { VOLTAGE, CURRENT };
+	
+	inline ostream & operator << (ostream & os, const CvType & type)
+{
+	switch (type)
+	{
+	case CvType::VOLTAGE:
+		return os << "voltage";
+	case CvType::CURRENT:
+		return os << "current";
+
+	default:
+		throw exception("Invalid type of controlled variable");
+	}
+}
+	
+	inline const string operator + (const CvType & tp, const string & str)
+{
+	if (tp == CvType::VOLTAGE)
+		return ("voltage" + str);
+	return ("current" + str);
+}
+	
+	inline const string operator + (const string & str, const CvType & tp)
+{
+	if (tp == CvType::VOLTAGE)
+		return (str + "voltage");
+	return (str + "current");
+}
+	
+	
+	
+	enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY, DIODE };
+	
+	inline ostream & operator << (ostream & os, const LoadType & type)
+{
+	switch (type)
+	{
+		case LoadType::RESISTIVE:
+			return os << "resistive";
+		case LoadType::CONSTANT_CURRENT:
+			return os << "constant current";
+		case LoadType::ENERGY:
+			return os << "energy";
+		case LoadType::DIODE:
+			return os << "diode";
+
+	default:
+		throw exception("Invalid type of load");
+	}
+}
+	
+	inline const string operator + (const LoadType & tp, const string & str)
+{
+	if (tp == LoadType::RESISTIVE)
+		return ("resistive" + str);
+	if (tp == LoadType::CONSTANT_CURRENT)
+		return ("constant current" + str);
+	if (tp == LoadType::DIODE)
+		return ("diode" + str);
+	return ("power" + str);
+}
+	
+	inline const string operator + (const string & str, const LoadType & tp)
+{
+	if (tp == LoadType::RESISTIVE)
+		return (str + "resistive");
+	if (tp == LoadType::CONSTANT_CURRENT)
+		return (str + "current");
+	if (tp == LoadType::DIODE)
+		return (str + "diode");
+	return (str + "power");
+}
+	
+	
+	
+	enum class ConverterType { PULSE, LINEAR };
+	
+	inline ostream & operator << (ostream & os, const ConverterType & type)
+{
+	switch (type)
+	{
+	case ConverterType::PULSE:
+		return os << "pulse";
+	case ConverterType::LINEAR:
+		return os << "linear";
+
+	default:
+		throw exception("Invalid type of converter");
+	}
+}
+
+
+
 
 	class ElectricNet_If
 	{
@@ -177,79 +126,62 @@ namespace electric_net
 
 			
 			
-			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0);
+			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) = 0;
 			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
-							           double cvValue = 0.0, double efficiency = 100.0);
-			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
-									   double cvValue = 0.0, double efficiency = 100.0);
-			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, 
-										  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
+							   double cvValue = 0.0, double efficiency = 100.0) = 0;
+			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
+							   double efficiency = 100.0) = 0;
+			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+							      double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
-								          CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
-			
+								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
+			virtual void addLoad (key name, key sourceName, LoadType type, double param = NAN) = 0;
+			virtual void addLoad (key name, LoadType type, double param = NAN) = 0;
+			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN) = 0;
+			virtual void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN) = 0;
 
-			template <typename type, class Other>
-			void addLoad (key name, key sourceName, Other loadParams);
+			virtual void deleteInput (key name, key newSourceName) = 0;
+			virtual void deleteInput (key name) = 0;
+			virtual void deleteConverter (key name, key newSourceName) = 0;
+			virtual void deleteConverter (key name) = 0;
+			virtual void deleteLoad (key name) = 0;
+			virtual void deleteNode (key name, key newSourceName) = 0;
+			virtual void deleteNode (key name) = 0;
+			virtual void deleteSubnet (key headerName) = 0;
+			virtual void deleteAllSinks (key sourceName) = 0;
 
-			template <typename type, class Other>
-			void addLoad (key name, Other loadParams);
+			virtual void moveConverter (key name, key newSourceName) = 0;
+			virtual void moveConverter (key name, key newSourceName, key newSinksSourceName) = 0;
+			virtual void freeConverter (key name) = 0;
+			virtual void freeConverter (key name, key newSinksSourceName) = 0;
+			virtual void moveLoad (key name, key newSourceName) = 0;
+			virtual void freeLoad (key name) = 0;
+			virtual void moveSubnet (key headerName, key newSourceName) = 0;
+			virtual void freeSubnet (key headerName) = 0;
+			virtual void moveNode (key name, key newSourceName) = 0;
+			virtual void moveNode (key name, key newSourceName, key newSinksSourceName) = 0;
+			virtual void freeNode (key name) = 0;
+			virtual void freeNode (key name, key newSinksSourceName) = 0;
+
+			virtual void renameNode (key name, key newName) = 0;
+			virtual void setSourceCvType (key name, CvType newType) = 0;
+			virtual void setSourceCvValue (key name, double value) = 0;
+			virtual void setConverterType (key name, ConverterType type) = 0;
+			virtual void setConverterEfficienct (key name, double efficiency) = 0;
+			virtual void setLoadType (key name, LoadType type) = 0;
+			virtual void setLoadResistance (key name, double resistance) = 0;
+			virtual void setLoadCurrent (key name, double current) = 0;
+			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) = 0;
+			virtual void setLoadForwardCurrent (key name, double forwardCurrent) = 0;
+			virtual void setLoadNomPower (key name, double nomPower) = 0;
+			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
+
+			virtual void calculte () = 0;
 
 
-			virtual void deleteInput (key name, key newSourceName);
-			virtual void deleteInput (key name);
-			virtual void deleteConverter (key name, key newSourceName);
-			virtual void deleteConverter (key name);
-			virtual void deleteLoad (key name);
-			virtual void deleteNode (key name, key newSourceName);
-			virtual void deleteNode (key name);
-			virtual void deleteSubnet (key headerName);
-			virtual void deleteAllSinks (key sourceName);
 
-			virtual void moveConverter (key name, key newSourceName);
-			virtual void moveConverter (key name, key newSourceName, key newSinksSourceName);
-			virtual void freeConverter (key name);
-			virtual void freeConverter (key name, key newSinksSourceName);
-			virtual void moveLoad (key name, key newSourceName);
-			virtual void freeLoad (key name);
-			virtual void moveSubnet (key headerName, key newSourceName);
-			virtual void freeSubnet (key headerName);
-			virtual void moveNode (key name, key newSourceName);
-			virtual void moveNode (key name, key newSourceName, key newSinksSourceName);
-			virtual void freeNode (key name);
-			virtual void freeNode (key name, key newSinksSourceName);
-
-			virtual void renameNode (key name, key newName);
-			virtual void setSourceCvType (key name, CvType newType);
-			virtual void setSourceCvValue (key name, double value);
-			virtual void setConverterType (key name, ConverterType type);
-			virtual void setConverterEfficienct (key name, double efficiency);
-			virtual void setLoadType (key name, LoadType type);
-			virtual void setLoadResistance (key name, double resistance);
-			virtual void setLoadCurrent (key name, double current);
-			virtual void setLoadForawrdVoltage (key name, double forwardVoltage);
-			virtual void setLoadForwardCurrent (key name, double forwardCurrent);
-			virtual void setLoadNomPower (key name, double nomPower);
-			virtual void setLoadNomVoltage (key name, double nomVoltage);
-
-			virtual void calculte ();
-
-		protected:
-
+			virtual ~ElectricNet_If () {;}
 
 	};
 
-	template<typename type, class Other>
-	inline void ElectricNet_If::addLoad (key name, key sourceName, Other loadParams)
-	{
-		auto newLoad_ptr = make_shared<type>(loadParams);
-		//net.pushBackLeaf(name, sourceName, newLoad_ptr);
-	}
-
-
-	template<typename type, class Other>
-	inline void ElectricNet_If::addLoad (key name, Other loadParams)
-	{
-		auto newLoad_ptr = make_shared<type>(loadParams);
-		//net.addRoot(name, newLoad_ptr);
-	}
 }

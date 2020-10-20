@@ -3,15 +3,17 @@
 
 
 #include <map>
-#include <sstream>
 #include <memory>
 
 
-#include "forest/forest.h"
-#include "lib/ciflib.h"
-
-
 #include "config.h"
+
+
+#include "lib/ciflib.h"
+#include "forest/forest.h"
+
+
+#include "electric_net/electric_net_if.h"
 
 
 
@@ -28,108 +30,8 @@ namespace electric_net
 
 
 
-	enum class CvType { VOLTAGE, CURRENT };
-	
-	inline ostream & operator << (ostream & os, const CvType & type)
-	{
-		switch (type)
-		{
-		case CvType::VOLTAGE:
-			return os << "voltage";
-		case CvType::CURRENT:
-			return os << "current";
-	
-		default:
-			throw exception("Invalid type of controlled variable");
-		}
-	}
-	
-	inline const string operator + (const CvType & tp, const string & str)
-	{
-		if (tp == CvType::VOLTAGE)
-			return ("voltage" + str);
-		return ("current" + str);
-	}
-	
-	inline const string operator + (const string & str, const CvType & tp)
-	{
-		if (tp == CvType::VOLTAGE)
-			return (str + "voltage");
-		return (str + "current");
-	}
-	
-	
-	
-	enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY, DIODE };
-	
-	inline ostream & operator << (ostream & os, const LoadType & type)
-	{
-		switch (type)
-		{
-			case LoadType::RESISTIVE:
-				return os << "resistive";
-			case LoadType::CONSTANT_CURRENT:
-				return os << "constant current";
-			case LoadType::ENERGY:
-				return os << "energy";
-			case LoadType::DIODE:
-				return os << "diode";
-	
-		default:
-			throw exception("Invalid type of load");
-		}
-	}
-	
-	inline const string operator + (const LoadType & tp, const string & str)
-	{
-		if (tp == LoadType::RESISTIVE)
-			return ("resistive" + str);
-		if (tp == LoadType::CONSTANT_CURRENT)
-			return ("constant current" + str);
-		if (tp == LoadType::DIODE)
-			return ("diode" + str);
-		return ("power" + str);
-	}
-	
-	inline const string operator + (const string & str, const LoadType & tp)
-	{
-		if (tp == LoadType::RESISTIVE)
-			return (str + "resistive");
-		if (tp == LoadType::CONSTANT_CURRENT)
-			return (str + "current");
-		if (tp == LoadType::DIODE)
-			return (str + "diode");
-		return (str + "power");
-	}
-	
-	
-	
-	enum class ConverterType { PULSE, LINEAR };
-	
-	inline ostream & operator << (ostream & os, const ConverterType & type)
-	{
-		switch (type)
-		{
-		case ConverterType::PULSE:
-			return os << "pulse";
-		case ConverterType::LINEAR:
-			return os << "linear";
-	
-		default:
-			throw exception("Invalid type of converter");
-		}
-	}
-	
 
-	
-	
-
-
-
-
-
-
-	class ElectricNet
+	class ElectricNet : public ElectricNet_If
 	{
 	
 		public:
@@ -142,61 +44,57 @@ namespace electric_net
 
 
 
-			void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0);
-			void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
-							   double cvValue = 0.0, double efficiency = 100.0);
-			void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
-							   double efficiency = 100.0);
-			void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
-							      double cvValue = 0.0, double efficiency = 100.0);
-			void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
-								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
-			void addLoad (key name, key sourceName, LoadType type, double param = NAN);
-			void addLoad (key name, LoadType type, double param = NAN);
-			void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN);
-			void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN);
+			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) override;
+			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+							          double cvValue = 0.0, double efficiency = 100.0) override;
+			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
+							           double efficiency = 100.0) override;
+			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+							              double cvValue = 0.0, double efficiency = 100.0) override;
+			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
+								          CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) override;
+			virtual void addLoad (key name, key sourceName, LoadType type, double param = NAN) override;
+			virtual void addLoad (key name, LoadType type, double param = NAN) override;
+			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN) override;
+			virtual void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN) override;
 
-			void deleteInput (key name, key newSourceName);
-			void deleteInput (key name);
-			void deleteConverter (key name, key newSourceName);
-			void deleteConverter (key name);
-			void deleteLoad (key name);
-			void deleteNode (key name, key newSourceName);
-			void deleteNode (key name);
-			void deleteSubnet (key headerName);
-			void deleteAllSinks (key sourceName);
+			virtual void deleteInput (key name, key newSourceName) override;
+			virtual void deleteInput (key name) override;
+			virtual void deleteConverter (key name, key newSourceName) override;
+			virtual void deleteConverter (key name) override;
+			virtual void deleteLoad (key name) override;
+			virtual void deleteNode (key name, key newSourceName) override;
+			virtual void deleteNode (key name) override;
+			virtual void deleteSubnet (key headerName) override;
+			virtual void deleteAllSinks (key sourceName) override;
 
-			void moveConverter (key name, key newSourceName);
-			void moveConverter (key name, key newSourceName, key newSinksSourceName);
-			void freeConverter (key name);
-			void freeConverter (key name, key newSinksSourceName);
-			void moveLoad (key name, key newSourceName);
-			void freeLoad (key name);
-			void moveSubnet (key headerName, key newSourceName);
-			void freeSubnet (key headerName);
-			void moveNode (key name, key newSourceName);
-			void moveNode (key name, key newSourceName, key newSinksSourceName);
-			void freeNode (key name);
-			void freeNode (key name, key newSinksSourceName);
+			virtual void moveConverter (key name, key newSourceName) override;
+			virtual void moveConverter (key name, key newSourceName, key newSinksSourceName) override;
+			virtual void freeConverter (key name) override;
+			virtual void freeConverter (key name, key newSinksSourceName) override;
+			virtual void moveLoad (key name, key newSourceName) override;
+			virtual void freeLoad (key name) override;
+			virtual void moveSubnet (key headerName, key newSourceName) override;
+			virtual void freeSubnet (key headerName) override;
+			virtual void moveNode (key name, key newSourceName) override;
+			virtual void moveNode (key name, key newSourceName, key newSinksSourceName) override;
+			virtual void freeNode (key name) override;
+			virtual void freeNode (key name, key newSinksSourceName) override;
 
-			void renameNode (key name, key newName);
-			void setSourceCvType (key name, CvType newType);
-			void setSourceCvValue (key name, double value);
-			void setConverterType (key name, ConverterType type);
-			void setConverterEfficienct (key name, double efficiency);
-			void setLoadType (key name, LoadType type);
-			void setLoadResistance (key name, double resistance);
-			void setLoadCurrent (key name, double current);
-			void setLoadForawrdVoltage (key name, double forwardVoltage);
-			void setLoadForwardCurrent (key name, double forwardCurrent);
-			void setLoadNomPower (key name, double nomPower);
-			void setLoadNomVoltage (key name, double nomVoltage);
+			virtual void renameNode (key name, key newName) override;
+			virtual void setSourceCvType (key name, CvType newType) override;
+			virtual void setSourceCvValue (key name, double value) override;
+			virtual void setConverterType (key name, ConverterType type) override;
+			virtual void setConverterEfficienct (key name, double efficiency) override;
+			virtual void setLoadType (key name, LoadType type) override;
+			virtual void setLoadResistance (key name, double resistance) override;
+			virtual void setLoadCurrent (key name, double current) override;
+			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) override;
+			virtual void setLoadForwardCurrent (key name, double forwardCurrent) override;
+			virtual void setLoadNomPower (key name, double nomPower) override;
+			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
 
-			void calculte ();
-
-
-
-			~ElectricNet();
+			virtual void calculte () override;
 
 
 
