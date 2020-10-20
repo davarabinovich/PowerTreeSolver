@@ -43,6 +43,7 @@ namespace electric_net
 		net.insertDesc(name, sourceName, newConverter_ptr);
 	}
 
+
 	void ElectricNet::insertConverter (key name, key sourceName, key sinkName, ConverterType type, CvType cvType, double cvValue, double efficiency)
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
@@ -50,43 +51,43 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::addResistiveLoad(key name, key sourceName, double resistance)
+	void ElectricNet::addLoad (key name, key sourceName, LoadType type, double param)
 	{
+		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
+		if (type == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
+
+		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
+		net.pushBackLeaf(name, sourceName, newLoad_ptr);
 	}
 
 
-	void ElectricNet::addResistiveLoad(key name, double resistance)
+	void ElectricNet::addLoad (key name, LoadType type, double param)
 	{
+		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
+		if (type == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
+
+		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
+		net.addRoot(name, newLoad_ptr);
 	}
 
 
-	void ElectricNet::addConstantCurrentLoad(key name, key sourceName, double current)
+	void ElectricNet::addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam)
 	{
+		if (type == LoadType::RESISTIVE)     throw exception("Resistive load can have only one parameter");
+		if (type == LoadType::CONSTANT_CURRENT)    throw exception("Constant current load can have only one parameter");
+
+		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
+		net.pushBackLeaf(name, sourceName, newLoad_ptr);
 	}
 
 
-	void ElectricNet::addConstantCurrentLoad(key name, double current)
+	void ElectricNet::addLoad (key name, LoadType type, double mainParam, double secondaryParam)
 	{
-	}
+		if (type == LoadType::RESISTIVE)     throw exception("Resistive load can have only one parameter");
+		if (type == LoadType::CONSTANT_CURRENT)    throw exception("Constant current load can have only one parameter");
 
-
-	void ElectricNet::addDiodeLoad(key name, key sourceName, double forwardVoltage, double forwardCurrent)
-	{
-	}
-
-
-	void ElectricNet::addDiodeLoad(key name, double forwardVoltage, double forwardCurrent)
-	{
-	}
-
-
-	void ElectricNet::addEnergyLoad(key name, key sourceName, double nowPower, double nomVoltage)
-	{
-	}
-
-
-	void ElectricNet::addEnergyLoad(key name, double nowPower, double nomVoltage)
-	{
+		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
+		net.addRoot(name, newLoad_ptr);
 	}
 
 

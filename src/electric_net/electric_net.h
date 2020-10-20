@@ -151,16 +151,10 @@ namespace electric_net
 							      double cvValue = 0.0, double efficiency = 100.0);
 			void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
 								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0);
-			void addResistiveLoad (key name, key sourceName, double resistance = 1000.0);
-			void addResistiveLoad (key name, double resistance = 1000.0);
-			void addConstantCurrentLoad (key name, key sourceName, double current = 0.0);
-			void addConstantCurrentLoad (key name, double current = 0.0);
-			void addDiodeLoad (key name, key sourceName, double forwardVoltage = 100.0, double forwardCurrent = 0.0);
-			void addDiodeLoad (key name, double forwardVoltage = 100.0, double forwardCurrent = 0.0);
-			void addEnergyLoad (key name, key sourceName, double nowPower = 0.0, double nomVoltage = 10.0);
-			void addEnergyLoad (key name, double nowPower = 100.0, double nomVoltage = 0.0);
-
-
+			void addLoad (key name, key sourceName, LoadType type, double param = NAN);
+			void addLoad (key name, LoadType type, double param = NAN);
+			void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN);
+			void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN);
 
 			void deleteInput (key name, key newSourceName);
 			void deleteInput (key name);
@@ -267,23 +261,5 @@ namespace electric_net
 			Forest< string, shared_ptr<ElectricNode> > net;
 
 	};
-	
-
-
-
-	template<typename type, class Other>
-	inline void ElectricNet::addLoad (key name, key sourceName, Other loadParams)
-	{
-		auto newLoad_ptr = make_shared<type>(loadParams);
-		net.pushBackLeaf(name, sourceName, newLoad_ptr);
-	}
-
-
-	template<typename type, class Other>
-	inline void ElectricNet::addLoad (key name, Other loadParams)
-	{
-		auto newLoad_ptr = make_shared<type>(loadParams);
-		net.addRoot(name, newLoad_ptr);
-	}
 
 }
