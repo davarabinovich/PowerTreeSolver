@@ -10,40 +10,37 @@
 
 #include "electric_net/electric_net_api.h"
 
+
 #include "commands.h"
 
-#include "config.h"
 
 
 
-
-
-
-
-
-
-using TokensDeque = deque<string>;
-
-
-
-
-
-class Command
+namespace commands
 {
-	public:
 
-		virtual void execute (TokensDeque & tokens) const = 0;
-
-
-
-
-	protected:
-
-		Command() {}
-
-
-		
-		static bool isFloatNumberString (const string & str)
+	using TokensDeque = deque<string>;
+	
+	
+	
+	
+	class Command
+	{
+	
+		public:
+	
+			virtual void execute (TokensDeque & tokens) const = 0;
+	
+	
+	
+	
+		protected:
+	
+			Command () {;}
+	
+	
+			
+			static bool isFloatNumberString (const string & str)
 		{
 			auto letter_it = str.cbegin();
 
@@ -65,16 +62,16 @@ class Command
 
 			return true;
 		}
-
-		static bool isCvTypeString (const string & str)
+	
+			static bool isCvTypeString (const string & str)
 		{
 			if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
 			if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
 				if (str != "vol" && str != "Vol" && str != "voltage" && str != "Voltage") return false;
 			return true;
 		}
-
-		static CvType parseCvType (const string & str)
+	
+			static CvType parseCvType (const string & str)
 		{
 			if (!isCvTypeString(str))
 #pragma todo write exceptions message
@@ -83,16 +80,16 @@ class Command
 			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return CvType::CURRENT;
 			return CvType::VOLTAGE;
 		}
-		
-		static bool isConverterTypeString (const string & str)
+			
+			static bool isConverterTypeString (const string & str)
 		{
 			if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
 			if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
 				if (str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
 			return true;
 		}
-
-		static ConverterType parseConverterType (const string & str)
+	
+			static ConverterType parseConverterType (const string & str)
 		{
 			if (!isConverterTypeString(str))
 #pragma todo write exceptions message
@@ -101,8 +98,8 @@ class Command
 			if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
 			return ConverterType::PULSE;
 		}
-
-		static bool isLoadTypeString (const string & str)
+	
+			static bool isLoadTypeString (const string & str)
 		{
 			if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
 			if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
@@ -110,8 +107,8 @@ class Command
 					if (str != "pow" && str != "Pow" && str != "power" && str != "Power")    return false;
 			return true;
 		}
-
-		static LoadType parseLoadType (const string & str)
+	
+			static LoadType parseLoadType (const string & str)
 		{
 			if (!isLoadTypeString(str))
 				throw exception("Invalid type of load");
@@ -120,14 +117,14 @@ class Command
 			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CONSTANT_CURRENT;
 			return LoadType::ENERGY;
 		}
-
-		static bool isDeletingModeString (const string & str)
+	
+			static bool isDeletingModeString (const string & str)
 		{
 			if (str != "h" && str != "d" && str != "r")    return false;
 			return true;
 		}
-		
-		static DeletingMode parseDeletingMode (const string & str)
+			
+			static DeletingMode parseDeletingMode (const string & str)
 		{
 			if (!isDeletingModeString(str))
 				throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
@@ -138,13 +135,13 @@ class Command
 				return DeletingMode::HANG_DESCES;
 			return DeletingMode::RECONNECT_DESCES;
 		}
-};
-
-
-
-
-
-class CommandCreate : public Command
+	};
+	
+	
+	
+	
+	
+	class CommandCreate : public Command
 {
 
 	public:
@@ -382,11 +379,11 @@ class CommandCreate : public Command
 		}
 
 };
-
-
-
-
-class CommandRename : public Command
+	
+	
+	
+	
+	class CommandRename : public Command
 {
 
 	public:
@@ -461,12 +458,12 @@ class CommandRename : public Command
 		}
 
 };
-
-
-
-
-
-class CommandWithShowingResults : public Command
+	
+	
+	
+	
+	
+	class CommandWithShowingResults : public Command
 {
 	
 	public:
@@ -603,12 +600,12 @@ class CommandWithShowingResults : public Command
 		}
 
 };
-
-
-
-
-
-class CommandSolve : public CommandWithShowingResults
+	
+	
+	
+	
+	
+	class CommandSolve : public CommandWithShowingResults
 {
 
 	public:
@@ -688,18 +685,18 @@ class CommandSolve : public CommandWithShowingResults
 		}
 
 };
-
-
-
-
-
-class CommandShowResults : public CommandWithShowingResults {};
-
-
-
-
-
-class CommandShowStructure : public Command
+	
+	
+	
+	
+	
+	class CommandShowResults : public CommandWithShowingResults {};
+	
+	
+	
+	
+	
+	class CommandShowStructure : public Command
 {
 	
 	public:
@@ -776,12 +773,12 @@ class CommandShowStructure : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandCreateInput : public Command
+	
+	
+	
+	
+	
+	class CommandCreateInput : public Command
 {
 	
 	public:
@@ -923,12 +920,12 @@ class CommandCreateInput : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandCreateConverter : public Command
+	
+	
+	
+	
+	
+	class CommandCreateConverter : public Command
 {
 	
 	public:
@@ -1129,12 +1126,12 @@ class CommandCreateConverter : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandCreateLoad : public Command
+	
+	
+	
+	
+	
+	class CommandCreateLoad : public Command
 {
 	
 	public:
@@ -1345,12 +1342,12 @@ class CommandCreateLoad : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandModifyInput : public Command
+	
+	
+	
+	
+	
+	class CommandModifyInput : public Command
 {
 	
 	public:
@@ -1521,12 +1518,12 @@ class CommandModifyInput : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandModifyConverter : public Command
+	
+	
+	
+	
+	
+	class CommandModifyConverter : public Command
 {
 	
 	public:
@@ -1741,12 +1738,12 @@ class CommandModifyConverter : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandModifyLoad : public Command
+	
+	
+	
+	
+	
+	class CommandModifyLoad : public Command
 {
 	
 	public:
@@ -1945,12 +1942,12 @@ class CommandModifyLoad : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandDeleteNode : public Command
+	
+	
+	
+	
+	
+	class CommandDeleteNode : public Command
 {
 	
 	public:
@@ -2111,12 +2108,12 @@ class CommandDeleteNode : public Command
 		}
 
 };
-
-
-
-
-
-class CommandMoveSink : public Command
+	
+	
+	
+	
+	
+	class CommandMoveSink : public Command
 {
 	
 	public:
@@ -2201,12 +2198,12 @@ class CommandMoveSink : public Command
 		}
 	
 };
-
-
-
-
-
-class CommandDisconnectSink : public Command
+	
+	
+	
+	
+	
+	class CommandDisconnectSink : public Command
 {
 	
 	public:
@@ -2246,195 +2243,148 @@ class CommandDisconnectSink : public Command
 		}
 	
 };
-
-
-
-
-
-
-
-
-#pragma todo
-class CommandT: public Command
-{
-
-public:
-
-	virtual void execute(TokensDeque& tokens) const
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()           },
+																				{ "rn", make_shared<CommandRename>()           },
+																				{ "sv", make_shared<CommandSolve>()            },
+																				{ "sr", make_shared<CommandShowResults>()      },
+																				{ "ss", make_shared<CommandShowStructure>()    },
+	
+																				{ "ci", make_shared<CommandCreateInput>()      },
+																				{ "cc", make_shared<CommandCreateConverter>()  },
+																				{ "cl", make_shared<CommandCreateLoad>()       },
+																				{ "mi", make_shared<CommandModifyInput>()      },
+																				{ "mc", make_shared<CommandModifyConverter>()  },
+																				{ "ml", make_shared<CommandModifyLoad>()       },
+																				{ "ms", make_shared<CommandMoveSink>()         },
+																				{ "ds", make_shared<CommandDisconnectSink>()   },
+																				{ "dn", make_shared<CommandDeleteNode>()       }  };
+	
+	
+	
+	
+	
+	
+	
+	
+	TokensDeque tokenize (const string & command_string)
 	{
-		
-	}
-
-
-
-
-private:
-
-	struct Arguments
-	{
-
-	};
-
-
-
-	void reportExecution(const Arguments& args) const
-	{
-
-	}
-
-};
-
-
-
-
-static const CommandCreate cr;
-static const CommandRename rn;
-static const CommandSolve  sv;
-static const CommandShowResults   sr;
-static const CommandShowStructure ss;
-
-static const CommandCreateInput     ci;
-static const CommandCreateConverter cc;
-static const CommandCreateLoad      cl;
-static const CommandModifyInput     mi;
-static const CommandModifyConverter mc;
-static const CommandModifyLoad      ml;
-static const CommandMoveSink        ms;
-static const CommandDisconnectSink  ds;
-static const CommandDeleteNode      dn;
-
-
-
-static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>(cr)           },
-																			{ "rn", make_shared<CommandRename>(rn)           },
-																			{ "sv", make_shared<CommandSolve>(sv)            },
-																			{ "sr", make_shared<CommandShowResults>(sr)      },
-																			{ "ss", make_shared<CommandShowStructure>(ss)    },
-
-																			{ "ci", make_shared<CommandCreateInput>(ci)      },
-																			{ "cc", make_shared<CommandCreateConverter>(cc)  },
-																			{ "cl", make_shared<CommandCreateLoad>(cl)       },
-																			{ "mi", make_shared<CommandModifyInput>(mi)      },
-																			{ "mc", make_shared<CommandModifyConverter>(mc)  },
-																			{ "ml", make_shared<CommandModifyLoad>(ml)       },
-																			{ "ms", make_shared<CommandMoveSink>(ms)         },
-																			{ "ds", make_shared<CommandDisconnectSink>(ds)   },
-																			{ "dn", make_shared<CommandDeleteNode>(dn)       }  };
-
-
-
-
-
-
-
-
-TokensDeque tokenize (const string & command_string)
-{
-	if (command_string.size() == 0)    return TokensDeque();
-
-	TokensDeque tokens;
-	auto wordBegin_it = command_string.cbegin();
-	scrollInteratorToNewWord_unsafe(wordBegin_it);
-	auto wordEnd_it = wordBegin_it;
-
-	while (wordBegin_it != command_string.cend())
-	{
-		while (true)
+		if (command_string.size() == 0)    return TokensDeque();
+	
+		TokensDeque tokens;
+		auto wordBegin_it = command_string.cbegin();
+		scrollInteratorToNewWord_unsafe(wordBegin_it);
+		auto wordEnd_it = wordBegin_it;
+	
+		while (wordBegin_it != command_string.cend())
 		{
-			if (wordEnd_it == command_string.cend())
-				break;
-			if (*wordEnd_it == ' ')
-				break;
-			wordEnd_it++;
+			while (true)
+			{
+				if (wordEnd_it == command_string.cend())
+					break;
+				if (*wordEnd_it == ' ')
+					break;
+				wordEnd_it++;
+			}
+	
+			tokens.push_back(string(wordBegin_it, wordEnd_it));
+			if (wordEnd_it != command_string.cend())
+				scrollInteratorToNewWord_unsafe(wordEnd_it);
+			wordBegin_it = wordEnd_it;
 		}
-
-		tokens.push_back(string(wordBegin_it, wordEnd_it));
-		if (wordEnd_it != command_string.cend())
-			scrollInteratorToNewWord_unsafe(wordEnd_it);
-		wordBegin_it = wordEnd_it;
+	
+		return tokens;
 	}
-
-	return tokens;
+	
+	void executeCommand (string enteredCommand)
+	{
+	#pragma todo whether replace deque with a vector?
+		auto tokens = tokenize(enteredCommand);
+		string commandMnemonic = tokens.front();
+		tokens.pop_front();
+	
+		shared_ptr<Command> currentCommand;
+		try { currentCommand = commandDictionary.at(commandMnemonic); }
+		catch (out_of_range) { throw exception("Unrecognized command"); }
+	
+		currentCommand->execute(tokens);
+	}
+	
+	command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
+	{
+		return command_mnemonic();
+	}
+	
+	
+	
+	
+	//void TestCreateArgumentsParsing()
+	//{
+	//	using Arguments = CommandCreate::Arguments;
+	//
+	//
+	//
+	//
+	//	{
+	//		TokensDeque emptyTokens;
+	//
+	//		Arguments emptyArgs;
+	//
+	//		auto emptyOut = cr.parseArguments(emptyTokens);
+	//
+	//		Assert(emptyArgs == emptyOut, "");
+	//	}
+	//
+	//
+	//
+	//
+	//	{
+	//		TokensDeque onlyNameTokens = { "name" };
+	//
+	//		CommandCreate::Arguments onlyNameArgs;
+	//		onlyNameArgs.name = "name";
+	//
+	//		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
+	//
+	//		Assert(onlyNameArgs == onlyNameOut, "");
+	//	}
+	//
+	//
+	//
+	//
+	//	{
+	//		TokensDeque onlyTypeTokens = { "cur" };
+	//
+	//		Arguments onlyTypeArgs;
+	//		onlyTypeArgs.inputCvType = CvType::CURRENT;
+	//
+	//		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
+	//
+	//		Assert(onlyTypeArgs == onlyTypeOut, "");
+	//	}
+	//
+	//
+	//
+	//
+	//	{
+	//		TokensDeque onlyValueTokens = { "24" };
+	//
+	//		Arguments onlyValueArgs;
+	//		onlyValueArgs.inputCvValue = 24;
+	//
+	//		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
+	//
+	//		Assert(onlyValueArgs == onlyValueOut, "");
+	//	}
+	//}
+	
 }
-
-void executeCommand (string enteredCommand)
-{
-#pragma todo whether replace deque with a vector?
-	auto tokens = tokenize(enteredCommand);
-	string commandMnemonic = tokens.front();
-	tokens.pop_front();
-
-	shared_ptr<Command> currentCommand;
-	try { currentCommand = commandDictionary.at(commandMnemonic); }
-	catch (out_of_range) { throw exception("Unrecognized command"); }
-
-	currentCommand->execute(tokens);
-}
-
-command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
-{
-	return command_mnemonic();
-}
-
-
-
-
-//void TestCreateArgumentsParsing()
-//{
-//	using Arguments = CommandCreate::Arguments;
-//
-//
-//
-//
-//	{
-//		TokensDeque emptyTokens;
-//
-//		Arguments emptyArgs;
-//
-//		auto emptyOut = cr.parseArguments(emptyTokens);
-//
-//		Assert(emptyArgs == emptyOut, "");
-//	}
-//
-//
-//
-//
-//	{
-//		TokensDeque onlyNameTokens = { "name" };
-//
-//		CommandCreate::Arguments onlyNameArgs;
-//		onlyNameArgs.name = "name";
-//
-//		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
-//
-//		Assert(onlyNameArgs == onlyNameOut, "");
-//	}
-//
-//
-//
-//
-//	{
-//		TokensDeque onlyTypeTokens = { "cur" };
-//
-//		Arguments onlyTypeArgs;
-//		onlyTypeArgs.inputCvType = CvType::CURRENT;
-//
-//		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
-//
-//		Assert(onlyTypeArgs == onlyTypeOut, "");
-//	}
-//
-//
-//
-//
-//	{
-//		TokensDeque onlyValueTokens = { "24" };
-//
-//		Arguments onlyValueArgs;
-//		onlyValueArgs.inputCvValue = 24;
-//
-//		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
-//
-//		Assert(onlyValueArgs == onlyValueOut, "");
-//	}
-//}

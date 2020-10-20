@@ -25,6 +25,12 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
+
+	using namespace commands;
+
+
+
+
 	TestAll();
 	// Переменное количество аргументов команд
 	// API в отдельный файл
