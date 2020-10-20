@@ -347,13 +347,13 @@ inline void Forest<key, Type>::moveNode (key name, key newParentName)
 template <typename key, typename Type>
 inline void Forest<key, Type>::moveNode (key name, key newParentName, key newDescesParentName)
 {
-	Node * node_ptr = nodes[name];
-	Node * parent_ptr = node_ptr->getParent();
+	auto node_ptr = nodes[name];
+	auto parent_ptr = node_ptr->getParent();
 	cutLinkBetween(parent_ptr, node_ptr);
 
 	moveAllDescesTo(node_ptr, newDescesParentName);
 
-	Node * newParent_ptr = nodes[newParentName];
+	auto newParent_ptr = nodes[newParentName];
 	connectNodes(newParent_ptr, node_ptr);
 }
 
@@ -361,8 +361,8 @@ inline void Forest<key, Type>::moveNode (key name, key newParentName, key newDes
 template <typename key, typename Type>
 inline void Forest<key, Type>::freeNode (key name)
 {
-	Node * node_ptr = nodes[name];
-	Node * parent_ptr = node_ptr->getParent();
+	auto node_ptr = nodes[name];
+	auto parent_ptr = node_ptr->getParent();
 	cutLinkBetween(parent_ptr, node_ptr);
 
 	convertDescesToRoots(node_ptr);

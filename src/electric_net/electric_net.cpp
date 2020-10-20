@@ -107,6 +107,78 @@ namespace electirc_net
 	}
 
 
+	void ElectricNet::moveConverter (key name, key newSourceName)
+	{
+		net.moveNode(name, newSourceName);
+	}
+
+
+	void ElectricNet::moveConverter (key name, key newSourceName, key newSinksSourceName)
+	{
+		net.moveNode(name, newSourceName, newSinksSourceName);
+	}
+
+
+	void ElectricNet::freeConverter (key name)
+	{
+		net.freeNode(name);
+	}
+	 
+
+	void ElectricNet::freeConverter (key name, key newSinksSourceName)
+	{
+		net.freeNode(name, newSinksSourceName);
+	}
+	 
+
+	void ElectricNet::moveLoad (key name, key newSourceName)
+	{
+		net.moveNode(name, newSourceName);
+	}
+	 
+
+	void ElectricNet::freeLoad (key name)
+	{
+		net.freeNode(name);
+	}
+
+
+	void ElectricNet::moveSubnet (key headerName, key newSourceName)
+	{
+		net.moveSubtree(headerName, newSourceName);
+	}
+
+
+	void ElectricNet::freeSubnet (key headerName)
+	{
+		net.freeSubtree(headerName);
+	}
+
+
+	void ElectricNet::moveNode (key name, key newSourceName)
+	{
+		net.moveNode(name, newSourceName);
+	}
+
+
+	void ElectricNet::moveNode (key name, key newSourceName, key newSinksSourceName)
+	{
+		net.moveNode(name, newSourceName, newSinksSourceName);
+	}
+
+
+	void ElectricNet::freeNode (key name)
+	{
+		net.freeNode(name);
+	}
+
+
+	void ElectricNet::freeNode (key name, key newSinksSourceName)
+	{
+		net.freeNode(name, newSinksSourceName);
+	}
+
+
 	void ElectricNet::renameNode (key name, key newName)
 	{
 		net.renameNode(name, newName);
