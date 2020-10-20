@@ -6,13 +6,17 @@
 #include <deque>
 #include <set>
 #include <map>
-#include <variant>
+#include <memory>
 
 
 #include "lib/ciflib.h"
 
 
+#include "config.h"
+
+
 #include "electric_net/electric_net_if.h"
+#include "electric_net/electric_net.h"
 
 
 #include "commands.h"
@@ -220,7 +224,7 @@ bool AreParentAndDescendant(string assumedParent, string assumedDescendant) { re
 
 
 
-
+static shared_ptr<ElectricNet_If> activePowerTree;
 
 
 
@@ -233,6 +237,7 @@ namespace commands
 	
 	
 	
+
 	class Command
 	{
 	
