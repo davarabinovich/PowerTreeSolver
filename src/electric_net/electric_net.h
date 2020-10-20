@@ -94,6 +94,8 @@ namespace electric_net
 			virtual void setLoadNomPower (key name, double nomPower) override;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
 
+			virtual void rename (string newTitle) override;
+
 			virtual void calculte () override;
 
 

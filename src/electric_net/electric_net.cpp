@@ -301,6 +301,12 @@ namespace electric_net
 	}
 
 
+	void ElectricNet::rename (string newTitle)
+	{
+		title = newTitle;
+	}
+
+
 	void ElectricNet::calculte ()
 	{
 

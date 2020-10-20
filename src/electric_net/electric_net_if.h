@@ -176,6 +176,8 @@ namespace electric_net
 			virtual void setLoadNomPower (key name, double nomPower) = 0;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
 
+			virtual void rename (string newTitle) = 0;
+
 			virtual void calculte () = 0;
 
 

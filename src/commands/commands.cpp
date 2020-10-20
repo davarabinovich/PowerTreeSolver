@@ -233,9 +233,19 @@ namespace commands
 {
 
 	using TokensDeque = deque<string>;
+
+
+
+
+	const string defaultTreeName = "New power tree";
 	
 	
-	
+
+
+
+
+
+
 	
 
 	class Command
@@ -349,6 +359,7 @@ namespace commands
 				return DeletingMode::HANG_DESCES;
 			return DeletingMode::RECONNECT_DESCES;
 		}
+
 	};
 	
 	
@@ -546,10 +557,11 @@ namespace commands
 		
 		void createTreeByArgs (const Arguments & args) const
 		{
-			if (args.name.empty())
-				;//ElecticNet::CreateTree();
-			else
-				CreateTree(args.name);
+			string name = args.name;
+			if (name.empty())
+				name = defaultTreeName;
+			
+			activePowerTree = make_shared<ElectricNet>(name);
 		}
 
 		void createInputByArgs (const Arguments & args) const
