@@ -4,7 +4,6 @@
 
 
 
-
 template <typename key, typename Type>
 inline Forest<key, Type>::Node::Node (key nm, Node * prnt)
 	: name(nm), parent_ptr(prnt) 
@@ -395,7 +394,7 @@ inline void Forest<key, Type>::renameNode (key oldName, key newName)
 template <typename key, typename Type>
 inline Type & Forest<key, Type>::operator [] (key name)
 {
-	auto content = nodes[name] ->getToModify();
+	auto & content = nodes[name] ->getToModify();
 	return content;
 }
 

@@ -2,7 +2,6 @@
 #pragma once
 
 
-#include <string>
 #include <map>
 #include <sstream>
 #include <memory>
@@ -11,6 +10,8 @@
 #include "forest/forest.h"
 #include "lib/ciflib.h"
 
+
+#include "config.h"
 
 
 
@@ -22,6 +23,7 @@ using namespace std;
 
 namespace electirc_net
 {
+
 	enum class DeviceType { INPUT, CONVERTER, LOAD };
 
 
@@ -121,6 +123,11 @@ namespace electirc_net
 
 	
 	
+
+
+
+
+
 
 	class ElectricNet
 	{

@@ -3,8 +3,6 @@
 #include <cctype>
 #include <cmath>
 
-#include <string>
-#include <vector>
 #include <deque>
 #include <set>
 #include <variant>
@@ -18,7 +16,7 @@
 
 
 
-#include "test_runner/test_runner.h"
+
 
 
 
@@ -2381,62 +2379,62 @@ command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
 
 
 
-void TestCreateArgumentsParsing()
-{
-	using Arguments = CommandCreate::Arguments;
-
-
-
-
-	{
-		TokensDeque emptyTokens;
-
-		Arguments emptyArgs;
-
-		auto emptyOut = cr.parseArguments(emptyTokens);
-
-		Assert(emptyArgs == emptyOut, "");
-	}
-
-
-
-
-	{
-		TokensDeque onlyNameTokens = { "name" };
-
-		CommandCreate::Arguments onlyNameArgs;
-		onlyNameArgs.name = "name";
-
-		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
-
-		Assert(onlyNameArgs == onlyNameOut, "");
-	}
-
-
-
-
-	{
-		TokensDeque onlyTypeTokens = { "cur" };
-
-		Arguments onlyTypeArgs;
-		onlyTypeArgs.inputCvType = CvType::CURRENT;
-
-		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
-
-		Assert(onlyTypeArgs == onlyTypeOut, "");
-	}
-
-
-
-
-	{
-		TokensDeque onlyValueTokens = { "24" };
-
-		Arguments onlyValueArgs;
-		onlyValueArgs.inputCvValue = 24;
-
-		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
-
-		Assert(onlyValueArgs == onlyValueOut, "");
-	}
-}
+//void TestCreateArgumentsParsing()
+//{
+//	using Arguments = CommandCreate::Arguments;
+//
+//
+//
+//
+//	{
+//		TokensDeque emptyTokens;
+//
+//		Arguments emptyArgs;
+//
+//		auto emptyOut = cr.parseArguments(emptyTokens);
+//
+//		Assert(emptyArgs == emptyOut, "");
+//	}
+//
+//
+//
+//
+//	{
+//		TokensDeque onlyNameTokens = { "name" };
+//
+//		CommandCreate::Arguments onlyNameArgs;
+//		onlyNameArgs.name = "name";
+//
+//		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
+//
+//		Assert(onlyNameArgs == onlyNameOut, "");
+//	}
+//
+//
+//
+//
+//	{
+//		TokensDeque onlyTypeTokens = { "cur" };
+//
+//		Arguments onlyTypeArgs;
+//		onlyTypeArgs.inputCvType = CvType::CURRENT;
+//
+//		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
+//
+//		Assert(onlyTypeArgs == onlyTypeOut, "");
+//	}
+//
+//
+//
+//
+//	{
+//		TokensDeque onlyValueTokens = { "24" };
+//
+//		Arguments onlyValueArgs;
+//		onlyValueArgs.inputCvValue = 24;
+//
+//		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
+//
+//		Assert(onlyValueArgs == onlyValueOut, "");
+//	}
+//}
