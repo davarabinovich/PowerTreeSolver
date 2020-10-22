@@ -53,10 +53,10 @@ namespace electric_net
 							              double cvValue = 0.0, double efficiency = 100.0) override;
 			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
 								          CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) override;
-			virtual void addLoad (key name, key sourceName, LoadType type, double param = NAN) override;
-			virtual void addLoad (key name, LoadType type, double param = NAN) override;
-			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN) override;
-			virtual void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN) override;
+			virtual void addLoad (key name, key sourceName, LoadType type, double param) override;
+			virtual void addLoad (key name, LoadType type, double param) override;
+			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) override;
+			virtual void addLoad (key name, LoadType type, double mainParam, double secondaryParam) override;
 
 			virtual void deleteInput (key name, key newSourceName) override;
 			virtual void deleteInput (key name) override;
@@ -85,7 +85,7 @@ namespace electric_net
 			virtual void setSourceCvType (key name, CvType newType) override;
 			virtual void setSourceCvValue (key name, double value) override;
 			virtual void setConverterType (key name, ConverterType type) override;
-			virtual void setConverterEfficienct (key name, double efficiency) override;
+			virtual void setConverterEfficiency (key name, double efficiency) override;
 			virtual void setLoadType (key name, LoadType type) override;
 			virtual void setLoadResistance (key name, double resistance) override;
 			virtual void setLoadCurrent (key name, double current) override;
@@ -94,6 +94,7 @@ namespace electric_net
 			virtual void setLoadNomPower (key name, double nomPower) override;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
 
+			virtual string getTitle () override;
 			virtual void rename (string newTitle) override;
 
 			virtual void calculte () override;

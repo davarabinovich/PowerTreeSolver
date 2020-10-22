@@ -7,6 +7,7 @@
 #include <set>
 #include <map>
 #include <memory>
+#include <optional>
 
 
 #include "lib/ciflib.h"
@@ -122,7 +123,6 @@ struct Results
 };
 
 
-bool IsThereSomeTree() { return true; }
 
 void CreateTree() {}
 void CreateTree(string name) {}
@@ -223,8 +223,13 @@ bool AreParentAndDescendant(string assumedParent, string assumedDescendant) { re
 
 
 
-
 static shared_ptr<ElectricNet_If> activePowerTree;
+
+bool isThereSomeTree ()
+{ 
+	bool result = !(activePowerTree == nullptr);
+	return result;
+}
 
 
 
@@ -238,8 +243,14 @@ namespace commands
 
 
 	const string defaultTreeName = "New power tree";
+	const string defaultInputName = "Input 1";
 	
 	
+
+
+
+
+
 
 
 
@@ -558,7 +569,7 @@ namespace commands
 		void createTreeByArgs (const Arguments & args) const
 		{
 			string name = args.name;
-			if (name.empty())
+			if (name == "")
 				name = defaultTreeName;
 			
 			activePowerTree = make_shared<ElectricNet>(name);
@@ -567,20 +578,17 @@ namespace commands
 		void createInputByArgs (const Arguments & args) const
 		{
 			string name = args.inputName;
-			if (name.empty())
-				name = CreateInput();
-			else
-				CreateInput(name);
+			if (name == "")
+				name = defaultInputName;
 
-			SetCvTypeForInput(name, args.inputCvType);
-			SetCvValueForInput(name, args.inputCvValue);
+			activePowerTree->addInput(name, args.inputCvType, args.inputCvValue);
 		}
 
 		void reportExecution (const Arguments & args) const
 		{
 			string name = args.name;
 			if (name == "")
-				name = GetNameOfTree();
+				name = defaultTreeName;
 			name = "\"" + name + "\" ";
 			
 			string cvType = "voltage";
@@ -614,8 +622,8 @@ namespace commands
 	
 		virtual void execute (TokensDeque& tokens) const
 		{
-			bool isThereSomeTree = IsThereSomeTree();
-			if (!isThereSomeTree)
+			bool isTreeToRename = isThereSomeTree();
+			if (!isTreeToRename)
 			{
 				requestToGetTree();
 				return;
@@ -629,8 +637,8 @@ namespace commands
 			else
 				newName = tokens.front();
 
-			string oldName = GetNameOfTree();
-			RenameTree(newName);
+			string oldName = activePowerTree->getTitle();
+			activePowerTree->rename(newName);
 
 			Arguments args = { newName, oldName };
 			reportExecution(args);
@@ -1013,11 +1021,8 @@ namespace commands
 			try { args = parseArguments(tokens); }
 			catch (exception & ex) { throw exception(ex.what()); }
 	
-			if (args.name == "")
-				args.name = suggestEnterNameAndGet();
-			while (IsInputExsist(args.name))
-				args.name = requestUniqueName();
 
+#pragma todo not only NAN is invalid
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
 	
@@ -1078,26 +1083,8 @@ namespace commands
 			throw exception("There is at least one invalid argument");
 		}
 
-		string suggestEnterNameAndGet () const
-		{
-			string name = "";
-			cout << "Do you want to set a name for the new input?" << endl;
-			string answer; getline(cin, answer);
 
-			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				getline(cin, name);
-			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-				throw exception("Invalid answer");
-
-			return name;
-		}
 	
-		string requestUniqueName () const
-		{
-			cout << "This name is already taken. Please enter other name" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
 
 		double requestCvValue (const CvType type) const
 		{
@@ -1109,14 +1096,7 @@ namespace commands
 
 		void createInputByArgs (Arguments & args) const
 		{
-			string & name = args.name;
-			if (name.empty())
-				name = CreateInput();
-			else
-				CreateInput(name);
-
-			SetCvTypeForInput(name, args.cvType);
-			SetCvValueForInput(name, args.cvValue);
+			activePowerTree->addInput(args.name, args.cvType, args.cvValue);
 		}
 	
 		void reportExecution (const Arguments & args) const
@@ -1159,11 +1139,6 @@ namespace commands
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
-	
-			if (args.name == "")
-				args.name = suggestEnterNameAndGet();
-			while (IsConverterExsist(args.name))
-				args.name = requestUniqueName();
 
 			if (isnan(args.cvValue))
 				args.cvValue = requestCvValue(args.cvType);
@@ -1259,26 +1234,6 @@ namespace commands
 			throw exception("There is at least one invalid argument");
 		}
 
-		string suggestEnterNameAndGet () const
-		{
-			string name = "";
-			cout << "Do you want to set a name for the new converter?" << endl;
-			string answer; getline(cin, answer);
-
-			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				getline(cin, name);
-			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-				throw exception("Invalid answer");
-
-			return name;
-		}
-
-		string requestUniqueName () const
-		{
-			cout << "This name is already taken. Please enter other name" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
 
 		double requestCvValue (const CvType type) const
 		{
@@ -1307,24 +1262,10 @@ namespace commands
 
 		void createConverterByArgs (const Arguments & args) const
 		{
-			string name = args.name;
-			if (name.empty())
-				name = CreateConverter();
+			if (args.parentName == "")
+				activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiency);
 			else
-				CreateConverter(name);
-
-			if (!args.parentName.empty())
-			{
-				if (IsSourceExsist(args.parentName))
-					ConnectSinkTo(name, args.parentName);
-				else
-					throw exception("Invalid parent source for the new converter is specified");
-			}
-
-			SetTypeForConverter(name, args.type);
-			SetCvTypeForConverter(name, args.cvType);
-			SetCvValueForConverter(name, args.cvValue);
-			SetEfficiencyForConverter(name, args.efficiency);
+				activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiency);
 		}
 
 		void reportExecution (const Arguments & args) const
@@ -1366,11 +1307,6 @@ namespace commands
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 
-			if (args.name == "")
-				args.name = suggestEnterNameAndGet();
-			while (IsLoadExsist(args.name))
-				args.name = requestUniqueName();
-
 			if (isnan(args.value))
 				args.value = requestValue(args.type);
 			if (args.parentName == "")
@@ -1392,12 +1328,12 @@ namespace commands
 			LoadType type = LoadType::RESISTIVE;
 			double value = NAN;
 
-			double nomVoltage = NAN;
+			double addValue = NAN;
 
 			string parentName = "";
 		};
 	
-	
+
 
 		Arguments parseArguments (TokensDeque & tokens) const
 		{
@@ -1452,27 +1388,6 @@ namespace commands
 
 			throw exception("There is at least one invalid argument");
 		}
-		
-		string suggestEnterNameAndGet () const
-		{
-			string name = "";
-			cout << "Do you want to set a name for the new load?" << endl;
-			string answer; getline(cin, answer);
-
-			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				getline(cin, name);
-			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-				throw exception("Invalid answer");
-
-			return name;
-		}
-
-		string requestUniqueName () const
-		{
-			cout << "This name is already taken. Please enter other name" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
 
 		double requestValue (const LoadType type) const
 		{
@@ -1521,24 +1436,22 @@ namespace commands
 
 		void createLoadByArgs (const Arguments & args) const
 		{
-			string name = args.name;
-			if (name.empty())
-				name = CreateLoad();
-			else
-				CreateLoad(name);
-
-			if (!args.parentName.empty())
+			switch (args.type)
 			{
-				if (IsSourceExsist(args.parentName))
-					ConnectSinkTo(name, args.parentName);
-				else
-					throw exception("Invalid parent source for the new converter is specified");
-			}
+				case (LoadType::RESISTIVE): [[__fallthrough]]
+				case (LoadType::CONSTANT_CURRENT):
+					if (args.parentName == "")
+						activePowerTree->addLoad(args.name, args.type, args.value);
+					else
+						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value);
 
-			SetTypeForLoad(name, args.type);
-			SetValueForLoad(name, args.value);
-			if (args.type == LoadType::ENERGY)
-				SetNomVoltageForPowerLoad(name, args.nomVoltage);
+				case (LoadType::DIODE): [[__fallthrough]]
+				case (LoadType::ENERGY):
+					if (args.parentName == "")
+						activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
+					else
+						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value, args.addValue);
+			}
 		}
 
 		void reportExecution (const Arguments & args) const
@@ -1582,13 +1495,8 @@ namespace commands
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 
-			if (IsInputExsist(args.currentName))
-			{
-				modifyInputParams(args);
-				reportExecution(args);
-			}
-			else
-				reportNonexsistentInput(args.currentName);
+			modifyInputParams(args);
+			reportExecution(args);
 		}
 	
 	
@@ -1600,9 +1508,9 @@ namespace commands
 		{
 			string currentName;
 
-			pair<bool, string> newName = { false, "" };
-			pair<bool, CvType> cvType = { false, CvType::VOLTAGE };
-			pair<bool, double> cvValue = { false, NAN };
+			optional<string> newName;
+			optional<CvType> cvType;
+			optional<double> cvValue;
 		};
 	
 	
@@ -1623,24 +1531,24 @@ namespace commands
 					string key = extractKeyFromToken(token);
 					if (key == "n")
 					{
-						if (args.newName.first == true)    continue;
+						if (args.newName)    
+							continue;
 
-						args.newName.first = true;
-						args.newName.second = extractParamFromToken(token);
+						args.newName = extractParamFromToken(token);
 					}
 					else if (key == "u")
 					{
-						if (args.cvType.first == true)    continue;
+						if (args.cvType)    
+							continue;
 
-						args.cvType.first = true;
-						args.cvType.second = parseCvType(extractParamFromToken(token));
+						args.cvType = parseCvType(extractParamFromToken(token));
 					}
 					else if (key == "v")
 					{
-						if (args.cvValue.first == true)    continue;
+						if (args.cvValue)    
+							continue;
 
-						args.cvValue.first = true;
-						args.cvValue.second = strToDouble(extractParamFromToken(token));
+						args.cvValue = strToDouble(extractParamFromToken(token));
 					}
 					else
 						throw exception(  string("Unrecognized parameter \"" + key).c_str()  );
@@ -1649,28 +1557,26 @@ namespace commands
 				{
 					if (isCvTypeString(token))
 					{
-						if (args.cvType.first == false)
+						if (args.cvType)
 						{
-							args.cvType.first = true;
-							args.cvType.second = parseCvType(token);
+							args.cvType = parseCvType(token);
 							continue;
 						}
 					}
 
 					if (isFloatNumberString(token))
 					{
-						if (args.cvValue.first == false)
+						if (args.cvValue)
 						{
-							args.cvValue.first = true;
-							args.cvValue.second = strToDouble(token);
+							args.cvValue = strToDouble(token);
 							continue;
 						}
 					}
 					
-					if (args.newName.first == true)    continue;
+					if (args.newName)    
+						continue;
 
-					args.newName.first = true;
-					args.newName.second = token;
+					args.newName = token;
 				}
 			}
 
@@ -1707,28 +1613,28 @@ namespace commands
 
 		void modifyInputParams (const Arguments & args) const
 		{
-			if (args.newName.first == true)
-				RenameInput(args.currentName, args.newName.second);
-			if (args.cvType.first == true)
-				SetCvTypeForInput(args.currentName, args.cvType.second);
-			if (args.cvValue.first == true)
-				SetCvValueForInput(args.currentName, args.cvValue.second);
+			if (args.newName)
+				activePowerTree->renameNode(args.currentName, *args.newName);
+			if (args.cvType)
+				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
+			if (args.cvValue)
+				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
 		}
 
 		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
 			
-			if (args.newName.first == true)
-				cout << endl << "    Name - \"" << args.newName.second << "\"";
-			if (args.cvType.first == true)
-				cout << endl << "    Type of controlled variable - " << args.cvType.second;
-			if (args.cvValue.first == true)
+			if (args.newName)
+				cout << endl << "    Name - \"" << *args.newName << "\"";
+			if (args.cvType)
+				cout << endl << "    Type of controlled variable - " << *args.cvType;
+			if (args.cvValue)
 			{
-				cout << endl << "    Controlled variable - " << args.cvValue.second;
+				cout << endl << "    Controlled variable - " << *args.cvValue;
 
 				string cvUnit = "V";
-				if (args.cvType.second == CvType::CURRENT)
+				if (*args.cvType == CvType::CURRENT)
 					cvUnit = "A";
 				cout << " " << cvUnit;
 			}
@@ -1776,12 +1682,12 @@ namespace commands
 		{
 			string currentName;
 	
-			pair<bool, string> newName = { false, "" };
-			pair<bool, CvType> cvType = { false, CvType::VOLTAGE };
-			pair<bool, double> cvValue = { false, NAN };
+			optional<string> newName; 
+			optional<CvType> cvType;
+			optional<double> cvValue; 
 
-			pair<bool, ConverterType> type = { false, ConverterType::PULSE };
-			pair<bool, double> efficiency = { false, NAN };
+			optional<ConverterType> type;
+			optional<double> efficiency;
 		};
 	
 	
@@ -1802,38 +1708,33 @@ namespace commands
 					string key = extractKeyFromToken(token);
 					if (key == "n")
 					{
-						if (args.newName.first == true)    continue;
+						if (args.newName)    continue;
 	
-						args.newName.first = true;
-						args.newName.second = extractParamFromToken(token);
+						args.newName = extractParamFromToken(token);
 					}
 					else if (key == "u")
 					{
-						if (args.cvType.first == true)    continue;
+						if (args.cvType)    continue;
 	
-						args.cvType.first = true;
-						args.cvType.second = parseCvType(extractParamFromToken(token));
+						args.cvType = parseCvType(extractParamFromToken(token));
 					}
 					else if (key == "v")
 					{
-						if (args.cvValue.first == true)    continue;
+						if (args.cvValue)    continue;
 	
-						args.cvValue.first = true;
-						args.cvValue.second = strToDouble(extractParamFromToken(token));
+						args.cvValue = strToDouble(extractParamFromToken(token));
 					}
 					else if (key == "t")
 					{
-						if (args.type.first == true)    continue;
+						if (args.type)    continue;
 
-						args.type.first = true;
-						args.type.second = parseConverterType(extractParamFromToken(token));
+						args.type = parseConverterType(extractParamFromToken(token));
 					}
 					else if (key == "e")
 					{
-						if (args.efficiency.first == true)    continue;
+						if (args.efficiency)    continue;
 
-						args.efficiency.first = true;
-						args.efficiency.second = strToDouble(extractParamFromToken(token));
+						args.efficiency = strToDouble(extractParamFromToken(token));
 					}
 					else
 						throw exception(string("Unrecognized parameter \"" + key).c_str());
@@ -1842,44 +1743,39 @@ namespace commands
 				{
 					if (isCvTypeString(token))
 					{
-						if (args.cvType.first == false)
+						if (args.cvType)
 						{
-							args.cvType.first = true;
-							args.cvType.second = parseCvType(token);
+							args.cvType = parseCvType(token);
 							continue;
 						}
 					}
 
 					if (isConverterTypeString(token))
 					{
-						if (args.type.first == false)
+						if (args.type)
 						{
-							args.type.first = true;
-							args.type.second = parseConverterType(token);
+							args.type = parseConverterType(token);
 							continue;
 						}
 					}
 	
 					if (isFloatNumberString(token))
 					{
-						if (args.cvValue.first == false)
+						if (args.cvValue)
 						{
-							args.cvValue.first = true;
-							args.cvValue.second = strToDouble(token);
+							args.cvValue = strToDouble(token);
 							continue;
 						}
-						if (args.efficiency.first == false)
+						if (args.efficiency)
 						{
-							args.efficiency.first = true;
-							args.efficiency.second = strToDouble(token);
+							args.efficiency = strToDouble(token);
 							continue;
 						}
 					}
 	
-					if (args.newName.first == true)    continue;
+					if (args.newName)    continue;
 	
-					args.newName.first = true;
-					args.newName.second = token;
+					args.newName = token;
 				}
 			}
 	
@@ -1916,41 +1812,42 @@ namespace commands
 	
 		void modifyConverterParams (const Arguments & args) const
 		{
-			if (args.newName.first == true)
-				RenameConverter(args.currentName, args.newName.second);
-			if (args.cvType.first == true)
-				SetCvTypeForConverter(args.currentName, args.cvType.second);
-			if (args.cvValue.first == true)
-				SetCvValueForConverter(args.currentName, args.cvValue.second);
+#pragma split structue to separate values;
+			if (args.newName)
+				activePowerTree->renameNode(args.currentName, *args.newName);
+			if (args.cvType)
+				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
+			if (args.cvValue)
+				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
 
-			if (args.type.first == true)
-				SetTypeForConverter(args.currentName, args.type.second);
-			if (args.efficiency.first == true)
-				SetEfficiencyForConverter(args.currentName, args.efficiency.second);
+			if (args.type)
+				activePowerTree->setConverterType(args.currentName, *args.type);
+			if (args.efficiency)
+				activePowerTree->setConverterEfficiency(args.currentName, *args.efficiency);
 		}
 	
 		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
 	
-			if (args.newName.first == true)
-				cout << endl << "    Name - \"" << args.newName.second << "\"";
-			if (args.type.first == true)
-				cout << endl << "    Type - " << args.type.second;
-			if (args.cvType.first == true)
-				cout << endl << "    Type of controlled variable - " << args.cvType.second;
-			if (args.cvValue.first == true)
+			if (args.newName)
+				cout << endl << "    Name - \"" << *args.newName << "\"";
+			if (args.type)
+				cout << endl << "    Type - " << *args.type;
+			if (args.cvType)
+				cout << endl << "    Type of controlled variable - " << *args.cvType;
+			if (args.cvValue)
 			{
-				cout << endl << "    Controlled variable - " << args.cvValue.second;
+				cout << endl << "    Controlled variable - " << *args.cvValue;
 	
 				string cvUnit = "V";
-				if (args.cvType.second == CvType::CURRENT)
+				if (*args.cvType == CvType::CURRENT)
 					cvUnit = "A";
 				cout << " " << cvUnit;
 			}
-			if (args.efficiency.first == true)
+			if (args.efficiency)
 			{
-				cout << endl << "    Efficiency - " << args.efficiency.second << " %";
+				cout << endl << "    Efficiency - " << *args.efficiency << " %";
 			}
 	
 			cout << endl;
@@ -1978,13 +1875,8 @@ namespace commands
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 	
-			if (IsLoadExsist(args.currentName))
-			{
-				modifyLoadParams(args);
-				reportExecution(args);
-			}
-			else
-				reportNonexsistentLoad(args.currentName);
+			modifyLoadParams(args);
+			reportExecution(args);
 		}
 	
 	
@@ -1996,11 +1888,11 @@ namespace commands
 		{
 			string currentName;
 	
-			pair<bool, string> newName = { false, "" };
-			pair<bool, LoadType> type = { false, LoadType::RESISTIVE };
-			pair<bool, double> value = { false, NAN };
+			optional<string>   newName;
+			optional<LoadType> type;
+			optional<double>   value;
 
-			pair<bool, double> nomVoltage = { false, NAN };
+			optional<double> addValue;
 		};
 	
 	
@@ -2021,33 +1913,29 @@ namespace commands
 					string key = extractKeyFromToken(token);
 					if (key == "n")
 					{
-						if (args.newName.first == true)    continue;
+						if (args.newName)    continue;
 	
-						args.newName.first = true;
-						args.newName.second = extractParamFromToken(token);
+						args.newName = extractParamFromToken(token);
 					}
 					else if (key == "t")
 					{
-						if (args.type.first == true)    continue;
+						if (args.type)    continue;
 	
-						args.type.first = true;
-						args.type.second = parseLoadType(extractParamFromToken(token));
+						args.type = parseLoadType(extractParamFromToken(token));
 					}
 					else if (key == "v")
 					{
-						if (args.value.first == true)    continue;
+						if (args.value)    continue;
 	
-						args.value.first = true;
-						args.value.second = strToDouble(extractParamFromToken(token));
+						args.value = strToDouble(extractParamFromToken(token));
 					}
 					else if (key == "n")
 					{
-						if (args.type.second != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+						if (*args.type != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
 						
-						if (args.nomVoltage.first == true)    continue;
+						if (args.addValue)    continue;
 	
-						args.nomVoltage.first = true;
-						args.nomVoltage.second = strToDouble(extractParamFromToken(token));
+						args.addValue = strToDouble(extractParamFromToken(token));
 					}
 					else
 						throw exception(string("Unrecognized parameter \"" + key).c_str());
@@ -2056,37 +1944,33 @@ namespace commands
 				{
 					if (isLoadTypeString(token))
 					{
-						if (args.type.first == false)
+						if (args.type)
 						{
-							args.type.first = true;
-							args.type.second = parseLoadType(token);
+							args.type = parseLoadType(token);
 							continue;
 						}
 					}
 	
 					if (isFloatNumberString(token))
 					{
-						if (args.value.first == false)
+						if (args.value)
 						{
-							args.value.first = true;
-							args.value.second = strToDouble(token);
+							args.value = strToDouble(token);
 							continue;
 						}
 
-						if (args.type.second != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
+						if (*args.type != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
 
-						if (args.nomVoltage.first == false)
+						if (args.addValue)
 						{
-							args.nomVoltage.first = true;
-							args.nomVoltage.second = strToDouble(token);
+							args.addValue = strToDouble(token);
 							continue;
 						}
 					}
 	
-					if (args.newName.first == true)    continue;
+					if (args.newName)    continue;
 	
-					args.newName.first = true;
-					args.newName.second = token;
+					args.newName = token;
 				}
 			}
 	
@@ -2123,14 +2007,14 @@ namespace commands
 	
 		void modifyLoadParams (const Arguments & args) const
 		{
-			if (args.newName.first == true)
-				RenameLoad(args.currentName, args.newName.second);
-			if (args.type.first == true)
-				SetTypeForLoad(args.currentName, args.type.second);
-			if (args.value.first == true)
-				SetValueForLoad(args.currentName, args.value.second);
-			if (args.nomVoltage.first == true)
-				SetNomVoltageForPowerLoad(args.currentName, args.nomVoltage.second);
+			if (args.newName)
+				activePowerTree->renameNode(args.currentName, *args.newName);
+			if (args.type)
+				activePowerTree->setLoadType(args.currentName, *args.type);
+			if (args.value)
+				activePowerTree->setlo(args.currentName, *args.newName);
+			if (args.addValue)
+				activePowerTree->renameNode(args.currentName, *args.newName);
 		}
 	
 		void reportExecution (const Arguments & args) const
@@ -2611,4 +2495,9 @@ namespace commands
 	//	}
 	//}
 	
+
+
+
+
+
 }

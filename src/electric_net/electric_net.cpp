@@ -245,7 +245,7 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::setConverterEfficienct (key name, double newEfficiency)
+	void ElectricNet::setConverterEfficiency (key name, double newEfficiency)
 	{
 		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
 		converter_ptr->efficiency = newEfficiency;
@@ -298,6 +298,12 @@ namespace electric_net
 	{
 		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
 		load_ptr->secondaryParam = nomVoltage;
+	}
+
+
+	string ElectricNet::getTitle ()
+	{
+		return title;
 	}
 
 

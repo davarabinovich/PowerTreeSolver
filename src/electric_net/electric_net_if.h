@@ -135,10 +135,10 @@ namespace electric_net
 							      double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
 								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
-			virtual void addLoad (key name, key sourceName, LoadType type, double param = NAN) = 0;
-			virtual void addLoad (key name, LoadType type, double param = NAN) = 0;
-			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam = NAN, double secondaryParam = NAN) = 0;
-			virtual void addLoad (key name, LoadType type, double mainParam = NAN, double secondaryParam = NAN) = 0;
+			virtual void addLoad (key name, key sourceName, LoadType type, double param) = 0;
+			virtual void addLoad (key name, LoadType type, double param) = 0;
+			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) = 0;
+			virtual void addLoad (key name, LoadType type, double mainParam, double secondaryParam) = 0;
 
 			virtual void deleteInput (key name, key newSourceName) = 0;
 			virtual void deleteInput (key name) = 0;
@@ -167,7 +167,7 @@ namespace electric_net
 			virtual void setSourceCvType (key name, CvType newType) = 0;
 			virtual void setSourceCvValue (key name, double value) = 0;
 			virtual void setConverterType (key name, ConverterType type) = 0;
-			virtual void setConverterEfficienct (key name, double efficiency) = 0;
+			virtual void setConverterEfficiency (key name, double efficiency) = 0;
 			virtual void setLoadType (key name, LoadType type) = 0;
 			virtual void setLoadResistance (key name, double resistance) = 0;
 			virtual void setLoadCurrent (key name, double current) = 0;
@@ -176,6 +176,7 @@ namespace electric_net
 			virtual void setLoadNomPower (key name, double nomPower) = 0;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
 
+			virtual string getTitle () = 0;
 			virtual void rename (string newTitle) = 0;
 
 			virtual void calculte () = 0;
