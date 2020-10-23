@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <ctype.h>
 
 
 
@@ -53,6 +54,16 @@ inline double strToDouble (string str)
 	if ( (number == 0.0) && (str != "0.0") )
 		throw exception("There is no floating-point number");
 	return number;
+}
+
+
+inline string capitalize (string str, bool needsCapitalize = true)
+{
+	string result = str;
+	if (needsCapitalize)
+		str[0] = std::toupper(str[0]);
+
+	return result;
 }
 
 

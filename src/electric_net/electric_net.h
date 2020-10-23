@@ -26,11 +26,6 @@ using namespace std;
 namespace electric_net
 {
 
-	enum class DeviceType { INPUT, CONVERTER, LOAD };
-
-
-
-
 	class ElectricNet : public ElectricNet_If
 	{
 	
@@ -93,6 +88,10 @@ namespace electric_net
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) override;
 			virtual void setLoadNomPower (key name, double nomPower) override;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
+
+			virtual DeviceType getNodeType (key name) override;
+			virtual bool isLoadExsist (key name) override;
+			virtual LoadType getLoadType (key name) override;
 
 			virtual string getTitle () override;
 			virtual void rename (string newTitle) override;

@@ -301,6 +301,34 @@ namespace electric_net
 	}
 
 
+	DeviceType ElectricNet::getNodeType (key name)
+	{
+		auto node_ptr = net.at(name);
+		auto type = node_ptr->type;
+		return type;
+	}
+
+
+	bool ElectricNet::isLoadExsist (key name)
+	{
+		if (net.isExsist(name))
+		{
+			auto type = net.at(name) ->type;
+			if (type == DeviceType::LOAD)
+				return true;
+		}
+		return false;
+	}
+
+
+	LoadType ElectricNet::getLoadType (key name)
+	{
+		auto load_ptr = dynamic_pointer_cast<Load>( net[name] );
+		auto type = load_ptr->type;
+		return type;
+	}
+
+
 	string ElectricNet::getTitle ()
 	{
 		return title;

@@ -17,11 +17,32 @@ using std::ostream;
 
 namespace electric_net
 {
+	
+	enum class DeviceType { INPUT, CONVERTER, LOAD };
 
-	enum class DeletingMode { WITH_DESCES, HANG_DESCES, RECONNECT_DESCES, NONE };
+	inline string toStr (DeviceType type)
+	{
+		switch (type)
+		{
+			case DeviceType::INPUT:
+				return "input";
+			case DeviceType::CONVERTER:
+				return "converter";
+			case DeviceType::LOAD:
+				return "load";
 	
-	
-	
+			default:
+				throw exception("Invalid type of controlled variable");
+		}
+	}
+
+	inline ostream & operator << (ostream & os, const DeviceType & type)
+	{
+		return os << toStr(type);
+	}
+
+
+
 	enum class CvType { VOLTAGE, CURRENT };
 	
 	inline ostream & operator << (ostream & os, const CvType & type)
@@ -125,7 +146,7 @@ namespace electric_net
 			using key = string;
 
 			
-			
+#pragma todo add const qualificators
 			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) = 0;
 			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
 							   double cvValue = 0.0, double efficiency = 100.0) = 0;
@@ -175,6 +196,10 @@ namespace electric_net
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) = 0;
 			virtual void setLoadNomPower (key name, double nomPower) = 0;
 			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
+			
+			virtual DeviceType getNodeType (key name) = 0;
+			virtual bool isLoadExsist (key name) = 0;
+			virtual LoadType getLoadType (key name) = 0;
 
 			virtual string getTitle () = 0;
 			virtual void rename (string newTitle) = 0;

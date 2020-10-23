@@ -155,7 +155,6 @@ void DeleteSourceAndMoveDescendants(string name, string newParentName = "") {}
 
 bool IsSinkExsist(string name) { return true; }
 
-void ConnectSinkTo(string sinkName, string parentName) {}
 void DisconnectSink(string name) {}
 
 string GetTypeOfSink_str(string name) { return string(); }
@@ -352,23 +351,17 @@ namespace commands
 			if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CONSTANT_CURRENT;
 			return LoadType::ENERGY;
 		}
-	
-			static bool isDeletingModeString (const string & str)
-		{
-			if (str != "h" && str != "d" && str != "r")    return false;
-			return true;
-		}
 			
-			static DeletingMode parseDeletingMode (const string & str)
+			static MotionMode parseDeletingMode (const string & str)
 		{
-			if (!isDeletingModeString(str))
+			if (!isMotionModeString(str))
 				throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
 
 			if (str == "d")
-				return DeletingMode::WITH_DESCES;
+				return MotionMode::WITH_DESCES;
 			if (str == "h")
-				return DeletingMode::HANG_DESCES;
-			return DeletingMode::RECONNECT_DESCES;
+				return MotionMode::FREE_DESCES;
+			return MotionMode::RECONNECT_DESCES;
 		}
 
 	};
@@ -2007,38 +2000,77 @@ namespace commands
 	
 		void modifyLoadParams (const Arguments & args) const
 		{
+			string actualName = args.currentName;
 			if (args.newName)
-				activePowerTree->renameNode(args.currentName, *args.newName);
+			{
+				activePowerTree->renameNode(actualName, *args.newName);
+				actualName = *args.newName;
+			}
+
 			if (args.type)
-				activePowerTree->setLoadType(args.currentName, *args.type);
-			if (args.value)
-				activePowerTree->setlo(args.currentName, *args.newName);
-			if (args.addValue)
-				activePowerTree->renameNode(args.currentName, *args.newName);
+				activePowerTree->setLoadType(actualName, *args.type);
+
+			LoadType actualType = activePowerTree->getLoadType(actualName);
+			switch (actualType)
+			{
+				case LoadType::RESISTIVE:
+				{
+					if (args.value)
+						activePowerTree->setLoadResistance(actualName, *args.value);
+					return;
+				}
+
+				case LoadType::CONSTANT_CURRENT:
+				{
+					if (args.value)
+						activePowerTree->setLoadCurrent(actualName, *args.value);
+					return;
+				}
+
+				case LoadType::ENERGY:
+				{
+					if (args.value)
+						activePowerTree->setLoadForawrdVoltage(actualName, *args.value);
+					if (args.value)
+						activePowerTree->setLoadForwardCurrent(actualName, *args.addValue);
+					return;
+				}
+
+				case LoadType::DIODE:
+				{
+					if (args.value)
+						activePowerTree->setLoadNomPower(actualName, *args.value);
+					if (args.value)
+						activePowerTree->setLoadNomVoltage(actualName, *args.addValue);
+					return;
+				}
+			}
+			
+
 		}
 	
 		void reportExecution (const Arguments & args) const
 		{
 			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
 	
-			if (args.newName.first == true)
-				cout << endl << "    Name - \"" << args.newName.second << "\"";
-			if (args.type.first == true)
-				cout << endl << "    Type - " << args.type.second;
-			if (args.value.first == true)
+			if (args.newName)
+				cout << endl << "    Name - \"" << *args.newName << "\"";
+			if (args.type)
+				cout << endl << "    Type - " << *args.type;
+			if (args.value)
 			{
-				cout << endl << "    Value - " << args.value.second;
+				cout << endl << "    Value - " << *args.value;
 	
 				string valueUnit = "Ohm";
-				if (args.type.second == LoadType::CONSTANT_CURRENT)
+				if (args.type == LoadType::CONSTANT_CURRENT)
 					valueUnit = "A";
-				else if (args.type.second == LoadType::ENERGY)
+				else if (*args.type == LoadType::ENERGY)
 					valueUnit = "W";
 				cout << " " << valueUnit;
 			}
-			if (args.nomVoltage.first == true)
+			if (args.addValue)
 			{
-				cout << endl << "    Nominal voltage - " << args.nomVoltage.second << " V";
+				cout << endl << "    Nominal voltage - " << *args.addValue << " V";
 			}
 	
 			cout << endl;
@@ -2056,64 +2088,44 @@ namespace commands
 	
 	
 	class CommandDeleteNode : public Command
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
-
-			if (!IsNodeExsist(args.name))
-				reportNonexsistentNode(args.name);
-
-			if (IsLoadExsist(args.name))
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
 			{
-				if (args.mode != DeletingMode::NONE)
-					throw exception("You can't specify a mode by deleting a load");
-				if (args.newParentName != "")
-					throw exception("You shouldn't specify a name of new parent by deleting a load");
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+	
+				deleteNode(args);
+				reportExecution(args);
 			}
-			else
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
 			{
-				if ( (args.mode == DeletingMode::WITH_DESCES) && (args.newParentName != "") )
-					throw exception("You shouldn't specify a name of new parent by deleting a source with its descendants");
-				if ((args.mode == DeletingMode::HANG_DESCES) && (args.newParentName != ""))
-					throw exception("You shouldn't specify a name of new parent if you want to leave descentants of a deleting source unconnected");
-				if ((args.mode == DeletingMode::RECONNECT_DESCES) && (args.newParentName == ""))
-					args.newParentName = requestNewParentNameAndGet();
-			}
-
-			deleteNode(args);
-			reportExecution(args);
-		}
+				string name = "";
+				optional<MotionMode> mode;
+				string newParentName = "";
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+	
+				if (tokens.empty())    return args;
 	
 	
+				auto handeledArg = tokens.front();
 	
-	
-	private:
-	
-		struct Arguments
-		{
-			string name = "";
-			DeletingMode mode = DeletingMode::NONE;
-			string newParentName = "";
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty())    return args;
-
-
-			auto handeledArg = tokens.front();
-
-			if (!isDeletingModeString(handeledArg))
+				if (!isMotionModeString(handeledArg))
 			{
 				args.name = handeledArg;
 
@@ -2121,101 +2133,102 @@ namespace commands
 				if (tokens.empty())    return args;
 				handeledArg = tokens.front();
 			}
-
-			if (isDeletingModeString(handeledArg))
-			{
-				args.mode = parseDeletingMode(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (!isDeletingModeString(handeledArg))
-			{
-				args.newParentName = handeledArg;
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-			}
-
-			throw exception("Too many arguments for this command");
-		}
-
-		
 	
-		void reportNonexsistentNode (const string & name) const
-		{
-			cout << GetTypeOfNode_str(name) << " \"" << name << "\" doesn't exsist." << endl;
-		}
-
-		string requestNewParentNameAndGet() const
-		{
-			cout << "Please enter name of a desired new parent" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
-
-		void deleteNode (const Arguments & args) const
-		{
-			if (IsLoadExsist(args.name))
-			{
-				DeleteLoad(args.name);
-			}
-			else
-			{
-				switch (args.mode)
+				if (isMotionModeString(handeledArg))
 				{
-					case DeletingMode::WITH_DESCES:
-						DeleteSourceWithDescendants(args.name);
-						break;
-
-					case DeletingMode::HANG_DESCES:
-						DeleteSourceAndMoveDescendants(args.name);
-						break;
-
-					case DeletingMode::RECONNECT_DESCES:
-						DeleteSourceAndMoveDescendants(args.name, args.newParentName);
-						break;
-
-
-					default:
-						throw exception("Invalid mode of deleting a source");
+					args.mode = parseDeletingMode(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
 				}
+	
+				if (!isMotionModeString(handeledArg))
+				{
+					args.newParentName = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+				}
+	
+				throw exception("Too many arguments for this command");
 			}
-		}
-
-
-
-		void reportExecution (const Arguments & args) const
-		{
-			cout << GetTypeOfNode_str(args.name) << " \"" << args.name << "\" is deleted successfully. ";
+	
 			
-			if (IsSourceExsist(args.name))
+		
+			void reportNonexsistentNode (const string & name) const
 			{
-				cout << "Descendants";
-				switch (args.mode)
+				string type = toStr( activePowerTree->getNodeType(name) );
+				cout << capitalize(type) << " \"" << name << "\" doesn't exsist." << endl;
+			}
+	
+			string requestNewParentNameAndGet() const
+			{
+				cout << "Please enter name of a desired new parent" << endl;
+				string newName; getline(cin, newName);
+				return newName;
+			}
+	
+			void deleteNode (const Arguments & args) const
+			{
+				if ( activePowerTree->isLoadExsist(args.name) )
+					activePowerTree->deleteLoad(args.name);
+				else
 				{
-					case DeletingMode::WITH_DESCES:
-						cout << " are also deleted";
-						break;
+					switch (*args.mode)
+					{
+						case MotionMode::WITH_DESCES:
+							activePowerTree->deleteSubnet(args.name);
+							break;
 
-					case DeletingMode::HANG_DESCES:
-						cout << " are left unconnected";
-						break;
+						case MotionMode::FREE_DESCES:
+							activePowerTree->deleteNode(args.name);
+							break;
 
-					case DeletingMode::RECONNECT_DESCES:
-						cout << " are connected to the " << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\"";
-						break;
+						case MotionMode::RECONNECT_DESCES:
+							activePowerTree->deleteNode(args.name, args.newParentName);
+							break;
 
 
-					default:
-						throw exception("Invalid mode of deleting a source");
+						default:
+							;
+					}
 				}
 			}
-		}
+	
 
-};
+	
+			void reportExecution (const Arguments & args) const
+			{
+				string type = toStr( activePowerTree->getNodeType(args.name) );
+				cout << capitalize(type) << " \"" << args.name << "\" is deleted successfully. ";
+				
+				if (args.mode)
+				{
+					cout << "Descendants";
+					switch (*args.mode)
+					{
+						case MotionMode::WITH_DESCES:
+							cout << " are also deleted";
+							break;
+	
+						case MotionMode::FREE_DESCES:
+							cout << " are left unconnected";
+							break;
+	
+						case MotionMode::RECONNECT_DESCES:
+							cout << " are connected to the " << toStr( activePowerTree->getNodeType(args.newParentName) )
+								 << " \"" << args.newParentName << "\"";
+							break;
+	
+	
+						default:
+							throw exception("Invalid mode of deleting a source");
+					}
+				}
+			}
+	
+	};
 	
 	
 	
@@ -2230,20 +2243,14 @@ namespace commands
 		{
 			Arguments args;
 			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
+			catch (exception & ex) { throw exception(ex.what()); }
 	
 			if (args.name == "")
 				args.name = requestNameAndGet();
 			if (args.newParentName == "")
 				args.newParentName = requestNewParentNameAndGet();
-			
-			if (!IsSinkExsist(args.name))    throw exception(("There is no sinks with the name \"" + args.name + "\"").c_str());
-			if (!IsSourceExsist(args.newParentName))    throw exception(("There is no sources with the name \"" + 
-				                                                          args.newParentName + "\"").c_str());
-			if (AreParentAndDescendant(args.name, args.newParentName))    
-				throw exception("The desired new parent is a descendant of the moving sink now");
 	
-			ConnectSinkTo(args.name, args.newParentName);
+			ConnectSinkTo(args);
 	
 			reportExecution(args);
 		}
@@ -2256,7 +2263,9 @@ namespace commands
 		struct Arguments
 		{
 			string name = "";
+			optional<MotionMode> mode;
 			string newParentName = "";
+			string newSinksParentName = "";
 		};
 
 
@@ -2297,6 +2306,33 @@ namespace commands
 			cout << "Please enter name of a desired new parent" << endl;
 			string newName; getline(cin, newName);
 			return newName;
+		}
+
+		void ConnectSinkTo (const Arguments & args) const
+		{
+			if ( activePowerTree->isLoadExsist(args.name) )
+				activePowerTree->moveLoad(args.name, args.newParentName);
+			else
+			{
+				switch (*args.mode)
+				{
+					case MotionMode::WITH_DESCES:
+						activePowerTree->moveSubnet(args.name, args.newParentName);
+						break;
+
+					case MotionMode::FREE_DESCES:
+						activePowerTree->moveNode(args.name, args.newParentName);
+						break;
+
+					case MotionMode::RECONNECT_DESCES:
+						activePowerTree->moveNode(args.name, args.newParentName, args.newSinksParentName);
+						break;
+
+
+					default:
+						;
+				}
+			}
 		}
 
 		void reportExecution (const Arguments & args) const
