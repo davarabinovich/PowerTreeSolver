@@ -124,87 +124,13 @@ struct Results
 
 
 
-void CreateTree() {}
-void CreateTree(string name) {}
 
-void RenameTree(string name) {}
 
 void Solve() {}
 Results GetResults() { return Results(); }
 
 string GetNameOfTree() { return string(); }
 TreeStructure GetTreeStructure() { return TreeStructure(); }
-
-
-
-bool IsNodeExsist(string name) { return true; }
-
-string GetTypeOfNode_str(string name) { return string("Converter"); }
-
-
-
-bool IsSourceExsist(string name) { return true; }
-string GetSourceType(string name) { return string(); }
-
-string GetTypeOfSource_str(string name) { return string(); }
-
-void DeleteSourceWithDescendants(string name) {}
-void DeleteSourceAndMoveDescendants(string name, string newParentName = "") {}
-
-
-
-bool IsSinkExsist(string name) { return true; }
-
-
-
-string GetTypeOfSink_str(string name) { return string(); }
-
-
-
-string CreateInput() { return string(); }
-void CreateInput(string name) {}
-
-void RenameInput(string oldName, string newName) {}
-void SetCvTypeForInput(string name, CvType type) {}
-void SetCvValueForInput(string name, double cvValue) {}
-
-bool IsInputExsist(string name) { return true; }
-
-
-
-string CreateConverter() { return string(); }
-void CreateConverter(string name) {}
-
-void RenameConverter(string oldName, string newName) {}
-void SetTypeForConverter(string name, ConverterType type) {}
-void SetCvTypeForConverter(string name, CvType type) {}
-void SetCvValueForConverter(string name, double value) {}
-void SetEfficiencyForConverter(string name, double efficiency) {}
-
-bool IsConverterExsist(string name) { return true; }
-
-
-
-string CreateLoad() { return string(); }
-void CreateLoad(string name) {}
-
-void RenameLoad(string oldName, string newName) {}
-void SetTypeForLoad(string name, LoadType type) {}
-void SetValueForLoad(string name, double value) {}
-void SetNomVoltageForPowerLoad(string name, double nomVoltage) {}
-
-void DeleteLoad(string name) {}
-
-bool IsLoadExsist(string name) { return true; }
-
-
-
-bool AreParentAndDescendant(string assumedParent, string assumedDescendant) { return false; }
-
-
-
-
-
 
 
 
@@ -270,7 +196,7 @@ namespace commands
 	
 		protected:
 	
-			Command () {;}
+			virtual ~Command () {;}
 	
 	};
 	
@@ -1187,7 +1113,7 @@ namespace commands
 			cout << args.type << " converter " << name << args.cvValue << " " << cvUnit;
 			cout << " is created";
 			if (!isFree)
-				cout << " at the " << GetSourceType(args.parentName) << " \"" << args.parentName << "\"";
+				cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
 			cout << endl << endl;
 		}
 	
@@ -1375,7 +1301,7 @@ namespace commands
 			cout << args.type << " load " << name << args.value << " " << valueUnit;
 			cout << " is created";
 			if (!isFree)
-				cout << " at the " << GetSourceType(args.parentName) << " \"" << args.parentName << "\"";
+				cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
 			cout << endl << endl;
 		}
 	
@@ -1565,13 +1491,10 @@ namespace commands
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
 	
-			if (IsConverterExsist(args.currentName))
-			{
-				modifyConverterParams(args);
-				reportExecution(args);
-			}
-			else
-				reportNonexsistentConverter(args.currentName);
+
+			modifyConverterParams(args);
+			
+			reportExecution(args);
 		}
 	
 	
