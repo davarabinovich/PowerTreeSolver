@@ -9,14 +9,20 @@
 
 
 
-using std::cout;
-using std::string;
-using std::exception;
+using namespace std;
 
 
 
 
 #define AUTO_CONST_REF auto const &
+
+
+
+
+#define STRING_MESSAGE_EXCEPTION(name)    class name : public exception                                                            \
+										  {                                                                                        \
+										      public:    name (string str)    : exception( (" ## name ## : " + str).c_str() ) {;}  \
+										  }                                                                                        \
 
 
 

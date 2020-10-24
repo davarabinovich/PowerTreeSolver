@@ -58,7 +58,6 @@ class Forest
 		const Type & at (key name) const;
 
 		bool isExsist (key name) const;
-		key getParentKey (key name) const;
 
 
 
@@ -124,6 +123,18 @@ class Forest
 		void moveAllDescesTo (Node * node_ptr, key newParentName);
 		void cutLinkBetween (Node * parent_ptr, Node * desc_ptr);
 		void connectNodes (Node * parent_ptr, Node * desc_ptr);
+
+		bool isInSubtree (key name, key headerName) const;
+
+
+
+		STRING_MESSAGE_EXCEPTION(empty_name);
+		STRING_MESSAGE_EXCEPTION(busy_name);
+		STRING_MESSAGE_EXCEPTION(non_excistent_node);
+		STRING_MESSAGE_EXCEPTION(not_root);
+		STRING_MESSAGE_EXCEPTION(not_descendant);
+		STRING_MESSAGE_EXCEPTION(not_leaf);
+		STRING_MESSAGE_EXCEPTION(closing_motion);
 
 };
 

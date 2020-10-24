@@ -6,5 +6,6 @@
 
 
 
-
 void TestAll ();
+
+void TestForest ();
