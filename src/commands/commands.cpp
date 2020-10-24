@@ -203,7 +203,6 @@ namespace commands
 	
 	
 	
-	
 	class CommandCreate : public Command
 	{
 
@@ -521,7 +520,6 @@ namespace commands
 	
 	
 	
-	
 	class CommandWithShowingResults : public Command
 {
 	
@@ -663,7 +661,6 @@ namespace commands
 	
 	
 	
-	
 	class CommandSolve : public CommandWithShowingResults
 {
 
@@ -748,9 +745,7 @@ namespace commands
 	
 	
 	
-	
 	class CommandShowResults : public CommandWithShowingResults {};
-	
 	
 	
 	
@@ -832,7 +827,6 @@ namespace commands
 		}
 	
 };
-	
 	
 	
 	
@@ -951,7 +945,6 @@ namespace commands
 		}
 	
 };
-	
 	
 	
 	
@@ -1118,7 +1111,6 @@ namespace commands
 		}
 	
 };
-	
 	
 	
 	
@@ -1310,7 +1302,6 @@ namespace commands
 	
 	
 	
-	
 	class CommandModifyInput : public Command
 {
 	
@@ -1475,7 +1466,6 @@ namespace commands
 		}
 	
 };
-	
 	
 	
 	
@@ -1683,7 +1673,6 @@ namespace commands
 		}
 	
 };
-	
 	
 	
 	
@@ -1917,7 +1906,6 @@ namespace commands
 	
 	
 	
-	
 	class CommandDeleteNode : public Command
 	{
 		
@@ -2061,7 +2049,6 @@ namespace commands
 			}
 	
 	};
-	
 	
 	
 	
@@ -2219,7 +2206,6 @@ namespace commands
 			}
 		
 };
-	
 	
 	
 	

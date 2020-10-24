@@ -434,7 +434,6 @@ inline Forest<key, Type>::~Forest<key, Type> ()
 	for (auto node_rec : nodes)
 	{
 		auto node = node_rec.second;
-		delete ( node->getDescesSet() );
 		delete node;
 	}
 }
