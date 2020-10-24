@@ -155,7 +155,7 @@ void DeleteSourceAndMoveDescendants(string name, string newParentName = "") {}
 
 bool IsSinkExsist(string name) { return true; }
 
-void DisconnectSink(string name) {}
+
 
 string GetTypeOfSink_str(string name) { return string(); }
 
@@ -2111,7 +2111,7 @@ namespace commands
 			{
 				string name = "";
 				optional<MotionMode> mode;
-				string newParentName = "";
+				optional<string> newParentName;
 			};
 		
 		
@@ -2126,13 +2126,13 @@ namespace commands
 				auto handeledArg = tokens.front();
 	
 				if (!isMotionModeString(handeledArg))
-			{
-				args.name = handeledArg;
+				{
+					args.name = handeledArg;
 
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
 	
 				if (isMotionModeString(handeledArg))
 				{
@@ -2151,6 +2151,7 @@ namespace commands
 					if (tokens.empty())    return args;
 				}
 	
+
 				throw exception("Too many arguments for this command");
 			}
 	
@@ -2186,7 +2187,7 @@ namespace commands
 							break;
 
 						case MotionMode::RECONNECT_DESCES:
-							activePowerTree->deleteNode(args.name, args.newParentName);
+							activePowerTree->deleteNode(args.name, *args.newParentName);
 							break;
 
 
@@ -2217,8 +2218,8 @@ namespace commands
 							break;
 	
 						case MotionMode::RECONNECT_DESCES:
-							cout << " are connected to the " << toStr( activePowerTree->getNodeType(args.newParentName) )
-								 << " \"" << args.newParentName << "\"";
+							cout << " are connected to the " << toStr( activePowerTree->getNodeType(*args.newParentName) )
+								 << " \"" << *args.newParentName << "\"";
 							break;
 	
 	
@@ -2235,112 +2236,157 @@ namespace commands
 	
 	
 	class CommandMoveSink : public Command
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception & ex) { throw exception(ex.what()); }
-	
-			if (args.name == "")
-				args.name = requestNameAndGet();
-			if (args.newParentName == "")
-				args.newParentName = requestNewParentNameAndGet();
-	
-			ConnectSinkTo(args);
-	
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string name = "";
-			optional<MotionMode> mode;
-			string newParentName = "";
-			string newSinksParentName = "";
-		};
-
-
-
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty())    return args;
-
-
-			auto handeledArg = tokens.front();
-			args.name = handeledArg;
-
-			tokens.pop_front();
-			if (tokens.empty())    return args;
-
-
-			handeledArg = tokens.front();
-			args.newParentName = handeledArg;
-
-			tokens.pop_front();
-			if (tokens.empty())    return args;
-
-
-			throw exception("Too many arguments for this command");
-		}
-
-		string requestNameAndGet () const
-		{
-			cout << "Please enter name of the moving sink" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
-
-		string requestNewParentNameAndGet () const
-		{
-			cout << "Please enter name of a desired new parent" << endl;
-			string newName; getline(cin, newName);
-			return newName;
-		}
-
-		void ConnectSinkTo (const Arguments & args) const
-		{
-			if ( activePowerTree->isLoadExsist(args.name) )
-				activePowerTree->moveLoad(args.name, args.newParentName);
-			else
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
 			{
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+		
+				if (args.name == "")
+					args.name = requestNameAndGet();
+				if (args.newParentName == "")
+					args.newParentName = requestNewParentNameAndGet();
+		
+				ConnectSinkTo(args);
+		
+				reportExecution(args);
+			}
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
+			{
+				string name = "";
+				string newParentName = "";
+				optional<MotionMode> mode;
+				optional<string> newSinksParentName = "";
+			};
+
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+	
+				if (tokens.empty())    return args;
+	
+	
+				auto handeledArg = tokens.front();
+	
+				if (!isMotionModeString(handeledArg))
+				{
+					args.name = handeledArg;
+
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isMotionModeString(handeledArg))
+				{
+					args.mode = parseDeletingMode(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (!isMotionModeString(handeledArg))
+				{
+					args.newParentName = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (!isMotionModeString(handeledArg))
+				{
+					args.newSinksParentName = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+				}
+
+
+				throw exception("Too many arguments for this command");
+			}
+
+			string requestNameAndGet () const
+			{
+				cout << "Please enter name of the moving sink" << endl;
+				string newName; getline(cin, newName);
+				return newName;
+			}
+
+			string requestNewParentNameAndGet () const
+			{
+				cout << "Please enter name of a desired new parent" << endl;
+				string newName; getline(cin, newName);
+				return newName;
+			}
+
+			void ConnectSinkTo (const Arguments & args) const
+			{
+				if ( activePowerTree->isLoadExsist(args.name) )
+					activePowerTree->moveLoad(args.name, args.newParentName);
+				else
+				{
+					switch (*args.mode)
+					{
+						case MotionMode::WITH_DESCES:
+							activePowerTree->moveSubnet(args.name, args.newParentName);
+							break;
+
+						case MotionMode::FREE_DESCES:
+							activePowerTree->moveNode(args.name, args.newParentName);
+							break;
+
+						case MotionMode::RECONNECT_DESCES:
+							activePowerTree->moveNode(args.name, args.newParentName, *args.newSinksParentName);
+							break;
+
+
+						default:
+							;
+					}
+				}
+			}
+
+			void reportExecution (const Arguments & args) const
+			{
+				string type = toStr( activePowerTree->getNodeType(args.name) );
+				cout << capitalize(type) << " \"" << args.name << "\" has been connected to the " 
+					 << toStr( activePowerTree->getNodeType(args.newParentName) ) << " \"" << args.newParentName << "\"";
+
 				switch (*args.mode)
 				{
 					case MotionMode::WITH_DESCES:
-						activePowerTree->moveSubnet(args.name, args.newParentName);
-						break;
+						cout << " with its sinks." << endl;
+						return;
 
 					case MotionMode::FREE_DESCES:
-						activePowerTree->moveNode(args.name, args.newParentName);
-						break;
+						cout << ". All sinks are left free." << endl;
+						return;
 
 					case MotionMode::RECONNECT_DESCES:
-						activePowerTree->moveNode(args.name, args.newParentName, args.newSinksParentName);
-						break;
+						cout << ". All sinks have been connected to the " << toStr( activePowerTree->getNodeType(*args.newSinksParentName) ) 
+							 << " \"" << *args.newSinksParentName << "\"." << endl;
+						return;
 
 
 					default:
 						;
 				}
 			}
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			cout << GetTypeOfSink_str(args.name) << " \"" << args.name << "\" is connected to the " 
-				 << GetTypeOfSource_str(args.newParentName) << " \"" << args.newParentName << "\" now" << endl;
-		}
-	
+		
 };
 	
 	
@@ -2354,19 +2400,14 @@ namespace commands
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
-			if (tokens.size() > 1)    throw exception("Too many argumnets for this command");
+			Arguments args;
+			try { args = parseArguments(tokens); }
+			catch (exception & ex) { throw exception(ex.what()); }
 
-			string name;
-			if (tokens.size() == 1)
-				name = tokens.front();
-			else
-				name = requestNameAndGet();
 
-			if (!IsSinkExsist(name))    throw exception(   ("There is no sinks with the name \"" + name + "\"").c_str()   );
-	
-			DisconnectSink(name);
-	
-			reportExecution(name);
+			DisconnectSink(args);
+		
+			reportExecution(args);
 		}
 	
 	
@@ -2374,16 +2415,105 @@ namespace commands
 	
 	private:
 	
-		string requestNameAndGet () const
+		struct Arguments
 		{
-			cout << "Please enter name" << endl;
-			string newName; getline(cin, newName);
-			return newName;
+			string name = "";
+			optional<MotionMode> mode;
+			optional<string> newSinksParentName = "";
+		};
+
+
+
+		Arguments parseArguments (TokensDeque & tokens) const
+		{
+			Arguments args;
+	
+			if (tokens.empty())    return args;
+	
+	
+			auto handeledArg = tokens.front();
+	
+			if (!isMotionModeString(handeledArg))
+			{
+				args.name = handeledArg;
+
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+	
+			if (isMotionModeString(handeledArg))
+			{
+				args.mode = parseDeletingMode(handeledArg);
+	
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+			}
+	
+			if (!isMotionModeString(handeledArg))
+			{
+				args.newSinksParentName = handeledArg;
+	
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+			}
+	
+
+			throw exception("Too many arguments for this command");
 		}
 
-		void reportExecution (string name) const
+		void DisconnectSink (const Arguments & args) const
 		{
-			cout << GetTypeOfSink_str(name) << " \"" << name << "\" is disconnected" << endl;
+			if ( activePowerTree->isLoadExsist(args.name) )
+				activePowerTree->freeLoad(args.name);
+			else
+			{
+				switch (*args.mode)
+				{
+					case MotionMode::WITH_DESCES:
+						activePowerTree->freeSubnet(args.name);
+						break;
+
+					case MotionMode::FREE_DESCES:
+						activePowerTree->freeNode(args.name);
+						break;
+
+					case MotionMode::RECONNECT_DESCES:
+						activePowerTree->freeNode(args.name, *args.newSinksParentName);
+						break;
+
+
+					default:
+						;
+				}
+			}
+		}
+
+		void reportExecution (const Arguments & args) const
+		{
+			string type = toStr( activePowerTree->getNodeType(args.name) );
+			cout << capitalize(type) << " \"" << args.name << "\" has been disconnected ";
+
+			switch (*args.mode)
+			{
+				case MotionMode::WITH_DESCES:
+					cout << " with its sinks." << endl;
+					return;
+
+				case MotionMode::FREE_DESCES:
+					cout << ". All sinks are left free." << endl;
+					return;
+
+				case MotionMode::RECONNECT_DESCES:
+					cout << ". All sinks have been connected to the " << toStr( activePowerTree->getNodeType(*args.newSinksParentName) ) 
+						 << " \"" << *args.newSinksParentName << "\"." << endl;
+					return;
+
+
+				default:
+					;
+			}
 		}
 	
 };
