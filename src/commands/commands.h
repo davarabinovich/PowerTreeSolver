@@ -18,6 +18,18 @@ namespace commands
 		return true;
 	}
 
+	inline MotionMode parseDeletingMode (const string & str)
+	{
+		if (!isMotionModeString(str))
+			throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
+
+		if (str == "d")
+			return MotionMode::WITH_DESCES;
+		if (str == "h")
+			return MotionMode::FREE_DESCES;
+		return MotionMode::RECONNECT_DESCES;
+	}
+
 
 
 	using command_mnemonic = const string;

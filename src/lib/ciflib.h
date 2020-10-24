@@ -57,6 +57,30 @@ inline double strToDouble (string str)
 }
 
 
+inline bool isFloatNumberString (const string & str)
+{
+	auto letter_it = str.cbegin();
+
+	for ( ; letter_it != str.cend(); letter_it++)
+	{
+		if (*letter_it == '.' || *letter_it == ',') break;
+		if (!isdigit(*letter_it))
+			return false;
+	}
+
+	if (letter_it == str.cend())    return true;
+
+	letter_it++;
+	for ( ; letter_it != str.cend(); letter_it++)
+	{
+		if (!isdigit(*letter_it))
+			return false;
+	}
+
+	return true;
+}
+
+
 inline string capitalize (string str, bool needsCapitalize = true)
 {
 	string result = str;

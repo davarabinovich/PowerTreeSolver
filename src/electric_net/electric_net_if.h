@@ -72,6 +72,24 @@ namespace electric_net
 		return (str + "voltage");
 	return (str + "current");
 }
+
+	inline bool isCvTypeString (const string & str)
+	{
+		if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
+		if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
+			if (str != "vol" && str != "Vol" && str != "voltage" && str != "Voltage") return false;
+		return true;
+	}
+	
+	inline CvType parseCvType (const string & str)
+	{
+		if (!isCvTypeString(str))
+#pragma todo write exceptions message
+			throw exception();
+
+		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return CvType::CURRENT;
+		return CvType::VOLTAGE;
+	}
 	
 	
 	
@@ -116,6 +134,25 @@ namespace electric_net
 		return (str + "diode");
 	return (str + "power");
 }
+
+	inline bool isLoadTypeString (const string & str)
+	{
+		if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
+		if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
+			if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
+				if (str != "pow" && str != "Pow" && str != "power" && str != "Power")    return false;
+		return true;
+	}
+	
+	inline LoadType parseLoadType (const string & str)
+	{
+		if (!isLoadTypeString(str))
+			throw exception("Invalid type of load");
+
+		if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
+		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CONSTANT_CURRENT;
+		return LoadType::ENERGY;
+	}
 	
 	
 	
@@ -134,6 +171,24 @@ namespace electric_net
 		throw exception("Invalid type of converter");
 	}
 }
+
+	inline bool isConverterTypeString (const string & str)
+	{
+		if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
+		if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
+			if (str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
+		return true;
+	}
+	
+	inline ConverterType parseConverterType (const string & str)
+	{
+		if (!isConverterTypeString(str))
+#pragma todo write exceptions message
+			throw exception();
+
+		if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
+		return ConverterType::PULSE;
+	}
 
 
 
