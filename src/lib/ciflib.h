@@ -85,7 +85,7 @@ inline string capitalize (string str, bool needsCapitalize = true)
 {
 	string result = str;
 	if (needsCapitalize)
-		str[0] = std::toupper(str[0]);
+		str[0] = (char)std::toupper(str[0]);
 
 	return result;
 }

@@ -405,7 +405,7 @@ inline Type & Forest<key, Type>::operator [] (key name)
 template <typename key, typename Type>
 inline const Type & Forest<key, Type>::at (key name) const
 {
-	auto content = nodes.at(name) ->get();
+	AUTO_CONST_REF content = nodes.at(name) ->get();
 	return content;
 }
 

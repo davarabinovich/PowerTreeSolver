@@ -206,36 +206,36 @@ namespace commands
 	class CommandCreate : public Command
 	{
 
-	public:
+		public:
 
-		virtual void execute (TokensDeque & tokens) const 
-		{
-			Arguments args;			
-			try { args = parseArguments(tokens); }
-			catch (exception & ex) { throw exception(ex.what()); }
+			virtual void execute (TokensDeque & tokens) const 
+			{
+				Arguments args;			
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
 
-			if (args.name == "")
-				args.name = suggestEnterNameAndGet();
+				if (args.name == "")
+					args.name = suggestEnterNameAndGet();
 
-			createTreeByArgs(args);
-			createInputByArgs(args);
+				createTreeByArgs(args);
+				createInputByArgs(args);
 
-			reportExecution(args);
-		}
-
-
+				reportExecution(args);
+			}
 
 
-	private:
 
-		struct Arguments
-		{
-			string name = "";
-			string inputName = "";
-			CvType inputCvType = CvType::VOLTAGE;
-			double inputCvValue = NAN;
 
-			bool operator == (const Arguments & partner)
+		private:
+
+			struct Arguments
+			{
+				string name = "";
+				string inputName = "";
+				CvType inputCvType = CvType::VOLTAGE;
+				double inputCvValue = NAN;
+
+				bool operator == (const Arguments & partner)
 			{
 				if (name         != partner.name)         return false;
 				if (inputName    != partner.inputName)    return false;
@@ -251,110 +251,110 @@ namespace commands
 				return true;
 			}
 
-			bool operator != (const Arguments & partner)
+				bool operator != (const Arguments & partner)
 			{
 				bool result = !(*this == partner);
 				return result;
 			}
-		}; 
-		
-		
-		
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty()) return args;
-
-			string handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvTypeString(handeledArg))
-				if (!isFloatNumberString(handeledArg))
-					args.name = handeledArg;
-				else
-				{
-					args.inputCvValue = strToDouble(handeledArg);
-					if (tokens.size() != 0)
-						#pragma todo write exceptions message
-						throw exception();
-					return args;
-				}
-			else
+			}; 
+			
+			
+			
+			Arguments parseArguments (TokensDeque & tokens) const
 			{
-				args.inputCvType = parseCvType(handeledArg);
+				Arguments args;
 
-				if (tokens.size() != 0)
-				{
-					handeledArg = tokens.front(); tokens.pop_front();
+				if (tokens.empty()) return args;
+
+				string handeledArg = tokens.front(); tokens.pop_front();
+				if (!isCvTypeString(handeledArg))
 					if (!isFloatNumberString(handeledArg))
-						#pragma todo write exceptions message
-						throw exception();
+						args.name = handeledArg;
 					else
 					{
 						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
 							#pragma todo write exceptions message
 							throw exception();
+						return args;
 					}
-				}
-
-				return args;
-			}
-			
-
-			if (tokens.size() == 0)    return args;
-		
-			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvTypeString(handeledArg))
-				if (!isFloatNumberString(handeledArg))
-					args.inputName = handeledArg;
 				else
 				{
-					args.inputCvValue = strToDouble(handeledArg);
+					args.inputCvType = parseCvType(handeledArg);
+
 					if (tokens.size() != 0)
-#pragma todo write exceptions message
-						throw exception();
+					{
+						handeledArg = tokens.front(); tokens.pop_front();
+						if (!isFloatNumberString(handeledArg))
+							#pragma todo write exceptions message
+							throw exception();
+						else
+						{
+							args.inputCvValue = strToDouble(handeledArg);
+							if (tokens.size() != 0)
+								#pragma todo write exceptions message
+								throw exception();
+						}
+					}
+
 					return args;
 				}
-			else
-			{
-				args.inputCvType = parseCvType(handeledArg);
-
-				if (tokens.size() != 0)
-				{
-					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isFloatNumberString(handeledArg))
-#pragma todo write exceptions message
-						throw exception();
-					else
-					{
-						args.inputCvValue = strToDouble(handeledArg);
-						if (tokens.size() != 0)
-#pragma todo write exceptions message
-							throw exception();
-					}
-				}
-
-				return args;
-			}
-
-
-
-			if (tokens.size() == 0)    return args;
 				
-			handeledArg = tokens.front(); tokens.pop_front();
-			if (!isCvTypeString(handeledArg))
-				if (!isFloatNumberString(handeledArg))
+
+				if (tokens.size() == 0)    return args;
+			
+				handeledArg = tokens.front(); tokens.pop_front();
+				if (!isCvTypeString(handeledArg))
+					if (!isFloatNumberString(handeledArg))
+						args.inputName = handeledArg;
+					else
+					{
+						args.inputCvValue = strToDouble(handeledArg);
+						if (tokens.size() != 0)
 #pragma todo write exceptions message
-					throw exception();
+							throw exception();
+						return args;
+					}
 				else
 				{
-					args.inputCvValue = strToDouble(handeledArg);
+					args.inputCvType = parseCvType(handeledArg);
+
 					if (tokens.size() != 0)
+					{
+						handeledArg = tokens.front(); tokens.pop_front();
+						if (!isFloatNumberString(handeledArg))
 #pragma todo write exceptions message
-						throw exception();
+							throw exception();
+						else
+						{
+							args.inputCvValue = strToDouble(handeledArg);
+							if (tokens.size() != 0)
+#pragma todo write exceptions message
+								throw exception();
+						}
+					}
+
 					return args;
 				}
-			else
+
+
+
+				if (tokens.size() == 0)    return args;
+					
+				handeledArg = tokens.front(); tokens.pop_front();
+				if (!isCvTypeString(handeledArg))
+					if (!isFloatNumberString(handeledArg))
+#pragma todo write exceptions message
+						throw exception();
+					else
+					{
+						args.inputCvValue = strToDouble(handeledArg);
+						if (tokens.size() != 0)
+#pragma todo write exceptions message
+							throw exception();
+						return args;
+					}
+				else
 			{
 				args.inputCvType = parseCvType(handeledArg);
 
@@ -375,66 +375,66 @@ namespace commands
 
 				return args;
 			}
-		}	
+			}	
 
 
-		string suggestEnterNameAndGet () const
-		{
-			string name = "";
-			cout << "Do you want to set a name for the new tree?" << endl;
-			string answer; getline(cin, answer);
-
-			if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				getline(cin, name);
-			else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-				throw exception("Invalid answer");
-
-			return name;
-		}
-		
-		void createTreeByArgs (const Arguments & args) const
-		{
-			string name = args.name;
-			if (name == "")
-				name = defaultTreeName;
-			
-			activePowerTree = make_shared<ElectricNet>(name);
-		}
-
-		void createInputByArgs (const Arguments & args) const
-		{
-			string name = args.inputName;
-			if (name == "")
-				name = defaultInputName;
-
-			activePowerTree->addInput(name, args.inputCvType, args.inputCvValue);
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			string name = args.name;
-			if (name == "")
-				name = defaultTreeName;
-			name = "\"" + name + "\" ";
-			
-			string cvType = "voltage";
-			if (args.inputCvType == CvType::CURRENT)
-				cvType = "current"; 
-
-			bool isCvValuePresent = false;
-			string cvUnit = "V";
-			if (!isnan(args.inputCvValue))
+			string suggestEnterNameAndGet () const
 			{
-				isCvValuePresent = true;
-				if (args.inputCvType == CvType::CURRENT)
-					cvUnit = "A";
+				string name = "";
+				cout << "Do you want to set a name for the new tree?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+					getline(cin, name);
+				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+					throw exception("Invalid answer");
+
+				return name;
+			}
+			
+			void createTreeByArgs (const Arguments & args) const
+			{
+				string name = args.name;
+				if (name == "")
+					name = defaultTreeName;
+				
+				activePowerTree = make_shared<ElectricNet>(name);
 			}
 
+			void createInputByArgs (const Arguments & args) const
+			{
+				string name = args.inputName;
+				if (name == "")
+					name = defaultInputName;
 
-			cout << "A new power three " << name << "with a " << cvType << " input";
-			if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
-			cout << " is created" << endl << endl;
-		}
+				activePowerTree->addInput(name, args.inputCvType, args.inputCvValue);
+			}
+
+			void reportExecution (const Arguments & args) const
+			{
+				string name = args.name;
+				if (name == "")
+					name = defaultTreeName;
+				name = "\"" + name + "\" ";
+				
+				string cvType = "voltage";
+				if (args.inputCvType == CvType::CURRENT)
+					cvType = "current"; 
+
+				bool isCvValuePresent = false;
+				string cvUnit = "V";
+				if (!isnan(args.inputCvValue))
+				{
+					isCvValuePresent = true;
+					if (args.inputCvType == CvType::CURRENT)
+						cvUnit = "A";
+				}
+
+
+				cout << "A new power three " << name << "with a " << cvType << " input";
+				if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
+				cout << " is created" << endl << endl;
+			}
 
 };
 	
