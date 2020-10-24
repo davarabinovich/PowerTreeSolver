@@ -126,8 +126,6 @@ inline void Forest<key, Type>::Node::disconnectFromParent ()
 template <typename key, typename Type>
 inline void Forest<key, Type>::Node::addDesc (Node * desc)
 {
-	if (desc == nullptr)    throw exception("Null pointer as descendant is not allowed");
-	
 	desces_ptr->insert(desc);
 }
 
@@ -135,9 +133,6 @@ inline void Forest<key, Type>::Node::addDesc (Node * desc)
 template <typename key, typename Type>
 inline void Forest<key, Type>::Node::disconnectDesc (Node * desc)
 {
-	if (desc == nullptr)    throw exception("Null pointer as descendant is not allowed");
-	if (desces_ptr->count(desc) == 0)    throw exception("There no such a descendant");
-
 	desces_ptr->erase(desc);
 }
 
@@ -274,7 +269,7 @@ inline void Forest<key, Type>::popFrontRoot (key name)
 	roots.erase(deletedRoot_ptr);
 	deleteNode(name);
 }
-#pragma todo validate execution deleting function for limit cases (e. g. roots)
+
 
 template <typename key, typename Type>
 inline void Forest<key, Type>::eraseDesc (key name)

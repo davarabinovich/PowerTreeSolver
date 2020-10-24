@@ -70,7 +70,6 @@ class Forest
 
 		class Node
 		{
-#pragma todo think about deleting of getName and name
 			public:
 				Node (key name, Node * parent = nullptr);
 				Node (key name, typename const Type & content, Node * parent = nullptr);
