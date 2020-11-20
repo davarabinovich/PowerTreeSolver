@@ -18,11 +18,15 @@ using namespace std;
 
 
 
+#define CUSTOM_EXCEPTION(ex, baseEx)    class ex : public baseEx                                      \
+									    {                                                             \
+									        public:    ex (const char * str)    : exception(str) {;}  \
+									    }                                                             \
 
-#define STRING_MESSAGE_EXCEPTION(name)    class name : public exception                                                            \
-										  {                                                                                        \
-										      public:    name (string str)    : exception( (" ## name ## : " + str).c_str() ) {;}  \
-										  }                                                                                        \
+#define STRING_MESSAGE_EXCEPTION(ex, baseEx)    class ex : public baseEx                                                          \
+										        {                                                                                 \
+										            public:    ex (string str)    : baseEx( (" ## ex ## : " + str).c_str() ) {;}  \
+										        }                                                                                 \
 
 
 

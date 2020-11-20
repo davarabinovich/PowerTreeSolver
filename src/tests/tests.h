@@ -9,3 +9,5 @@
 void TestAll ();
 
 void TestForest ();
+
+void TestApiCommonFunctions ();

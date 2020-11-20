@@ -51,7 +51,7 @@ int main (int argc, char * argv [], char * envp [])
 		if (newCommand_str == command_quit_mnemonic || newCommand_str == command_quit_large_form) break;
 
 		try { executeCommand(newCommand_str); }
-		catch (exception& err) { handleCommandError(err.what()); }
+		catch (exception & err) { handleCommandError(err.what()); }
 	} 
 
 	return 0;

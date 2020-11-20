@@ -174,9 +174,8 @@ namespace electric_net
 
 	inline bool isConverterTypeString (const string & str)
 	{
-		if (str[0] != 'l' && str[0] != 'L' && str[0] != 'p' && str[0] != 'P') return false;
-		if (str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
-			if (str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
+		if (str != "l" && str != "L" && str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
+			if (str != "p" && str != "P" && str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
 		return true;
 	}
 	

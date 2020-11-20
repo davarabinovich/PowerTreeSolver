@@ -10,7 +10,7 @@
 namespace commands
 {
 
-	enum class MotionMode { WITH_DESCES, FREE_DESCES, RECONNECT_DESCES };
+	enum class MotionMode { FREE_DESCES, WITH_DESCES, RECONNECT_DESCES };
 
 	inline bool isMotionModeString (const string & str)
 	{

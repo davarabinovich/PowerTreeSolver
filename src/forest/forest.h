@@ -127,13 +127,15 @@ class Forest
 
 
 
-		STRING_MESSAGE_EXCEPTION(empty_name);
-		STRING_MESSAGE_EXCEPTION(busy_name);
-		STRING_MESSAGE_EXCEPTION(non_excistent_node);
-		STRING_MESSAGE_EXCEPTION(not_root);
-		STRING_MESSAGE_EXCEPTION(not_descendant);
-		STRING_MESSAGE_EXCEPTION(not_leaf);
-		STRING_MESSAGE_EXCEPTION(closing_motion);
+		CUSTOM_EXCEPTION(forest_exception, exception);
+
+		STRING_MESSAGE_EXCEPTION(empty_name, forest_exception);
+		STRING_MESSAGE_EXCEPTION(busy_name, forest_exception);
+		STRING_MESSAGE_EXCEPTION(non_excistent_node, forest_exception);
+		STRING_MESSAGE_EXCEPTION(not_root, forest_exception);
+		STRING_MESSAGE_EXCEPTION(not_descendant, forest_exception);
+		STRING_MESSAGE_EXCEPTION(not_leaf, forest_exception);
+		STRING_MESSAGE_EXCEPTION(closing_motion, forest_exception);
 
 };
 

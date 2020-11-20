@@ -147,7 +147,7 @@ TreeStructure GetTreeStructure() { return TreeStructure(); }
 
 
 
-
+// Dependencies injection is there
 static shared_ptr<ElectricNet_If> activePowerTree;
 
 bool isThereSomeTree ()
@@ -216,6 +216,8 @@ namespace commands
 
 				if (args.name == "")
 					args.name = suggestEnterNameAndGet();
+				if (args.inputName == "")
+					args.inputName = "Input1";
 
 				createTreeByArgs(args);
 				createInputByArgs(args);
@@ -431,7 +433,7 @@ namespace commands
 				}
 
 
-				cout << "A new power three " << name << "with a " << cvType << " input";
+				cout << "A new power three " << name << "with a " << cvType << " input \"" << args.inputName << "\"";
 				if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
 				cout << " is created" << endl << endl;
 			}
@@ -441,19 +443,35 @@ namespace commands
 	
 	
 	
-	class CommandRename : public Command
+	class CommandWorkingWithExsistingTree : public Command
+	{
+
+		protected:
+
+			void ensureIfThereAreSomeTree () const
+			{
+				if ( isThereSomeTree() )	return;
+				throw exception("There is no power tree. Create or load a tree");
+			}
+
+
+
+			virtual ~CommandWorkingWithExsistingTree () {;}
+
+	};
+
+
+
+
+
+	class CommandRename : public CommandWorkingWithExsistingTree
 {
 
 	public:
 	
 		virtual void execute (TokensDeque& tokens) const
 		{
-			bool isTreeToRename = isThereSomeTree();
-			if (!isTreeToRename)
-			{
-				requestToGetTree();
-				return;
-			}
+			ensureIfThereAreSomeTree();
 
 			if (tokens.size() > 1)    throw exception("Too many arguments for this command");
 
@@ -496,10 +514,6 @@ namespace commands
 
 
 
-		void requestToGetTree () const
-		{
-			cout << "There are no power tree. Create or load a tree" << endl << endl;
-		}
 
 		string requestAndGetNewName () const
 		{
@@ -520,13 +534,16 @@ namespace commands
 	
 	
 	
-	class CommandWithShowingResults : public Command
+	class CommandWithShowingResults : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const override
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args = parseArguments(tokens);
 
 			Results results = GetResults();
@@ -668,6 +685,9 @@ namespace commands
 	
 		virtual void execute (TokensDeque & tokens) const override
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args = parseArguments(tokens);
 
 			if (!args.needsToShowResults)
@@ -750,13 +770,15 @@ namespace commands
 	
 	
 	
-	class CommandShowStructure : public Command
+	class CommandShowStructure : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
 			TreeStructure treeStructure = GetTreeStructure();
 			displayTreeStructure(treeStructure);
 		}
@@ -827,17 +849,21 @@ namespace commands
 		}
 	
 };
-	
-	
-	
-	
-	class CommandCreateInput : public Command
+
+
+
+
+
+	class CommandCreateInput : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception & ex) { throw exception(ex.what()); }
@@ -949,13 +975,16 @@ namespace commands
 	
 	
 	
-	class CommandCreateConverter : public Command
+	class CommandCreateConverter : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
@@ -1115,13 +1144,16 @@ namespace commands
 	
 	
 	
-	class CommandCreateLoad : public Command
+	class CommandCreateLoad : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
@@ -1259,17 +1291,25 @@ namespace commands
 			{
 				case (LoadType::RESISTIVE): [[__fallthrough]]
 				case (LoadType::CONSTANT_CURRENT):
+				{
 					if (args.parentName == "")
 						activePowerTree->addLoad(args.name, args.type, args.value);
 					else
 						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value);
 
+					break;
+				}
+
 				case (LoadType::DIODE): [[__fallthrough]]
 				case (LoadType::ENERGY):
+				{
 					if (args.parentName == "")
 						activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
 					else
 						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value, args.addValue);
+
+					break;
+				}
 			}
 		}
 
@@ -1302,13 +1342,16 @@ namespace commands
 	
 	
 	
-	class CommandModifyInput : public Command
+	class CommandModifyInput : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
@@ -1470,13 +1513,16 @@ namespace commands
 	
 	
 	
-	class CommandModifyConverter : public Command
+	class CommandModifyConverter : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
@@ -1677,13 +1723,16 @@ namespace commands
 	
 	
 	
-	class CommandModifyLoad : public Command
+	class CommandModifyLoad : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception& ex) { throw exception(ex.what()); }
@@ -1906,13 +1955,16 @@ namespace commands
 	
 	
 	
-	class CommandDeleteNode : public Command
+	class CommandDeleteNode : public CommandWorkingWithExsistingTree
 	{
 		
 		public:
 		
 			virtual void execute (TokensDeque & tokens) const
 			{
+				ensureIfThereAreSomeTree();
+
+
 				Arguments args;
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
@@ -2053,13 +2105,16 @@ namespace commands
 	
 	
 	
-	class CommandMoveSink : public Command
+	class CommandMoveSink : public CommandWorkingWithExsistingTree
 	{
 		
 		public:
 		
 			virtual void execute (TokensDeque & tokens) const
 			{
+				ensureIfThereAreSomeTree();
+
+
 				Arguments args;
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
@@ -2210,13 +2265,16 @@ namespace commands
 	
 	
 	
-	class CommandDisconnectSink : public Command
+	class CommandDisconnectSink : public CommandWorkingWithExsistingTree
 {
 	
 	public:
 	
 		virtual void execute (TokensDeque & tokens) const
 		{
+			ensureIfThereAreSomeTree();
+
+
 			Arguments args;
 			try { args = parseArguments(tokens); }
 			catch (exception & ex) { throw exception(ex.what()); }

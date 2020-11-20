@@ -76,7 +76,7 @@ inline typename Forest<key, Type>::Node * Forest<key, Type>::Node::getParent () 
 template <typename key, typename Type>
 inline bool Forest<key, Type>::Node::hasDesces () const
 {
-	bool result = desces_ptr->empty();
+	bool result = !( desces_ptr->empty() );
 	return result;
 }
 
@@ -573,12 +573,14 @@ inline void Forest<key, Type>::deleteAllDescesSubtrees (Node * parent_ptr)
 template <typename key, typename Type>
 inline void Forest<key, Type>::convertDescesToRoots (Node * node_ptr)
 {
-	AUTO_CONST_REF desces = node_ptr->getDesces();
-	for (auto & desc : desces)
+	auto desces = node_ptr->getDescesSet();
+
+	for (auto & desc : *desces)
 	{
 		desc->disconnectFromParent();
 		roots.insert(desc);
 	}
+	desces->clear();
 }
 
 
