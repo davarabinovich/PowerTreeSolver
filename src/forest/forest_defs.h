@@ -166,7 +166,7 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::addRoot (key name, const Type & content)
 {
 	if (name == "")    throw empty_name("addRoot");
-	if (nodes.count(name) > 0)    throw busy_name("addRoot");
+	if (nodes.count(name) == 1)    throw busy_name("addRoot");
 
 	createRoot(name, content);
 }
@@ -176,7 +176,7 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::pushFrontRoot (key name, key oldRootName, const Type & content)
 {
 	if (name == "")    throw empty_name("pushFrontRoot; name");
-	if (nodes.count(name) > 0)    throw busy_name("pushFrontRoo; name");
+	if (nodes.count(name) == 1)    throw busy_name("pushFrontRoo; name");
 
 	if (nodes.count(oldRootName) == 0)    throw non_excistent_node("pushFrontRoot; oldRootName");
 
@@ -194,7 +194,7 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::insertDesc (key name, key parentName, const Type & content)
 {
 	if (name == "")    throw empty_name("insertDesc; name");
-	if (nodes.count(name) > 0)    throw busy_name("insertDesc; name");
+	if (nodes.count(name) == 1)    throw busy_name("insertDesc; name");
 
 	if (nodes.count(parentName) == 0)    throw non_excistent_node("insertDesc; parentName");
 
@@ -216,10 +216,10 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::insertDesc (key name, key parentName, key descName, const Type & content)
 {
 	if (name == "")    throw empty_name("insertDesc; name");
-	if (nodes.count(name) > 0)    throw busy_name("insertDesc; name");
+	if (nodes.count(name) == 1)    throw busy_name("insertDesc; name");
 
 	if (nodes.count(parentName) == 0)    throw non_excistent_node("insertDesc; parentName");
-	if (nodes.count(descName)    == 0)    throw non_excistent_node("insertDesc; descName");
+	if (nodes.count(descName)   == 0)    throw non_excistent_node("insertDesc; descName");
 
 
 	auto newNode_ptr = createFreeNode(name, content);
@@ -243,7 +243,7 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::pushBackLeaf (key name, key parentName, const Type & content)
 {
 	if (name == "")    throw empty_name("insertDesc; name");
-	if (nodes.count(name) > 0)    throw busy_name("insertDesc; name");
+	if (nodes.count(name) == 1)    throw busy_name("insertDesc; name");
 
 	if (nodes.count(parentName) == 0)    throw non_excistent_node("pushBackLeaf; parentName");
 
@@ -275,13 +275,12 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::eraseDesc (key name)
 {
 	if (nodes.count(name) == 0)    throw non_excistent_node("eraseDesc");
-	if ( roots.count(nodes[name]) == 0 )    throw not_descendant("eraseDesc");
 
 
 	auto deletedNode_ptr = nodes[name];
 	convertDescesToRoots(deletedNode_ptr);
 
-	popBackLeaf(name);
+	deleteLeaf(name);
 }
 
 
@@ -289,15 +288,13 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::eraseDesc (key name, key newDescesParentName)
 {
 	if (nodes.count(name) == 0)    throw non_excistent_node("eraseDesc; name");
-	if ( roots.count(nodes[name]) == 1 )    throw not_descendant("eraseDesc; name");
-
-	if (roots.count(name) == 1)    throw not_descendant("eraseDesc; newDescesParentName");
+	if (nodes.count(name) == 0)    throw non_excistent_node("eraseDesc; newDescesParentName");
 
 
 	auto deletedNode_ptr = nodes[name];
 	moveAllDescesTo(deletedNode_ptr, newDescesParentName);
 
-	popBackLeaf(name);
+	deleteLeaf(name);
 }
 
 
@@ -308,7 +305,10 @@ inline void Forest<key, Type>::popBackSubtree (key headerName)
 
 
 	auto header_ptr = nodes[headerName];
-	header_ptr->getParent() ->disconnectDesc(header_ptr);
+	if ( header_ptr->hasParent() )
+		header_ptr->getParent() ->disconnectDesc(header_ptr);
+	else
+		roots.erase(header_ptr);
 
 	deleteAllDescesSubtrees(header_ptr);
 	deleteNode(headerName);
@@ -323,7 +323,11 @@ inline void Forest<key, Type>::popBackLeaf (key name)
 
 
 	auto deletedLeaf_ptr = nodes[name];
-	deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
+
+	if ( deletedLeaf_ptr->hasParent() )
+		deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
+	else
+		roots.erase(deletedLeaf_ptr);
 
 	deleteNode(name);
 }
@@ -507,7 +511,15 @@ inline const Type & Forest<key, Type>::at (key name) const
 template <typename key, typename Type>
 inline bool Forest<key, Type>::isExsist (key name) const
 {
-	bool result = (nodes.count(name) > 0);
+	bool result = (nodes.count(name) == 1);
+	return result;
+}
+
+
+template <typename key, typename Type>
+bool Forest<key, Type>::isRoot (key name) const
+{
+	bool result = !( nodes.at(name) ->hasParent() );
 	return result;
 }
 
@@ -554,6 +566,20 @@ inline void Forest<key, Type>::deleteNode (key name)
 	auto node_ptr = nodes[name];
 	nodes.erase(name);
 	delete node_ptr;
+}
+
+
+template <typename key, typename Type>
+void Forest<key, Type>::deleteLeaf (key name)
+{
+	auto deletedLeaf_ptr = nodes[name];
+
+	if ( deletedLeaf_ptr->hasParent() )
+		deletedLeaf_ptr->getParent() ->disconnectDesc(deletedLeaf_ptr);
+	else
+		roots.erase(deletedLeaf_ptr);
+
+	deleteNode(name);
 }
 
 

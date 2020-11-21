@@ -58,6 +58,7 @@ class Forest
 		const Type & at (key name) const;
 
 		bool isExsist (key name) const;
+		bool isRoot (key name) const;
 
 
 
@@ -116,6 +117,7 @@ class Forest
 		Node * createRoot (key name, const Type & content = 0);
 
 		void deleteNode (key name);
+		void deleteLeaf (key name);
 		void deleteAllDescesSubtrees (Node * parent_ptr);
 
 		void convertDescesToRoots (Node * node_ptr);
@@ -133,7 +135,6 @@ class Forest
 		STRING_MESSAGE_EXCEPTION(busy_name, forest_exception);
 		STRING_MESSAGE_EXCEPTION(non_excistent_node, forest_exception);
 		STRING_MESSAGE_EXCEPTION(not_root, forest_exception);
-		STRING_MESSAGE_EXCEPTION(not_descendant, forest_exception);
 		STRING_MESSAGE_EXCEPTION(not_leaf, forest_exception);
 		STRING_MESSAGE_EXCEPTION(closing_motion, forest_exception);
 

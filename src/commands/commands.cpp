@@ -1474,12 +1474,12 @@ namespace commands
 
 		void modifyInputParams (const Arguments & args) const
 		{
-			if (args.newName)
-				activePowerTree->renameNode(args.currentName, *args.newName);
 			if (args.cvType)
 				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
 			if (args.cvValue)
 				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
+			if (args.newName)
+				activePowerTree->renameNode(args.currentName, *args.newName);
 		}
 
 		void reportExecution (const Arguments & args) const
@@ -1673,17 +1673,17 @@ namespace commands
 		void modifyConverterParams (const Arguments & args) const
 		{
 #pragma split structue to separate values;
-			if (args.newName)
-				activePowerTree->renameNode(args.currentName, *args.newName);
 			if (args.cvType)
 				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
 			if (args.cvValue)
 				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
-
 			if (args.type)
 				activePowerTree->setConverterType(args.currentName, *args.type);
 			if (args.efficiency)
 				activePowerTree->setConverterEfficiency(args.currentName, *args.efficiency);
+
+			if (args.newName)
+				activePowerTree->renameNode(args.currentName, *args.newName);
 		}
 	
 		void reportExecution (const Arguments & args) const
@@ -1968,9 +1968,12 @@ namespace commands
 				Arguments args;
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
+
+				Params params;
+				fillParams(args, params);
 	
-				deleteNode(args);
-				reportExecution(args);
+				deleteNode(args, params);
+				reportExecution(args, params);
 			}
 		
 		
@@ -1983,6 +1986,11 @@ namespace commands
 				string name = "";
 				optional<MotionMode> mode;
 				optional<string> newParentName;
+			};
+
+			struct Params
+			{
+				DeviceType type;
 			};
 		
 		
@@ -2041,9 +2049,14 @@ namespace commands
 				return newName;
 			}
 	
-			void deleteNode (const Arguments & args) const
+			void fillParams (const Arguments & args, Params & params) const
 			{
-				if ( activePowerTree->isLoadExsist(args.name) )
+				params.type = activePowerTree->getNodeType(args.name);
+			}
+
+			void deleteNode (const Arguments & args, const Params & params) const
+			{
+				if ( params.type == DeviceType::LOAD )
 					activePowerTree->deleteLoad(args.name);
 				else
 				{
@@ -2070,9 +2083,9 @@ namespace commands
 	
 
 	
-			void reportExecution (const Arguments & args) const
+			void reportExecution (const Arguments & args, const Params & params) const
 			{
-				string type = toStr( activePowerTree->getNodeType(args.name) );
+				string type = toStr(params.type);
 				cout << capitalize(type) << " \"" << args.name << "\" is deleted successfully. ";
 				
 				if (args.mode)

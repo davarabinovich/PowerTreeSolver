@@ -130,7 +130,11 @@ namespace electric_net
 	void ElectricNet::deleteNode (key name)
 	{
 		net.freeAllDesces(name);
-		net.popBackLeaf(name);
+
+		if ( net.isRoot(name) )
+			net.popFrontRoot(name);
+		else
+			net.popBackLeaf(name);
 	}
 
 
