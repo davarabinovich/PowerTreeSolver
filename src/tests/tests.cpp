@@ -9,6 +9,7 @@
 
 #include "forest/forest.h"
 #include "electric_net/electric_net_if.h"
+#include "lib/ciflib.h"
 
 
 #include "tests/tests.h"
@@ -21,6 +22,7 @@ void TestAll ()
 	TestRunner tr;
 	tr.RunTest(TestForest);
 	tr.RunTest(TestApiCommonFunctions);
+	tr.RunTest(TestLibrary);
 }
 
 
@@ -197,4 +199,228 @@ void TestConverterTypeFunctions ()
 void TestApiCommonFunctions ()
 {
 	TestConverterTypeFunctions();
+}
+
+
+
+
+void TestStrToDouble ()
+{
+	{
+		string input("0.0");
+		double result = strToDouble(input);
+		AssertEqual(result, 0, input);
+	}
+
+	{
+		string input("0");
+		double result = strToDouble(input);
+		AssertEqual(result, 0, input);
+	}
+
+	{
+		string input("1");
+		double result = strToDouble(input);
+		AssertEqual(result, 1, input);
+	}
+
+	{
+		string input("19028");
+		double result = strToDouble(input);
+		AssertEqual(result, 19028, input);
+	}
+
+	{
+		string input("1.0");
+		double result = strToDouble(input);
+		AssertEqual(result, 1, input);
+	}
+
+	{
+		string input("19028.0");
+		double result = strToDouble(input);
+		AssertEqual(result, 19028, input);
+	}
+
+	{
+		string input("-1");
+		double result = strToDouble(input);
+		AssertEqual(result, -1, input);
+	}
+
+	{
+		string input("-19028");
+		double result = strToDouble(input);
+		AssertEqual(result, -19028, input);
+	}
+
+	{
+		string input("-1.0");
+		double result = strToDouble(input);
+		AssertEqual(result, -1, input);
+	}
+
+	{
+		string input("-19028.0");
+		double result = strToDouble(input);
+		AssertEqual(result, -19028, input);
+	}
+
+	{
+		string input("245.873");
+		double result = strToDouble(input);
+		AssertEqual(result, 245.873, input);
+	}
+
+	{
+		string input("-245.873");
+		double result = strToDouble(input);
+		AssertEqual(result, -245.873, input);
+	}
+}
+
+
+void TestCapitalize ()
+{
+	{
+		string input("");
+		string result = capitalize(input);
+		AssertEqual(string(""), result, input);
+	}
+
+	{
+		string input(" ");
+		string result = capitalize(input);
+		AssertEqual(string(" "), result, input);
+	}
+
+	{
+		string input("a e");
+		string result = capitalize(input);
+		AssertEqual(string("A e"), result, input);
+	}
+
+	{
+		string input("A e");
+		string result = capitalize(input);
+		AssertEqual(string("A e"), result, input);
+	}
+
+	{
+		string input("a");
+		string result = capitalize(input);
+		AssertEqual(string("A"), result, input);
+	}
+
+	{
+		string input("A");
+		string result = capitalize(input);
+		AssertEqual(string("A"), result, input);
+	}
+
+	{
+		string input("abs");
+		string result = capitalize(input);
+		AssertEqual(string("Abs"), result, input);
+	}
+
+	{
+		string input("Abs");
+		string result = capitalize(input);
+		AssertEqual(string("Abs"), result, input);
+	}
+
+	{
+		string input("abs ne");
+		string result = capitalize(input);
+		AssertEqual(string("Abs ne"), result, input);
+	}
+
+	{
+		string input("Abs ne");
+		string result = capitalize(input);
+		AssertEqual(string("Abs ne"), result, input);
+	}
+
+	{
+		string input("Abs Ne");
+		string result = capitalize(input);
+		AssertEqual(string("Abs Ne"), result, input);
+	}
+
+
+
+
+	{
+		string input("");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input(" ");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("a e");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("A e");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("a");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("A");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("abs");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("Abs");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("abs ne");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("Abs ne");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+
+	{
+		string input("Abs Ne");
+		string result = capitalize(input, false);
+		AssertEqual(input, result, input);
+	}
+}
+
+
+void TestLibrary ()
+{
+	TestStrToDouble();
+	TestCapitalize();
 }

@@ -61,7 +61,9 @@ inline void scrollInteratorToNewWord_unsafe(string::const_iterator & char_it)
 inline double strToDouble (string str)
 {
 	double number = atof(str.c_str());
-	if ( (number == 0.0) && (str != "0.0") )
+
+	bool isStrNotZero = ( (str != "0.0") && (str != "0") );
+	if ( (number == 0.0) && isStrNotZero )
 		throw exception("There is no floating-point number");
 	return number;
 }
@@ -95,7 +97,7 @@ inline string capitalize (string str, bool needsCapitalize = true)
 {
 	string result = str;
 	if (needsCapitalize)
-		str[0] = (char)std::toupper(str[0]);
+		result[0] = (char)std::toupper(result[0]);
 
 	return result;
 }

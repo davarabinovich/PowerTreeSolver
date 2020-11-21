@@ -11,3 +11,5 @@ void TestAll ();
 void TestForest ();
 
 void TestApiCommonFunctions ();
+
+void TestLibrary();

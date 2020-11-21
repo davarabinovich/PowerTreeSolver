@@ -137,10 +137,11 @@ namespace electric_net
 
 	inline bool isLoadTypeString (const string & str)
 	{
-		if (str[0] != 'r' && str[0] != 'R' && str[0] != 'c' && str[0] != 'C' && str[0] != 'p' && str[0] != 'P')     return false;
-		if (str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
-			if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
-				if (str != "pow" && str != "Pow" && str != "power" && str != "Power")    return false;
+		if (str != "r" && str != "R" && str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
+			if (str != "c" && str != "C" && str != "cur" && str != "Cur" && str != "current" && str != "Current")
+				if (str != "e" && str != "E" && str != "en" && str != "En" && str != "energy" && str != "Energy")
+					if (str != "d" && str != "D" && str != "di" && str != "Di" && str != "diode" && str != "Diode")
+						return false;
 		return true;
 	}
 	
@@ -149,9 +150,97 @@ namespace electric_net
 		if (!isLoadTypeString(str))
 			throw exception("Invalid type of load");
 
-		if (str == "res" || str == "Res" || str == "resistive" || str == "Resistive") return LoadType::RESISTIVE;
-		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return LoadType::CONSTANT_CURRENT;
-		return LoadType::ENERGY;
+		if (str == "r" || str == "R" || str == "res" || str == "Res" || str == "resistive" || str == "Resistive") 
+			return LoadType::RESISTIVE;
+		if (str == "c" || str == "C" || str == "cur" || str == "Cur" || str == "current" || str == "Current") 
+			return LoadType::CONSTANT_CURRENT;
+		if (str == "e" || str == "E" || str == "en" || str == "En" || str == "energy" || str == "Energy")
+			return LoadType::ENERGY;
+		return LoadType::DIODE;
+	}
+
+	inline string getValueTypeStrByLoadType (const LoadType type)
+	{
+		switch (type)
+		{
+			case LoadType::RESISTIVE:
+				return string("resistance");
+
+			case LoadType::CONSTANT_CURRENT:
+				return string("current");
+
+			case LoadType::ENERGY:
+				return string("power");
+
+			case LoadType::DIODE:
+				return string("forward voltage");
+
+
+			default:
+				throw exception("Invalid type of load");
+		}
+	}
+
+	inline string getMainUnitDesignatorStrByLoadType (const LoadType type)
+	{
+		switch (type)
+		{
+			case LoadType::RESISTIVE:
+				return string("Ohm");
+
+			case LoadType::CONSTANT_CURRENT:
+				return string("A");
+
+			case LoadType::ENERGY:
+				return string("W");
+
+			case LoadType::DIODE:
+				return string("V");
+
+
+			default:
+				throw exception("Invalid type of load");
+		}
+	}
+
+	inline string getAddValueTypeStrByLoadType (const LoadType type)
+	{
+		switch (type)
+		{
+			case LoadType::ENERGY:
+				return string("nominal voltage");
+
+			case LoadType::DIODE:
+				return string("forward current");
+
+			case LoadType::RESISTIVE: [[__fallthrough]]
+			case LoadType::CONSTANT_CURRENT:
+				throw exception("Such a type of load hasn't an additional parameter");
+
+
+			default:
+				throw exception("Invalid type of load");
+		}
+	}
+
+	inline string getAddUnitDesignatorStrByLoadType (const LoadType type)
+	{
+		switch (type)
+		{
+			case LoadType::ENERGY:
+				return string("V");
+
+			case LoadType::DIODE:
+				return string("A");
+
+			case LoadType::RESISTIVE: [[__fallthrough]]
+			case LoadType::CONSTANT_CURRENT:
+				throw exception("Such a type of load hasn't an additional parameter");
+
+
+			default:
+				throw exception("Invalid type of load");
+		}
 	}
 	
 	

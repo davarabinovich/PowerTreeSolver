@@ -1156,8 +1156,10 @@ namespace commands
 
 			Arguments args;
 			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
+			catch (exception & ex) { throw exception(ex.what()); }
 
+			if (args.name == "")
+				args.name = requestAndGetNewName();
 			if (isnan(args.value))
 				args.value = requestValue(args.type);
 			if (args.parentName == "")
@@ -1218,31 +1220,37 @@ namespace commands
 				args.value = strToDouble(handeledArg);
 
 				tokens.pop_front();
-				if (args.type != LoadType::ENERGY) 
-				{
-					if (tokens.empty())    return args;
-				}
-				else
-				{
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
 
-					if (isFloatNumberString(handeledArg))
-					{
-						args.value = strToDouble(handeledArg);
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
 
-						tokens.pop_front();
-						if (tokens.empty())    return args;
-					}
+				if (isFloatNumberString(handeledArg))
+				{
+					args.addValue = strToDouble(handeledArg);
+
+					tokens.pop_front();
+					if (tokens.empty())    return args;
 				}
 			}
+
+			args.parentName = tokens.front();
+			tokens.pop_front();
+			if (tokens.empty())    return args;
 
 			throw exception("There is at least one invalid argument");
 		}
 
+		string requestAndGetNewName () const
+		{
+			cout << "Enter a name of new load: ";
+			string newName;
+			getline(cin, newName);
+			return newName;
+		}
+
 		double requestValue (const LoadType type) const
 		{
-			cout << "Plase enter a value of ";
+			cout << "Enter a value of ";
 			string mainParam; 
 			switch (type)
 			{
@@ -1255,8 +1263,12 @@ namespace commands
 					break;
 
 				case LoadType::ENERGY:
-						mainParam = "power";
-						break;
+					mainParam = "power";
+					break;
+
+				case LoadType::DIODE:
+					mainParam = "forward voltage";
+					break;
 			
 				default:
 						throw exception("Invalid type of load");
@@ -1735,7 +1747,7 @@ namespace commands
 
 			Arguments args;
 			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
+			catch (exception & ex) { throw exception(ex.what()); }
 	
 			modifyLoadParams(args);
 			reportExecution(args);
@@ -1768,7 +1780,7 @@ namespace commands
 			if (tokens.empty())    return args;
 	
 			tokens.pop_front();
-			for (const auto& token : tokens)
+			for (const auto & token : tokens)
 			{
 				if (isParamWithKey(token))
 				{
@@ -1791,10 +1803,8 @@ namespace commands
 	
 						args.value = strToDouble(extractParamFromToken(token));
 					}
-					else if (key == "n")
+					else if (key == "a")
 					{
-						if (*args.type != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
-						
 						if (args.addValue)    continue;
 	
 						args.addValue = strToDouble(extractParamFromToken(token));
@@ -1820,8 +1830,6 @@ namespace commands
 							args.value = strToDouble(token);
 							continue;
 						}
-
-						if (*args.type != LoadType::ENERGY)    throw exception("Only loads of type \"power\" have a parameter \"nominal voltage\"");
 
 						if (args.addValue)
 						{
@@ -1922,24 +1930,33 @@ namespace commands
 		{
 			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
 	
+			string actualName = args.currentName;
 			if (args.newName)
-				cout << endl << "    Name - \"" << *args.newName << "\"";
+			{ 
+				actualName = *args.newName;
+				cout << endl << "    Name - \"" << actualName << "\"";
+			}
+
+			LoadType actualType = activePowerTree->getLoadType(actualName);
 			if (args.type)
-				cout << endl << "    Type - " << *args.type;
+				cout << endl << "    Type - " << actualType;
+			
 			if (args.value)
 			{
-				cout << endl << "    Value - " << *args.value;
+				string paramStr = capitalize( getValueTypeStrByLoadType(actualType) );
+				cout << endl << "    " << paramStr << " - " << *args.value;
 	
-				string valueUnit = "Ohm";
-				if (args.type == LoadType::CONSTANT_CURRENT)
-					valueUnit = "A";
-				else if (*args.type == LoadType::ENERGY)
-					valueUnit = "W";
+				string valueUnit = getMainUnitDesignatorStrByLoadType(actualType);
 				cout << " " << valueUnit;
 			}
+
 			if (args.addValue)
 			{
-				cout << endl << "    Nominal voltage - " << *args.addValue << " V";
+				string paramStr = capitalize( getAddValueTypeStrByLoadType(actualType) );
+				cout << endl << "    " << paramStr << " - " << *args.addValue;
+	
+				string valueUnit = getAddUnitDesignatorStrByLoadType(actualType);
+				cout << " " << valueUnit;
 			}
 	
 			cout << endl;
@@ -1947,7 +1964,7 @@ namespace commands
 	
 		void reportNonexsistentLoad (const string & name) const
 		{
-			cout << "An load \"" << name << "\" doesn't exsist." << endl;
+			cout << "A load \"" << name << "\" doesn't exsist." << endl;
 		}
 	
 };
@@ -2003,16 +2020,11 @@ namespace commands
 	
 	
 				auto handeledArg = tokens.front();
-	
-				if (!isMotionModeString(handeledArg))
-				{
-					args.name = handeledArg;
+				args.name = handeledArg;
+				tokens.pop_front();
+				if (tokens.empty())    return args;
 
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
+				handeledArg = tokens.front();
 				if (isMotionModeString(handeledArg))
 				{
 					args.mode = parseDeletingMode(handeledArg);
