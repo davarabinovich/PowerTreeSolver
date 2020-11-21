@@ -18,7 +18,7 @@ namespace commands
 		return true;
 	}
 
-	inline MotionMode parseDeletingMode (const string & str)
+	inline MotionMode parseMotionMode (const string & str)
 	{
 		if (!isMotionModeString(str))
 			throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );

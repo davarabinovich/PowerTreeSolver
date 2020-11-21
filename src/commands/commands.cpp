@@ -1736,42 +1736,42 @@ namespace commands
 	
 	
 	class CommandModifyLoad : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception & ex) { throw exception(ex.what()); }
-	
-			modifyLoadParams(args);
-			reportExecution(args);
-		}
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
+			{
+				ensureIfThereAreSomeTree();
 	
 	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+		
+				modifyLoadParams(args);
+				reportExecution(args);
+			}
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
+			{
+				string currentName;
+		
+				optional<string>   newName;
+				optional<LoadType> type;
+				optional<double>   value;
 	
-	
-	private:
-	
-		struct Arguments
-		{
-			string currentName;
-	
-			optional<string>   newName;
-			optional<LoadType> type;
-			optional<double>   value;
-
-			optional<double> addValue;
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
+				optional<double> addValue;
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
 		{
 			Arguments args;
 			if (tokens.empty())    return args;
@@ -1846,128 +1846,128 @@ namespace commands
 	
 			return args;
 		}
-	
-		bool isParamWithKey (const string & token) const
-		{
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			if (charEqual_it != token.end())    return true;
-			return false;
-		}
-	
-		string extractKeyFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-	
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(token.begin(), charEqual_it);
-			return result;
-		}
-	
-		string extractParamFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-	
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(charEqual_it + 1, token.end());
-			return result;
-		}
-	
-	
-		void modifyLoadParams (const Arguments & args) const
-		{
-			string actualName = args.currentName;
-			if (args.newName)
+		
+			bool isParamWithKey (const string & token) const
 			{
-				activePowerTree->renameNode(actualName, *args.newName);
-				actualName = *args.newName;
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				if (charEqual_it != token.end())    return true;
+				return false;
 			}
-
-			if (args.type)
-				activePowerTree->setLoadType(actualName, *args.type);
-
-			LoadType actualType = activePowerTree->getLoadType(actualName);
-			switch (actualType)
+		
+			string extractKeyFromToken (const string & token) const
 			{
-				case LoadType::RESISTIVE:
-				{
-					if (args.value)
-						activePowerTree->setLoadResistance(actualName, *args.value);
-					return;
-				}
-
-				case LoadType::CONSTANT_CURRENT:
-				{
-					if (args.value)
-						activePowerTree->setLoadCurrent(actualName, *args.value);
-					return;
-				}
-
-				case LoadType::ENERGY:
-				{
-					if (args.value)
-						activePowerTree->setLoadForawrdVoltage(actualName, *args.value);
-					if (args.value)
-						activePowerTree->setLoadForwardCurrent(actualName, *args.addValue);
-					return;
-				}
-
-				case LoadType::DIODE:
-				{
-					if (args.value)
-						activePowerTree->setLoadNomPower(actualName, *args.value);
-					if (args.value)
-						activePowerTree->setLoadNomVoltage(actualName, *args.addValue);
-					return;
-				}
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+		
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(token.begin(), charEqual_it);
+				return result;
 			}
-			
-
-		}
-	
-		void reportExecution (const Arguments & args) const
-		{
-			cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
-	
-			string actualName = args.currentName;
-			if (args.newName)
-			{ 
-				actualName = *args.newName;
-				cout << endl << "    Name - \"" << actualName << "\"";
-			}
-
-			LoadType actualType = activePowerTree->getLoadType(actualName);
-			if (args.type)
-				cout << endl << "    Type - " << actualType;
-			
-			if (args.value)
+		
+			string extractParamFromToken (const string & token) const
 			{
-				string paramStr = capitalize( getValueTypeStrByLoadType(actualType) );
-				cout << endl << "    " << paramStr << " - " << *args.value;
-	
-				string valueUnit = getMainUnitDesignatorStrByLoadType(actualType);
-				cout << " " << valueUnit;
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+		
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(charEqual_it + 1, token.end());
+				return result;
 			}
-
-			if (args.addValue)
+		
+		
+			void modifyLoadParams (const Arguments & args) const
 			{
-				string paramStr = capitalize( getAddValueTypeStrByLoadType(actualType) );
-				cout << endl << "    " << paramStr << " - " << *args.addValue;
+				string actualName = args.currentName;
+				if (args.newName)
+				{
+					activePowerTree->renameNode(actualName, *args.newName);
+					actualName = *args.newName;
+				}
 	
-				string valueUnit = getAddUnitDesignatorStrByLoadType(actualType);
-				cout << " " << valueUnit;
+				if (args.type)
+					activePowerTree->setLoadType(actualName, *args.type);
+	
+				LoadType actualType = activePowerTree->getLoadType(actualName);
+				switch (actualType)
+				{
+					case LoadType::RESISTIVE:
+					{
+						if (args.value)
+							activePowerTree->setLoadResistance(actualName, *args.value);
+						return;
+					}
+	
+					case LoadType::CONSTANT_CURRENT:
+					{
+						if (args.value)
+							activePowerTree->setLoadCurrent(actualName, *args.value);
+						return;
+					}
+	
+					case LoadType::ENERGY:
+					{
+						if (args.value)
+							activePowerTree->setLoadForawrdVoltage(actualName, *args.value);
+						if (args.value)
+							activePowerTree->setLoadForwardCurrent(actualName, *args.addValue);
+						return;
+					}
+	
+					case LoadType::DIODE:
+					{
+						if (args.value)
+							activePowerTree->setLoadNomPower(actualName, *args.value);
+						if (args.value)
+							activePowerTree->setLoadNomVoltage(actualName, *args.addValue);
+						return;
+					}
+				}
+				
+	
 			}
+		
+			void reportExecution (const Arguments & args) const
+			{
+				cout << "Parameters of load \"" << args.currentName << "\" is changed: ";
+		
+				string actualName = args.currentName;
+				if (args.newName)
+				{ 
+					actualName = *args.newName;
+					cout << endl << "    Name - \"" << actualName << "\"";
+				}
 	
-			cout << endl;
-		}
+				LoadType actualType = activePowerTree->getLoadType(actualName);
+				if (args.type)
+					cout << endl << "    Type - " << actualType;
+				
+				if (args.value)
+				{
+					string paramStr = capitalize( getValueTypeStrByLoadType(actualType) );
+					cout << endl << "    " << paramStr << " - " << *args.value;
+		
+					string valueUnit = getMainUnitDesignatorStrByLoadType(actualType);
+					cout << " " << valueUnit;
+				}
 	
-		void reportNonexsistentLoad (const string & name) const
-		{
-			cout << "A load \"" << name << "\" doesn't exsist." << endl;
-		}
-	
-};
+				if (args.addValue)
+				{
+					string paramStr = capitalize( getAddValueTypeStrByLoadType(actualType) );
+					cout << endl << "    " << paramStr << " - " << *args.addValue;
+		
+					string valueUnit = getAddUnitDesignatorStrByLoadType(actualType);
+					cout << " " << valueUnit;
+				}
+		
+				cout << endl;
+			}
+		
+			void reportNonexsistentLoad (const string & name) const
+			{
+				cout << "A load \"" << name << "\" doesn't exsist." << endl;
+			}
+		
+	};
 	
 	
 	
@@ -2027,7 +2027,7 @@ namespace commands
 				handeledArg = tokens.front();
 				if (isMotionModeString(handeledArg))
 				{
-					args.mode = parseDeletingMode(handeledArg);
+					args.mode = parseMotionMode(handeledArg);
 	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
@@ -2149,7 +2149,7 @@ namespace commands
 				if (args.newParentName == "")
 					args.newParentName = requestNewParentNameAndGet();
 		
-				ConnectSinkTo(args);
+				connectSinkTo(args);
 		
 				reportExecution(args);
 			}
@@ -2163,7 +2163,7 @@ namespace commands
 			{
 				string name = "";
 				string newParentName = "";
-				optional<MotionMode> mode;
+				optional<MotionMode> mode = MotionMode::WITH_DESCES;
 				optional<string> newSinksParentName = "";
 			};
 
@@ -2189,7 +2189,7 @@ namespace commands
 	
 				if (isMotionModeString(handeledArg))
 				{
-					args.mode = parseDeletingMode(handeledArg);
+					args.mode = parseMotionMode(handeledArg);
 	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
@@ -2199,7 +2199,7 @@ namespace commands
 				if (!isMotionModeString(handeledArg))
 				{
 					args.newParentName = handeledArg;
-	
+						
 					tokens.pop_front();
 					if (tokens.empty())    return args;
 					handeledArg = tokens.front();
@@ -2208,6 +2208,11 @@ namespace commands
 				if (!isMotionModeString(handeledArg))
 				{
 					args.newSinksParentName = handeledArg;
+
+					if ( args.mode && (args.mode != MotionMode::RECONNECT_DESCES) )
+							throw exception ("New parent for descendants can't be specified when motion modei is not \"Reconnect\"");
+
+					args.mode = MotionMode::RECONNECT_DESCES;
 	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
@@ -2231,7 +2236,7 @@ namespace commands
 				return newName;
 			}
 
-			void ConnectSinkTo (const Arguments & args) const
+			void connectSinkTo (const Arguments & args) const
 			{
 				if ( activePowerTree->isLoadExsist(args.name) )
 					activePowerTree->moveLoad(args.name, args.newParentName);
@@ -2263,6 +2268,12 @@ namespace commands
 				string type = toStr( activePowerTree->getNodeType(args.name) );
 				cout << capitalize(type) << " \"" << args.name << "\" has been connected to the " 
 					 << toStr( activePowerTree->getNodeType(args.newParentName) ) << " \"" << args.newParentName << "\"";
+
+				if (type == "load")
+				{
+					cout << "." << endl;
+					return;
+				}
 
 				switch (*args.mode)
 				{
@@ -2344,7 +2355,7 @@ namespace commands
 	
 			if (isMotionModeString(handeledArg))
 			{
-				args.mode = parseDeletingMode(handeledArg);
+				args.mode = parseMotionMode(handeledArg);
 	
 				tokens.pop_front();
 				if (tokens.empty())    return args;

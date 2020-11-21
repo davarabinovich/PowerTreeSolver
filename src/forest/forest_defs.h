@@ -354,8 +354,12 @@ inline void Forest<key, Type>::moveSubtree (key headerName, key newParentName)
 
 
 	auto header_ptr = nodes[headerName];
-	auto parent_ptr = header_ptr->getParent();
-	cutLinkBetween(parent_ptr, header_ptr);
+	
+	if ( header_ptr->hasParent() )
+	{
+		auto parent_ptr = header_ptr->getParent();
+		cutLinkBetween(parent_ptr, header_ptr);
+	}
 
 	auto newParent_ptr = nodes[newParentName];
 	connectNodes(newParent_ptr, header_ptr);
@@ -369,8 +373,12 @@ inline void Forest<key, Type>::freeSubtree (key headerName)
 
 
 	auto header_ptr = nodes[headerName];
-	auto parent_ptr = header_ptr->getParent();
-	cutLinkBetween(parent_ptr, header_ptr);
+	
+	if ( header_ptr->hasParent() )
+	{
+		auto parent_ptr = header_ptr->getParent();
+		cutLinkBetween(parent_ptr, header_ptr);
+	}
 
 	roots.insert(header_ptr);
 }
@@ -410,10 +418,14 @@ inline void Forest<key, Type>::moveNode (key name, key newParentName)
 
 
 	auto node_ptr = nodes[name];
-	auto parent_ptr = node_ptr->getParent();
 	convertDescesToRoots(node_ptr);
-	cutLinkBetween(parent_ptr, node_ptr);
-	
+
+	if ( node_ptr->hasParent() )
+	{
+		auto parent_ptr = node_ptr->getParent();
+		cutLinkBetween(parent_ptr, node_ptr);
+	}
+		
 	auto newParent_ptr = nodes[newParentName];
 	connectNodes(newParent_ptr, node_ptr);
 }
@@ -431,10 +443,13 @@ inline void Forest<key, Type>::moveNode (key name, key newParentName, key newDes
 
 
 	auto node_ptr = nodes[name];
-	auto parent_ptr = node_ptr->getParent();
-	cutLinkBetween(parent_ptr, node_ptr);
-
 	moveAllDescesTo(node_ptr, newDescesParentName);
+
+	if ( node_ptr->hasParent() )
+	{
+		auto parent_ptr = node_ptr->getParent();
+		cutLinkBetween(parent_ptr, node_ptr);
+	}
 
 	auto newParent_ptr = nodes[newParentName];
 	connectNodes(newParent_ptr, node_ptr);
@@ -448,10 +463,14 @@ inline void Forest<key, Type>::freeNode (key name)
 
 
 	auto node_ptr = nodes[name];
-	auto parent_ptr = node_ptr->getParent();
-	cutLinkBetween(parent_ptr, node_ptr);
-
 	convertDescesToRoots(node_ptr);
+
+	if ( node_ptr->hasParent() )
+	{
+		auto parent_ptr = node_ptr->getParent();
+		cutLinkBetween(parent_ptr, node_ptr);
+	}
+
 	roots.insert(node_ptr);
 }
 
@@ -465,6 +484,12 @@ inline void Forest<key, Type>::freeNode (key name, key newDescesParentName)
 
 	auto node_ptr = nodes[name];
 	moveAllDescesTo(node_ptr, newDescesParentName);
+
+	if ( node_ptr->hasParent() )
+	{
+		auto parent_ptr = node_ptr->getParent();
+		cutLinkBetween(parent_ptr, node_ptr);
+	}
 
 	roots.insert(node_ptr);
 }
