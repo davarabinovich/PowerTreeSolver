@@ -176,13 +176,13 @@ namespace electric_net
 
 	void ElectricNet::moveLoad (key name, key newSourceName)
 	{
-		net.moveNode(name, newSourceName);
+		net.moveLeaf(name, newSourceName);
 	}
 	 
 
 	void ElectricNet::freeLoad (key name)
 	{
-		net.freeNode(name);
+		net.freeLeaf(name);
 	}
 
 

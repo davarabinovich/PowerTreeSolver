@@ -14,7 +14,7 @@ namespace commands
 
 	inline bool isMotionModeString (const string & str)
 	{
-		if (str != "h" && str != "d" && str != "r")    return false;
+		if (str != "f" && str != "w" && str != "r")    return false;
 		return true;
 	}
 
@@ -23,9 +23,9 @@ namespace commands
 		if (!isMotionModeString(str))
 			throw exception(  string("\"" + str + "\" is not a mode of deleting").c_str()  );
 
-		if (str == "d")
+		if (str == "w")
 			return MotionMode::WITH_DESCES;
-		if (str == "h")
+		if (str == "f")
 			return MotionMode::FREE_DESCES;
 		return MotionMode::RECONNECT_DESCES;
 	}

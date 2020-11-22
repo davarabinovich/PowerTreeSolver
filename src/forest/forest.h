@@ -51,6 +51,8 @@ class Forest
 		void moveNode (key name, key newParentName, key newDescesParentName);
 		void freeNode (key name);
 		void freeNode (key name, key newDescesParentName);
+		void moveLeaf (key name, key newParentName);
+		void freeLeaf (key name);
 
 		void renameNode (key oldName, key newName);
 
@@ -125,7 +127,7 @@ class Forest
 		void cutLinkBetween (Node * parent_ptr, Node * desc_ptr);
 		void connectNodes (Node * parent_ptr, Node * desc_ptr);
 
-		bool isInSubtree (key name, key headerName) const;
+		bool isFirstInSubtreeOfSecond (key name, key headerName) const;
 
 
 

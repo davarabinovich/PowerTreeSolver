@@ -2172,6 +2172,7 @@ namespace commands
 			Arguments parseArguments (TokensDeque & tokens) const
 			{
 				Arguments args;
+				bool isModeSpecifiedExplicitly = false;
 	
 				if (tokens.empty())    return args;
 	
@@ -2189,6 +2190,7 @@ namespace commands
 	
 				if (isMotionModeString(handeledArg))
 				{
+					isModeSpecifiedExplicitly = true;
 					args.mode = parseMotionMode(handeledArg);
 	
 					tokens.pop_front();
@@ -2209,8 +2211,8 @@ namespace commands
 				{
 					args.newSinksParentName = handeledArg;
 
-					if ( args.mode && (args.mode != MotionMode::RECONNECT_DESCES) )
-							throw exception ("New parent for descendants can't be specified when motion modei is not \"Reconnect\"");
+					if ( isModeSpecifiedExplicitly && (args.mode != MotionMode::RECONNECT_DESCES) )
+						throw exception ("New parent for descendants can't be specified when motion modei is not \"Reconnect\"");
 
 					args.mode = MotionMode::RECONNECT_DESCES;
 	
@@ -2329,7 +2331,7 @@ namespace commands
 		struct Arguments
 		{
 			string name = "";
-			optional<MotionMode> mode;
+			optional<MotionMode> mode = MotionMode::WITH_DESCES;
 			optional<string> newSinksParentName = "";
 		};
 
@@ -2338,6 +2340,7 @@ namespace commands
 		Arguments parseArguments (TokensDeque & tokens) const
 		{
 			Arguments args;
+			bool isModeSpecifiedExplicitly = false;
 	
 			if (tokens.empty())    return args;
 	
@@ -2355,6 +2358,7 @@ namespace commands
 	
 			if (isMotionModeString(handeledArg))
 			{
+				isModeSpecifiedExplicitly = true;
 				args.mode = parseMotionMode(handeledArg);
 	
 				tokens.pop_front();
@@ -2365,6 +2369,11 @@ namespace commands
 			if (!isMotionModeString(handeledArg))
 			{
 				args.newSinksParentName = handeledArg;
+
+				if ( isModeSpecifiedExplicitly && (args.mode != MotionMode::RECONNECT_DESCES) )
+						throw exception ("New parent for descendants can't be specified when motion modei is not \"Reconnect\"");
+
+				args.mode = MotionMode::RECONNECT_DESCES;
 	
 				tokens.pop_front();
 				if (tokens.empty())    return args;
@@ -2405,6 +2414,12 @@ namespace commands
 		{
 			string type = toStr( activePowerTree->getNodeType(args.name) );
 			cout << capitalize(type) << " \"" << args.name << "\" has been disconnected ";
+
+			if (type == "load")
+			{
+				cout << "." << endl;
+				return;
+			}
 
 			switch (*args.mode)
 			{
