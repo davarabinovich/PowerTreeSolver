@@ -596,9 +596,12 @@ bool Forest<key, Type>::isRoot (key name) const
 
 template <typename key, typename Type>
 template <typename OutType, typename ... InArgs>
-void Forest<key, Type>::iterateAndMakeForEach (function< OutType (InArgs ... args) > Lambda) const
+void Forest<key, Type>::iterateAndMakeForEach (    function< OutType (InArgs ... args) > Lambda, InArgs ... args   ) const
 {
-
+	for (AUTO_CONST_REF root : roots)
+	{
+		//interateSubtreeAndMakeForEach
+	}
 }
 
 

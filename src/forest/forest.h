@@ -65,7 +65,7 @@ class Forest
 
 
 		template <typename OutType, typename ... InArgs>
-		void iterateAndMakeForEach (   function< OutType (InArgs ... args) > Lambda   ) const;
+		void iterateAndMakeForEach (   function< OutType (InArgs ... args) > Lambda, InArgs ... args   ) const;
 
 
 
