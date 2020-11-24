@@ -64,8 +64,8 @@ class Forest
 		bool isRoot (key name) const;
 
 
-		template <typename Signature>
-		void iterateAndMakeForEach ( function<Signature> ) const;
+		template <typename OutType, typename ... InArgs>
+		void iterateAndMakeForEach (   function< OutType (InArgs ... args) > Lambda   ) const;
 
 
 
