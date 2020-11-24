@@ -594,6 +594,13 @@ bool Forest<key, Type>::isRoot (key name) const
 }
 
 
+template <typename key, typename Type>
+template <typename Signature>
+void Forest<key, Type>::iterateAndMakeForEach ( function<Signature> ) const
+{
+
+}
+
 
 
 template <typename key, typename Type>

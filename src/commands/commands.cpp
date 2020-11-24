@@ -44,57 +44,6 @@ using namespace electric_net;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-struct TreeStructure
-{
-	struct Load
-	{
-		string name;
-		LoadType type;
-		double value;
-	};
-
-	struct Converter
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-		ConverterType type;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-	struct Input
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-
-
-
-	vector<Input> inputs;
-	vector<Converter> flyingConverters;
-	vector<Load> flyingLoads;
-};
-
-
-
 struct Results
 {
 	struct Load
@@ -130,7 +79,6 @@ void Solve() {}
 Results GetResults() { return Results(); }
 
 string GetNameOfTree() { return string(); }
-TreeStructure GetTreeStructure() { return TreeStructure(); }
 
 
 
@@ -771,85 +719,84 @@ namespace commands
 	
 	
 	class CommandShowStructure : public CommandWorkingWithExsistingTree
-{
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
+			{
+				ensureIfThereAreSomeTree();
 	
-	public:
+				TreeStructure treeStructure = activePowerTree->getStructure();
+				displayTreeStructure(treeStructure);
+			}
+		
+		
+		
+		
+		private:
+		
+			void displayTreeStructure (const TreeStructure & trStr) const
+			{
+				cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
 	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-			TreeStructure treeStructure = GetTreeStructure();
-			displayTreeStructure(treeStructure);
-		}
+				for (const auto & input : trStr.inputs)
+					displayInputWithDescendantes(input);
+				
+				for (const auto & converter : trStr.flyingConverters)
+					displayConverterWithDescendantes(converter, 10);
+				for (const auto & load : trStr.flyingLoads)
+					displayLoad(load, 10);
 	
-	
-	
-	
-	private:
-	
-		void displayTreeStructure (const TreeStructure & trStr) const
-		{
-			cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
-
-			for (const auto & input : trStr.inputs)
-				displayInputWithDescendantes(input);
-			
-			for (const auto & converter : trStr.flyingConverters)
-				displayConverterWithDescendantes(converter, 10);
-			for (const auto & load : trStr.flyingLoads)
-				displayLoad(load, 10);
-
-			cout << endl;
-		}
-
-		void displayInputWithDescendantes (const TreeStructure::Input & inp) const
-		{
-			string thisSourceInfo = "\"" + inp.name + "\": " + inp.cvType + " input" + to_string(inp.cvValue) + " ";
-			if (inp.cvType == CvType::VOLTAGE)
-				thisSourceInfo += "V";
-			else
-				thisSourceInfo += "A";
-			cout << thisSourceInfo;
-
-			for (const auto & converter : inp.converterSinks)
-				displayConverterWithDescendantes(converter, thisSourceInfo.size());
-			for (const auto & load : inp.loadSinks)
-				displayLoad(load, thisSourceInfo.size());
-
-			if (inp.converterSinks.size() == 0 && inp.loadSinks.size() == 0)
 				cout << endl;
-		}
-
-		void displayConverterWithDescendantes (const TreeStructure::Converter & cnvr, unsigned shiftLength = 0) const
-		{
-			shiftSpaces(shiftLength);
-
-			string thisSourceInfo = "- \"" + cnvr.name + "\": " + cnvr.cvType + " source" + to_string(cnvr.cvValue) + " ";
-			if (cnvr.cvType == CvType::VOLTAGE)
-				thisSourceInfo += "V";
-			else
-				thisSourceInfo += "A";
-			cout << thisSourceInfo;
-
-			for (const auto & converter : cnvr.converterSinks)
-				displayConverterWithDescendantes(converter, thisSourceInfo.size());
-			for (const auto & load : cnvr.loadSinks)
-				displayLoad(load, thisSourceInfo.size());
-
-			if (cnvr.converterSinks.size() == 0 && cnvr.loadSinks.size() == 0)
-				cout << endl;
-		}
-
-		void displayLoad (const TreeStructure::Load & ld, unsigned shiftLength = 0) const
-		{
-			shiftSpaces(shiftLength);
-
-			string thisLoadInfo = "- \"" + ld.name + "\": " + ld.type + " load" + to_string(ld.value);
-		}
+			}
 	
-};
-
+			void displayInputWithDescendantes (const TreeStructure::Input & inp) const
+			{
+				string thisSourceInfo = "\"" + inp.name + "\": " + inp.cvType + " input" + to_string(inp.cvValue) + " ";
+				if (inp.cvType == CvType::VOLTAGE)
+					thisSourceInfo += "V";
+				else
+					thisSourceInfo += "A";
+				cout << thisSourceInfo;
+	
+				for (const auto & converter : inp.converterSinks)
+					displayConverterWithDescendantes(converter, thisSourceInfo.size());
+				for (const auto & load : inp.loadSinks)
+					displayLoad(load, thisSourceInfo.size());
+	
+				if (inp.converterSinks.size() == 0 && inp.loadSinks.size() == 0)
+					cout << endl;
+			}
+	
+			void displayConverterWithDescendantes (const TreeStructure::Converter & cnvr, unsigned shiftLength = 0) const
+			{
+				shiftSpaces(shiftLength);
+	
+				string thisSourceInfo = "- \"" + cnvr.name + "\": " + cnvr.cvType + " source" + to_string(cnvr.cvValue) + " ";
+				if (cnvr.cvType == CvType::VOLTAGE)
+					thisSourceInfo += "V";
+				else
+					thisSourceInfo += "A";
+				cout << thisSourceInfo;
+	
+				for (const auto & converter : cnvr.converterSinks)
+					displayConverterWithDescendantes(converter, thisSourceInfo.size());
+				for (const auto & load : cnvr.loadSinks)
+					displayLoad(load, thisSourceInfo.size());
+	
+				if (cnvr.converterSinks.size() == 0 && cnvr.loadSinks.size() == 0)
+					cout << endl;
+			}
+	
+			void displayLoad (const TreeStructure::Load & ld, unsigned shiftLength = 0) const
+			{
+				shiftSpaces(shiftLength);
+	
+				string thisLoadInfo = "- \"" + ld.name + "\": " + ld.type + " load" + to_string(ld.value);
+			}
+		
+	};
 
 
 

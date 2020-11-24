@@ -96,7 +96,9 @@ namespace electric_net
 			virtual string getTitle () override;
 			virtual void rename (string newTitle) override;
 
-			virtual void calculte () override;
+
+			virtual void calculte () const override;
+			virtual TreeStructure getStructure () const override;
 
 
 

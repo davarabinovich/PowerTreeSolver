@@ -8,7 +8,7 @@
 
 
 
-
+#pragma todo remove
 using namespace std;
 
 
@@ -35,13 +35,13 @@ inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
 {
 	if (name != "")    return;
 
-	string message;
+	std::string message;
 	if (itemType_str == "")
-		message = string("Name can't be empry");
+		message = std::string("Name can't be empry");
 	else
-		message = string("Name of " + itemType_str + " can't be empty");
+		message = std::string("Name of " + itemType_str + " can't be empty");
 
-	throw exception(message.c_str());
+	throw std::exception(message.c_str());
 }
 
 

@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <utility>
+#include <functional>
 
 
 #include "lib/ciflib.h"
@@ -61,6 +62,10 @@ class Forest
 
 		bool isExsist (key name) const;
 		bool isRoot (key name) const;
+
+
+		template <typename Signature>
+		void iterateAndMakeForEach ( function<Signature> ) const;
 
 
 
