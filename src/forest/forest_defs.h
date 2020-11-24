@@ -595,8 +595,8 @@ bool Forest<key, Type>::isRoot (key name) const
 
 
 template <typename key, typename Type>
-template <typename OutType, typename ... InArgs>
-void Forest<key, Type>::iterateAndMakeForEach (    function< OutType (InArgs ... args) > lambda, InArgs ... args   ) const
+template <typename OutType, typename ... InTypes>
+void Forest<key, Type>::iterateAndMakeForEach (    function< OutType (Type object, InTypes ... args) > lambda, InTypes ... args   ) const
 {
 	for (AUTO_CONST_REF root : roots)
 		interateSubtreeAndMakeForEach(root, lambda, args);
@@ -719,7 +719,7 @@ template <typename key, typename Type>
 bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
 {
 	AUTO_CONST_REF desces = nodes.at(second) ->getDesces();
-	for (auto & desc : desces)
+	for (AUTO_CONST_REF desc : desces)
 	{
 		if ( desc->hasDesces() )
 			if ( isFirstInSubtreeOfSecond( first, desc->getName() ) )
@@ -732,11 +732,15 @@ bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
 	return false;
 }
 
-
+#pragma access to content must be optimized; try iterators
 template <typename key, typename Type>
-template <typename OutType, typename ... InArgs>
-void Forest<key, Type>::interateSubtreeAndMakeForEach (    Node * header_ptr, function< OutType (InArgs ... args) > lambda, 
-													       InArgs ... args   ) const
+template <typename OutType, typename ... InTypes>
+void Forest<key, Type>::interateSubtreeAndMakeForEach (    Node * header_ptr, function< OutType (Type object, InTypes ... args) > lambda, 
+													       InTypes ... args   ) const
 {
-	lambda()
+	lambda(header_ptr->get(), args);
+
+	AUTO_CONST_REF desces = header_ptr->getDesces();
+	for (AUTO_CONST_REF desc : desces)
+		interateSubtreeAndMakeForEach(desc.second, lambda, args);
 }

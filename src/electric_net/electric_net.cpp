@@ -355,6 +355,12 @@ namespace electric_net
 	{
 		TreeStructure structure;
 		
+		auto writeData = [] (shared_ptr<ElectricNode> nodeData_ptr, shared_ptr<ElectricNode> parent_ptr) -> void
+		{
+
+		};
+		net.iterateAndMakeForEach(writeData, nullptr);
+
 		return structure;
 	}
 

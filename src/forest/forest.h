@@ -64,8 +64,8 @@ class Forest
 		bool isRoot (key name) const;
 
 
-		template <typename OutType, typename ... InArgs>
-		void iterateAndMakeForEach (   function< OutType (InArgs ... args) > lambda, InArgs ... args   ) const;
+		template <typename OutType, typename ... InTypes>
+		void iterateAndMakeForEach (   function< OutType (Type object, InTypes ... args) > lambda, InTypes ... args   ) const;
 
 
 
@@ -134,9 +134,9 @@ class Forest
 
 		bool isFirstInSubtreeOfSecond (key name, key headerName) const;
 
-		template <typename OutType, typename ... InArgs>
-		void interateSubtreeAndMakeForEach (   Node * header_ptr, function< OutType (InArgs ... args) > lambda, 
-											   InArgs ... args   ) const;
+		template <typename OutType, typename ... InTypes>
+		void interateSubtreeAndMakeForEach (   Node * header_ptr, function< OutType (Type object, InTypes ... args) > lambda, 
+											   InTypes ... args   ) const;
 
 
 
