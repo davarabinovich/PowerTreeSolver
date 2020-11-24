@@ -596,12 +596,10 @@ bool Forest<key, Type>::isRoot (key name) const
 
 template <typename key, typename Type>
 template <typename OutType, typename ... InArgs>
-void Forest<key, Type>::iterateAndMakeForEach (    function< OutType (InArgs ... args) > Lambda, InArgs ... args   ) const
+void Forest<key, Type>::iterateAndMakeForEach (    function< OutType (InArgs ... args) > lambda, InArgs ... args   ) const
 {
 	for (AUTO_CONST_REF root : roots)
-	{
-		//interateSubtreeAndMakeForEach
-	}
+		interateSubtreeAndMakeForEach(root, lambda, args);
 }
 
 
@@ -732,4 +730,13 @@ bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
 	}
 
 	return false;
+}
+
+
+template <typename key, typename Type>
+template <typename OutType, typename ... InArgs>
+void Forest<key, Type>::interateSubtreeAndMakeForEach (    Node * header_ptr, function< OutType (InArgs ... args) > lambda, 
+													       InArgs ... args   ) const
+{
+	lambda()
 }
