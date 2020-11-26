@@ -345,13 +345,16 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::calculte ()
+	void ElectricNet::calculte () const
 	{
 
 	}
 
 
-
+	TreeStructure ElectricNet::getStructure () const
+	{
+		return TreeStructure();
+	}
 
 	
 

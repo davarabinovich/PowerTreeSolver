@@ -41,60 +41,6 @@ using namespace electric_net;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-struct TreeStructure
-{
-	struct Load
-	{
-		string name;
-		LoadType type;
-		double value;
-	};
-
-	struct Converter
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-		ConverterType type;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-	struct Input
-	{
-		string name;
-		CvType cvType;
-		double cvValue;
-
-		vector<Converter> converterSinks;
-		vector<Load>      loadSinks;
-	};
-
-
-
-
-	vector<Input> inputs;
-	vector<Converter> flyingConverters;
-	vector<Load> flyingLoads;
-};
-
-
-
 struct Results
 {
 	struct Load
@@ -130,7 +76,6 @@ void Solve() {}
 Results GetResults() { return Results(); }
 
 string GetNameOfTree() { return string(); }
-TreeStructure GetTreeStructure() { return TreeStructure(); }
 
 
 
@@ -779,7 +724,7 @@ namespace commands
 		{
 			ensureIfThereAreSomeTree();
 
-			TreeStructure treeStructure = GetTreeStructure();
+			TreeStructure treeStructure = activePowerTree->getStructure();
 			displayTreeStructure(treeStructure);
 		}
 	

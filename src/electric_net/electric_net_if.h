@@ -46,32 +46,32 @@ namespace electric_net
 	enum class CvType { VOLTAGE, CURRENT };
 	
 	inline ostream & operator << (ostream & os, const CvType & type)
-{
-	switch (type)
 	{
-	case CvType::VOLTAGE:
-		return os << "voltage";
-	case CvType::CURRENT:
-		return os << "current";
-
-	default:
-		throw exception("Invalid type of controlled variable");
+		switch (type)
+		{
+		case CvType::VOLTAGE:
+			return os << "voltage";
+		case CvType::CURRENT:
+			return os << "current";
+	
+		default:
+			throw exception("Invalid type of controlled variable");
+		}
 	}
-}
 	
 	inline const string operator + (const CvType & tp, const string & str)
-{
-	if (tp == CvType::VOLTAGE)
-		return ("voltage" + str);
-	return ("current" + str);
-}
+	{
+		if (tp == CvType::VOLTAGE)
+			return ("voltage" + str);
+		return ("current" + str);
+	}
 	
 	inline const string operator + (const string & str, const CvType & tp)
-{
-	if (tp == CvType::VOLTAGE)
-		return (str + "voltage");
-	return (str + "current");
-}
+	{
+		if (tp == CvType::VOLTAGE)
+			return (str + "voltage");
+		return (str + "current");
+	}
 
 	inline bool isCvTypeString (const string & str)
 	{
@@ -96,44 +96,44 @@ namespace electric_net
 	enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY, DIODE };
 	
 	inline ostream & operator << (ostream & os, const LoadType & type)
-{
-	switch (type)
 	{
-		case LoadType::RESISTIVE:
-			return os << "resistive";
-		case LoadType::CONSTANT_CURRENT:
-			return os << "constant current";
-		case LoadType::ENERGY:
-			return os << "energy";
-		case LoadType::DIODE:
-			return os << "diode";
-
-	default:
-		throw exception("Invalid type of load");
+		switch (type)
+		{
+			case LoadType::RESISTIVE:
+				return os << "resistive";
+			case LoadType::CONSTANT_CURRENT:
+				return os << "constant current";
+			case LoadType::ENERGY:
+				return os << "energy";
+			case LoadType::DIODE:
+				return os << "diode";
+	
+		default:
+			throw exception("Invalid type of load");
+		}
 	}
-}
 	
 	inline const string operator + (const LoadType & tp, const string & str)
-{
-	if (tp == LoadType::RESISTIVE)
-		return ("resistive" + str);
-	if (tp == LoadType::CONSTANT_CURRENT)
-		return ("constant current" + str);
-	if (tp == LoadType::DIODE)
-		return ("diode" + str);
-	return ("power" + str);
-}
-	
+	{
+		if (tp == LoadType::RESISTIVE)
+			return ("resistive" + str);
+		if (tp == LoadType::CONSTANT_CURRENT)
+			return ("constant current" + str);
+		if (tp == LoadType::DIODE)
+			return ("diode" + str);
+		return ("power" + str);
+	}
+		
 	inline const string operator + (const string & str, const LoadType & tp)
-{
-	if (tp == LoadType::RESISTIVE)
-		return (str + "resistive");
-	if (tp == LoadType::CONSTANT_CURRENT)
-		return (str + "current");
-	if (tp == LoadType::DIODE)
-		return (str + "diode");
-	return (str + "power");
-}
+	{
+		if (tp == LoadType::RESISTIVE)
+			return (str + "resistive");
+		if (tp == LoadType::CONSTANT_CURRENT)
+			return (str + "current");
+		if (tp == LoadType::DIODE)
+			return (str + "diode");
+		return (str + "power");
+	}
 
 	inline bool isLoadTypeString (const string & str)
 	{
@@ -248,18 +248,18 @@ namespace electric_net
 	enum class ConverterType { PULSE, LINEAR };
 	
 	inline ostream & operator << (ostream & os, const ConverterType & type)
-{
-	switch (type)
 	{
-	case ConverterType::PULSE:
-		return os << "pulse";
-	case ConverterType::LINEAR:
-		return os << "linear";
-
-	default:
-		throw exception("Invalid type of converter");
+		switch (type)
+		{
+		case ConverterType::PULSE:
+			return os << "pulse";
+		case ConverterType::LINEAR:
+			return os << "linear";
+	
+		default:
+			throw exception("Invalid type of converter");
+		}
 	}
-}
 
 	inline bool isConverterTypeString (const string & str)
 	{
@@ -277,6 +277,47 @@ namespace electric_net
 		if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
 		return ConverterType::PULSE;
 	}
+
+
+
+
+	struct TreeStructure
+	{
+		struct Load
+		{
+			string name;
+			LoadType type;
+			double value;
+		};
+	
+		struct Converter
+		{
+			string name;
+			CvType cvType;
+			double cvValue;
+			ConverterType type;
+	
+			vector<Converter> converterSinks;
+			vector<Load>      loadSinks;
+		};
+	
+		struct Input
+		{
+			string name;
+			CvType cvType;
+			double cvValue;
+	
+			vector<Converter> converterSinks;
+			vector<Load>      loadSinks;
+		};
+	
+	
+	
+	
+		vector<Input> inputs;
+		vector<Converter> flyingConverters;
+		vector<Load> flyingLoads;
+	};
 
 
 
@@ -347,7 +388,9 @@ namespace electric_net
 			virtual string getTitle () = 0;
 			virtual void rename (string newTitle) = 0;
 
-			virtual void calculte () = 0;
+			virtual void calculte () const = 0;
+			virtual TreeStructure getStructure () const = 0;
+			
 
 
 
