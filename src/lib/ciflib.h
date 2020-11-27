@@ -15,6 +15,7 @@ using namespace std;
 
 
 #define AUTO_CONST_REF auto const &
+#define AUTO_CONST_PTR auto const *
 
 
 

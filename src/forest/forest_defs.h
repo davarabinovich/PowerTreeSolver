@@ -161,6 +161,81 @@ inline Forest<key, Type>::Node::~Node ()
 
 
 
+template <typename key, typename Type>
+inline Forest<key, Type>::iterator::iterator ()
+	: placeInDescesSet() {;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::iterator::iterator (const iterator & it)
+	: ptr(it.ptr) {;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::iterator::iterator (Node * new_ptr)
+	: ptr(new_ptr) {;}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::iterator::operator != (const iterator & other) const
+{
+
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::iterator::operator == (const iterator & other) const
+{
+
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ ()
+{
+
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ (int)
+{
+	if ( ptr->hasDesces() )
+	{
+		auto & result_it = ptr->getDescesSet() ->begin();
+		return result_it;
+	}
+
+	AUTO_CONST_PTR paretn_desces_ptr = ptr->getParent() ->getDesces();
+	if ( ptr != paretn_desces_ptr->end() )
+		;
+
+}
+
+
+template <typename key, typename Type>
+inline const Type & Forest<key, Type>::iterator::operator * () const
+{
+	AUTO_CONST_REF result = *ptr;
+	return result;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator = (const iterator & other_it)
+{
+	ptr = other_it.ptr;
+}
+
+
+
+
+
+
+
+
+
+
 #pragma todo refactor auxiliary functions
 template <typename key, typename Type>
 inline void Forest<key, Type>::addRoot (key name, const Type & content)

@@ -61,7 +61,7 @@ class Forest
 
 		bool isExsist (key name) const;
 		bool isRoot (key name) const;
-
+		
 
 
 		~Forest ();
@@ -109,6 +109,33 @@ class Forest
 		};
 
 
+
+
+	public:
+
+		class iterator
+		{
+			public:
+				iterator ();
+				iterator (const iterator & it);
+				iterator (Node * ptr);
+
+				bool operator != (const iterator & other) const;
+                bool operator == (const iterator & other) const;
+                iterator & operator++ ();   
+                iterator & operator++ (int);
+                const Type & operator * () const;    
+				iterator operator = (const iterator & other_it);
+
+			private:
+				Node * ptr = nullptr;
+				set<Node *>::iterator placeInDescesSet;
+		};
+
+
+
+
+	private:
 
 		map<key, Node *> nodes;
 		set<Node *> roots;
