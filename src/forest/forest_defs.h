@@ -163,7 +163,7 @@ inline Forest<key, Type>::Node::~Node ()
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator ()
-	: placeInDescesSet() {;}
+/*	: placeInDescesSet() */{;}
 
 
 template <typename key, typename Type>
@@ -202,21 +202,46 @@ inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::opera
 {
 	if ( ptr->hasDesces() )
 	{
-		auto & result_it = ptr->getDescesSet() ->begin();
-		return result_it;
+		dafsdf
+		ptr = ptr->getDescesSet() ->begin();
+		return ptr;
 	}
 
-	AUTO_CONST_PTR paretn_desces_ptr = ptr->getParent() ->getDesces();
-	if ( ptr != paretn_desces_ptr->end() )
-		;
+	if ( isRoot(ptr) )
+	{
+		auto tempRoot_it = root_it;
+		if ( (++tempRoot_it) == roots.end() )
+		{
+			root_it = roots.end();
+			ptr = end();
+			return ptr;
+		}
+
+		root_it++;
+		ptr = *root_it;
+		return ptr;
+	}
+
+	if (   isRoot( ptr->getParent() )   )
+	{
+		root_it++;
+		ptr = *root_it;
+		return ptr;
+	}
+
+	if ( isLastDesc() )
+	{
+
+	}
+
 
 }
 
 
 template <typename key, typename Type>
-inline const Type & Forest<key, Type>::iterator::operator * () const
+inline Type & Forest<key, Type>::iterator::operator * () const
 {
-	AUTO_CONST_REF result = *ptr;
+	auto result = *ptr;
 	return result;
 }
 
@@ -225,6 +250,15 @@ template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator = (const iterator & other_it)
 {
 	ptr = other_it.ptr;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::iterator::isLastDesc () const
+{
+	auto const parentLastDesc = *(   ( ptr->getParent() ->getDesces() .end() )--   );
+	bool result = (ptr == parentLastDesc);
+	return result;
 }
 
 
@@ -662,10 +696,27 @@ inline bool Forest<key, Type>::isExsist (key name) const
 
 
 template <typename key, typename Type>
-bool Forest<key, Type>::isRoot (key name) const
+inline bool Forest<key, Type>::isRoot (key name) const
 {
 	bool result = !( nodes.at(name) ->hasParent() );
 	return result;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
+{
+	auto ptr = *( roots.begin() );
+	auto it = iterator(ptr);
+	return it;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
+{
+	auto ptr = iterator(&nodes + object_size);
+	return ptr;
 }
 
 
@@ -783,7 +834,7 @@ inline void Forest<key, Type>::connectNodes (Node * parent_ptr, Node * desc_ptr)
 
 
 template <typename key, typename Type>
-bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
+inline bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
 {
 	AUTO_CONST_REF desces = nodes.at(second) ->getDesces();
 	for (auto & desc : desces)
@@ -797,4 +848,12 @@ bool Forest<key, Type>::isFirstInSubtreeOfSecond (key first, key second) const
 	}
 
 	return false;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::isRoot (const Node * node_ptr) const
+{
+	auto result = node_ptr->hasParent();
+	return result;
 }

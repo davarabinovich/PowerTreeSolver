@@ -5,6 +5,7 @@
 #include <set>
 #include <map>
 #include <utility>
+#include <iterator>
 
 
 #include "lib/ciflib.h"
@@ -16,6 +17,7 @@ using std::set;
 using std::map;
 using std::exception;
 using std::swap;
+
 
 
 
@@ -124,13 +126,21 @@ class Forest
                 bool operator == (const iterator & other) const;
                 iterator & operator++ ();   
                 iterator & operator++ (int);
-                const Type & operator * () const;    
+                Type & operator * () const;    
 				iterator operator = (const iterator & other_it);
 
 			private:
 				Node * ptr = nullptr;
-				set<Node *>::iterator placeInDescesSet;
+				typename set<Node *>::iterator root_it = nullptr;
+				typename set<Node *>::iterator parent_it = nullptr;
+
+				bool isLastDesc () const;
 		};
+
+
+
+		iterator begin ();
+		iterator end ();
 
 
 
@@ -139,6 +149,10 @@ class Forest
 
 		map<key, Node *> nodes;
 		set<Node *> roots;
+
+
+
+		static const size_t object_size = sizeof(Node *);
 
 		
 
@@ -155,6 +169,8 @@ class Forest
 		void connectNodes (Node * parent_ptr, Node * desc_ptr);
 
 		bool isFirstInSubtreeOfSecond (key name, key headerName) const;
+
+		bool isRoot (const Node * node_ptr) const;
 
 
 
