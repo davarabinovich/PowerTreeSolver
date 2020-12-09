@@ -122,17 +122,15 @@ class Forest
 				iterator (const iterator & it);
 				iterator (Node * ptr);
 
-				bool operator != (const iterator & other) const;
-                bool operator == (const iterator & other) const;
+				bool operator != (const iterator & other_it) const;
+                bool operator == (const iterator & other_it) const;
                 iterator & operator++ ();   
                 iterator & operator++ (int);
                 Type & operator * () const;    
 				iterator operator = (const iterator & other_it);
 
 			private:
-				Node * ptr = nullptr;
-				typename set<Node *>::iterator root_it = nullptr;
-				typename set<Node *>::iterator parent_it = nullptr;
+				set<Node *>::iterator it = nullptr;
 
 				bool isLastDesc () const;
 		};

@@ -193,47 +193,24 @@ inline bool Forest<key, Type>::iterator::operator == (const iterator & other) co
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ ()
 {
+	if (it->hasDesces())
+	{
+		it = it->getDesces()->begin();
+	}
+	else
+	{
 
+		if (isLastDesc())
+
+	}
+
+	return it->getToModify();
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ (int)
 {
-	if ( ptr->hasDesces() )
-	{
-		dafsdf
-		ptr = ptr->getDescesSet() ->begin();
-		return ptr;
-	}
-
-	if ( isRoot(ptr) )
-	{
-		auto tempRoot_it = root_it;
-		if ( (++tempRoot_it) == roots.end() )
-		{
-			root_it = roots.end();
-			ptr = end();
-			return ptr;
-		}
-
-		root_it++;
-		ptr = *root_it;
-		return ptr;
-	}
-
-	if (   isRoot( ptr->getParent() )   )
-	{
-		root_it++;
-		ptr = *root_it;
-		return ptr;
-	}
-
-	if ( isLastDesc() )
-	{
-
-	}
-
 
 }
 
