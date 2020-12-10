@@ -4,8 +4,6 @@
 
 #include <set>
 #include <map>
-#include <utility>
-#include <iterator>
 
 
 #include "lib/ciflib.h"
@@ -119,24 +117,29 @@ class Forest
 		{
 			public:
 				iterator ();
-				iterator (const iterator & it);
-				iterator (Node * ptr);
+				iterator (const iterator & gener_it);
+				iterator (Node * gener_ptr, bool isFree = false);
+				iterator (const typename set<Node *>::iterator gener_it);
 
 				bool operator != (const iterator & other_it) const;
                 bool operator == (const iterator & other_it) const;
-                iterator & operator++ ();   
-                iterator & operator++ (int);
+                iterator operator++ ();   
+                iterator operator++ (int);
                 Type & operator * () const;    
 				iterator operator = (const iterator & other_it);
 
 			private:
-				set<Node *>::iterator it = nullptr;
+				Node * ptr = nullptr;
+				typename set<Node *>::iterator it;
+				typename set<Node *>::iterator nearestNotLastPredec_it;
+
+				static bool isLastDesc (const iterator & it);
 
 				bool isLastDesc () const;
 		};
 
 
-
+	
 		iterator begin ();
 		iterator end ();
 

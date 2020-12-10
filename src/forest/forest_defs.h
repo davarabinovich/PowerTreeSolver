@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <iterator>
+
 
 #include "forest/forest.h"
 
@@ -163,17 +165,47 @@ inline Forest<key, Type>::Node::~Node ()
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator ()
-/*	: placeInDescesSet() */{;}
+{;}
 
 
 template <typename key, typename Type>
-inline Forest<key, Type>::iterator::iterator (const iterator & it)
-	: ptr(it.ptr) {;}
+inline Forest<key, Type>::iterator::iterator (const iterator & gener_it)
+	: ptr(gener_it.ptr), it(gener_it.it), nearestNotLastPredec_it(gener_it.nearestNotLastPredec_it)    {;}
 
 
 template <typename key, typename Type>
-inline Forest<key, Type>::iterator::iterator (Node * new_ptr)
-	: ptr(new_ptr) {;}
+inline Forest<key, Type>::iterator::iterator (Node * gener_ptr, bool isFree)
+	: ptr(gener_ptr) 
+{
+	if (isFree)    return;
+
+
+	AUTO_CONST_REF parentsDescesSet = ptr->getParent()->getDesces();
+	it = parentsDescesSet.find(ptr);
+
+
+	auto temp_ptr = ptr;
+	while (!isLastDesc(temp_ptr))
+		temp_ptr = temp_ptr->getParent();
+
+	AUTO_CONST_REF tempParentsDescesSet = temp_ptr->getParent()->getDesces();
+	nearestNotLastPredec_it = tempParentsDescesSet.find(temp_ptr);
+}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::iterator::iterator (const typename set<Node *>::iterator gener_it)
+	: it(gener_it), ptr(*gener_it)
+{
+	auto temp_ptr = ptr;
+	while (!isLastDesc(temp_ptr))
+		temp_ptr = temp_ptr->getParent();
+
+	AUTO_CONST_REF tempParentsDescesSet = temp_ptr->getParent()->getDesces();
+	nearestNotLastPredec_it = tempParentsDescesSet.find(temp_ptr);
+}
+
+
 
 
 template <typename key, typename Type>
@@ -191,38 +223,34 @@ inline bool Forest<key, Type>::iterator::operator == (const iterator & other) co
 
 
 template <typename key, typename Type>
-inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ ()
+inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator++ ()
 {
-	if ((*it)->hasDesces())
+	if (ptr->hasDesces())
 	{
-		it = (*it)->getDesces()->begin();
+		if (!isLastDesc())
+			nearestNotLastPredec_it = it;
+
+		it = ptr->getDesces().begin();
+		ptr = *it;
 	}
 	else
 	{
-
 		if (isLastDesc())
-		{
-			if (isRoot(*it))
-				return end();
-
-			do
-			{
-				it = (it->)getParent()
-			}
-			while ()
-		}
+			it = nearestNotLastPredec_it;
 
 		it++;
 	}
 
-	return it->getToModify();
+	return *this;
 }
 
 
 template <typename key, typename Type>
-inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ (int)
+inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator++ (int)
 {
-
+	auto old_it = *this;
+	++(*this);
+	return old_it;
 }
 
 
@@ -242,11 +270,18 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operato
 
 
 template <typename key, typename Type>
+inline bool Forest<key, Type>::iterator::isLastDesc (const iterator & it)
+{
+	AUTO_CONST_REF parentsDescesSet = it.ptr->getParent()->getDesces();
+	bool result = (next(it.it) == parentsDescesSet.end());
+	return result;
+}
+
+
+template <typename key, typename Type>
 inline bool Forest<key, Type>::iterator::isLastDesc () const
 {
-	auto temp_it = it;
-	AUTO_CONST_REF parentsDescesSet = it->getParent()->getDesces();
-	bool result = (++temp_it == parentsDescesSet.end());
+	bool result = isLastDesc(*this);
 	return result;
 }
 
@@ -695,17 +730,16 @@ inline bool Forest<key, Type>::isRoot (key name) const
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
 {
-	auto ptr = *( roots.begin() );
-	auto it = iterator(ptr);
-	return it;
+	auto begin_it = iterator(roots.begin());
+	return begin_it;
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
-	auto ptr = iterator(&nodes + object_size);
-	return ptr;
+	auto end_it = iterator(&nodes + object_size, true);
+	return end_it;
 }
 
 
