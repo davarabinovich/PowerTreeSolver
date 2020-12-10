@@ -37,6 +37,9 @@ void TestIterating ()
 	Forest<string, TestStr *> testForest;
 	auto test_it = testForest.begin();
 	test_it++;
+
+	for (auto node_it : testForest)
+		;
 }
 
 

@@ -259,7 +259,7 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operato
 template <typename key, typename Type>
 inline Type & Forest<key, Type>::iterator::operator * () const
 {
-	auto content = *ptr;
+	auto & content = ptr->getToModify();
 	return content;
 }
 
@@ -742,8 +742,7 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
-	auto end_it = iterator(&nodes + object_size, true);
-	return end_it;
+	return iterator();
 }
 
 
