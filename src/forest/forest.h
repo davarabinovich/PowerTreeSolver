@@ -125,7 +125,7 @@ class Forest
                 bool operator == (const iterator & other_it) const;
                 iterator operator++ ();   
                 iterator operator++ (int);
-                Type & operator * () const;    
+                pair<key, Type> operator * () const;    
 				iterator operator = (const iterator & other_it);
 
 			private:

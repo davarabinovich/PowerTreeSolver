@@ -257,10 +257,10 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operato
 
 
 template <typename key, typename Type>
-inline Type & Forest<key, Type>::iterator::operator * () const
+inline pair<key, Type> Forest<key, Type>::iterator::operator * () const
 {
-	auto & content = ptr->getToModify();
-	return content;
+	auto keyValuePair = make_pair(ptr->getName(), ptr->getToModify());
+	return keyValuePair;
 }
 
 
