@@ -4,6 +4,7 @@
 - Use functions "capitalize" wherever it's required
 - Forest's end returns nullptr. Research own iters and mayby rework it.
 - Add cache to ElectricNet or Forest
+- All custom operators through modern feature
 - Добавить новую команду в диалог сложнА. Надо придумать как простА и запилить этА. И длинную/короткую формы надА сделать.
 - При добавлении новой команды надо контролировать, что мнемоника не занята.
 - Надо как-то различить случаи, когда введен параметр команды, и не введён. Понять, как для cin определить, что пользователь жмёт сплошные энтеры.

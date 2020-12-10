@@ -209,16 +209,18 @@ inline Forest<key, Type>::iterator::iterator (const typename set<Node *>::iterat
 
 
 template <typename key, typename Type>
-inline bool Forest<key, Type>::iterator::operator != (const iterator & other) const
+inline bool Forest<key, Type>::iterator::operator != (const iterator & other_it) const
 {
-
+	bool result = (ptr != other_it.ptr);
+	return result;
 }
 
 
 template <typename key, typename Type>
-inline bool Forest<key, Type>::iterator::operator == (const iterator & other) const
+inline bool Forest<key, Type>::iterator::operator == (const iterator & other_it) const
 {
-
+	bool result = !(*this != other_it);
+	return result;
 }
 
 
@@ -257,8 +259,8 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operato
 template <typename key, typename Type>
 inline Type & Forest<key, Type>::iterator::operator * () const
 {
-	auto result = *ptr;
-	return result;
+	auto content = *ptr;
+	return content;
 }
 
 
@@ -266,6 +268,8 @@ template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator = (const iterator & other_it)
 {
 	ptr = other_it.ptr;
+	it = other_it.isLastDesc;
+	nearestNotLastPredec_it = other_it.nearestNotLastPredec_it;
 }
 
 
