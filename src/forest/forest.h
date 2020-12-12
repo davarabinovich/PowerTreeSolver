@@ -4,6 +4,7 @@
 
 #include <set>
 #include <map>
+#include <list>
 #include <utility>
 #include <iterator>
 
@@ -130,7 +131,8 @@ class Forest
 				iterator operator = (const iterator & other_it);
 
 			private:
-				set<Node *>::iterator it = nullptr;
+				//Node * ptr = nullptr;	
+				list< typename set<Node *>::iterator > nodesStack;
 
 				bool isLastDesc () const;
 		};

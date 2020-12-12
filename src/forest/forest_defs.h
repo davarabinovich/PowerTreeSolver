@@ -163,90 +163,89 @@ inline Forest<key, Type>::Node::~Node ()
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator ()
-/*	: placeInDescesSet() */{;}
+{;}
 
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator (const iterator & it)
-	: ptr(it.ptr) {;}
+	: nodesStack(it.nodesStack) {;}
 
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator (Node * new_ptr)
-	: ptr(new_ptr) {;}
-
-
-template <typename key, typename Type>
-inline bool Forest<key, Type>::iterator::operator != (const iterator & other) const
 {
 
 }
 
 
 template <typename key, typename Type>
-inline bool Forest<key, Type>::iterator::operator == (const iterator & other) const
+inline bool Forest<key, Type>::iterator::operator != (const iterator & other_it) const
 {
+	bool result = (*nodesStack.back() == *other_it.nodesStack.back());
+	return result;
+}
 
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::iterator::operator == (const iterator & other_it) const
+{
+	bool result = !(*this != other_it);
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ ()
 {
-	if ((*it)->hasDesces())
+	auto it = nodesStack.back();
+
+	if ( !(*it->hasDesces()) )
 	{
-		it = (*it)->getDesces()->begin();
+		if (!isLastDesc())
+			it++;
+		else
+			while (isLastDesc() && !isRoot(*it))
+				nodesStack.pop_back();
 	}
 	else
 	{
-
-		if (isLastDesc())
-		{
-			if (isRoot(*it))
-				return end();
-
-			do
-			{
-				it = (it->)getParent()
-			}
-			while ()
-		}
-
-		it++;
+		nodesStack.push_back(*it->getDesces().begin());
 	}
 
-	return it->getToModify();
+	return *this;
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ (int)
 {
-
+	auto temp_it = *this;
+	(*this)++;
+	return temp_it;
 }
 
 
 template <typename key, typename Type>
 inline Type & Forest<key, Type>::iterator::operator * () const
 {
-	auto result = *ptr;
-	return result;
+	AUTO_CONST_REF content = (*nodesStack.back())->getToModify();
+	return content;
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator = (const iterator & other_it)
 {
-	ptr = other_it.ptr;
+	nodesStack = other_it.nodesStack;
+	return *this;
 }
 
 
 template <typename key, typename Type>
 inline bool Forest<key, Type>::iterator::isLastDesc () const
 {
-	auto temp_it = it;
-	AUTO_CONST_REF parentsDescesSet = it->getParent()->getDesces();
-	bool result = (++temp_it == parentsDescesSet.end());
+	auto temp_it = nodesStack.back();
+	AUTO_CONST_REF parentsDescesSet = *temp_it->getParent()->getDesces();
+	bool result = (next(temp_it) == parentsDescesSet.end());
 	return result;
 }
 
