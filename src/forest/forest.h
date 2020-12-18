@@ -121,20 +121,19 @@ class Forest
 			public:
 				iterator ();
 				iterator (const iterator & it);
-				iterator (typename set<Node *>::iterator & it);
+				iterator (typename set<Node *>::iterator it, const set<Node *> & roots);
 
 				bool operator != (const iterator & other_it) const;
                 bool operator == (const iterator & other_it) const;
                 iterator & operator++ ();   
                 iterator & operator++ (int);
-                Type & operator * () const;    
+                pair<key, Type> operator * () const;    
 				iterator operator = (const iterator & other_it);
 
 			private:
 				list< typename set<Node *>::iterator > nodesStack;
 
 				bool isLastDesc () const;
-				typename set<typename Node *>::iterator getParentsSetIt (typename set<typename Node *>::iterator it) const;
 		};
 
 
@@ -156,6 +155,10 @@ class Forest
 
 		
 
+		static bool isRoot (const Node * node_ptr);
+
+
+
 		Node * createFreeNode (key name, const Type & content = 0);
 		Node * createRoot (key name, const Type & content = 0);
 
@@ -169,8 +172,6 @@ class Forest
 		void connectNodes (Node * parent_ptr, Node * desc_ptr);
 
 		bool isFirstInSubtreeOfSecond (key name, key headerName) const;
-
-		bool isRoot (const Node * node_ptr) const;
 
 
 

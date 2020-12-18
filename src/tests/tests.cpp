@@ -26,9 +26,58 @@ void TestAll ()
 }
 
 
+void TestIterating ()
+{
+	struct TestStr
+	{
+		TestStr (int gen_a, int gen_b) : a(gen_a), b(gen_b) {;}
+
+		int a;
+		int b;
+	};
+
+
+	{
+		TestStr root1(1,1);
+		TestStr root2(1,2);
+		TestStr root3(1,3);
+		TestStr mid1(2,1);
+		TestStr mid2(2,3);
+		TestStr mid3(2,4);
+		TestStr mid4(3,1);
+		TestStr leaf1(2,2);
+		TestStr leaf2(3,2);
+		TestStr leaf3(3,3);
+		TestStr leaf4(3,4);
+		TestStr leaf5(4,1);
+		TestStr leaf6(4,2);
+
+		Forest<string, TestStr *> testForest;
+		testForest.addRoot("a", &root1);
+		testForest.addRoot("b", &root2);
+		testForest.addRoot("c", &root3);
+		testForest.pushBackLeaf("as", "a", &mid1);
+		testForest.pushBackLeaf("aq", "a", &mid2);
+		testForest.pushBackLeaf("cu", "c", &mid3);
+		testForest.pushBackLeaf("ass", "as", &mid4);
+		testForest.pushBackLeaf("art", "a", &leaf1);
+		testForest.pushBackLeaf("aqua", "aq", &leaf2);
+		testForest.pushBackLeaf("aqueduc", "aq", &leaf3);
+		testForest.pushBackLeaf("cut", "cu", &leaf4);
+		testForest.pushBackLeaf("ass ", "ass", &leaf5);
+		testForest.pushBackLeaf("assume", "ass", &leaf6);
+
+		for (auto node : testForest)
+		{
+			cout << node.second->a << "x" << node.second->b << ": " << node.first << endl;
+		}
+	}
+}
+
+
 void TestForest ()
 {
-
+	TestIterating();
 }
 
 
