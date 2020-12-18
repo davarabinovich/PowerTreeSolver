@@ -172,9 +172,13 @@ inline Forest<key, Type>::iterator::iterator (const iterator & it)
 
 
 template <typename key, typename Type>
-inline Forest<key, Type>::iterator::iterator (Node * new_ptr)
+inline Forest<key, Type>::iterator::iterator (typename set<Node *>::iterator & it)
 {
-
+	while (*it->hasParent())
+	{
+		nodesStack.push_front(it);
+		it = getParentsSetIt(it);
+	}
 }
 
 
@@ -247,6 +251,25 @@ inline bool Forest<key, Type>::iterator::isLastDesc () const
 	AUTO_CONST_REF parentsDescesSet = *temp_it->getParent()->getDesces();
 	bool result = (next(temp_it) == parentsDescesSet.end());
 	return result;
+}
+
+
+template <typename key, typename Type>
+inline typename set< typename Forest<key, Type>::Node * >::iterator Forest<key, Type>::iterator::getParentsSetIt 
+       (typename set< typename Forest<key, Type>::Node* >::iterator it) const
+{
+	typename set<Node *>::iterator result_it;
+	auto parent_ptr = *it->getParent();
+	set<Node *> * setWithParent;
+#pragma todo replace all calls "->hasParent()" with the calls with signatures "isRoot"
+
+	if (!isRoot(parent_ptr))
+		setWithParent = &(parent_ptr->getParent()->getDesces());
+	else
+		setWithParent = &roots;
+
+	result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
+	return result_it;
 }
 
 
@@ -703,8 +726,7 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
-	auto ptr = iterator(&nodes + object_size);
-	return ptr;
+	return nullptr;
 }
 
 

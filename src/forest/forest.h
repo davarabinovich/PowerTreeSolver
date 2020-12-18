@@ -121,7 +121,7 @@ class Forest
 			public:
 				iterator ();
 				iterator (const iterator & it);
-				iterator (Node * ptr);
+				iterator (typename set<Node *>::iterator & it);
 
 				bool operator != (const iterator & other_it) const;
                 bool operator == (const iterator & other_it) const;
@@ -131,10 +131,10 @@ class Forest
 				iterator operator = (const iterator & other_it);
 
 			private:
-				//Node * ptr = nullptr;	
 				list< typename set<Node *>::iterator > nodesStack;
 
 				bool isLastDesc () const;
+				typename set<typename Node *>::iterator getParentsSetIt (typename set<typename Node *>::iterator it) const;
 		};
 
 
