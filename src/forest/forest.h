@@ -133,6 +133,9 @@ class Forest
 				typename set<Node *>::iterator it;
 				typename set<Node *>::iterator nearestNotLastPredec_it;
 
+
+
+
 				static bool isLastDesc (const iterator & it);
 
 				bool isLastDesc () const;
