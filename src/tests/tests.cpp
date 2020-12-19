@@ -40,6 +40,20 @@ void TestIterating ()
 	{
 		TestStr root1(1,1);
 		TestStr root2(1,2);
+
+		Forest<string, TestStr *> testForest;
+		testForest.addRoot("a", &root1);
+		testForest.addRoot("b", &root2);
+
+		for (auto node : testForest)
+		{
+			cout << node.second->a << "x" << node.second->b << ": " << node.first << endl;
+		}
+	}
+
+	{
+		TestStr root1(1,1);
+		TestStr root2(1,2);
 		TestStr root3(1,3);
 		TestStr mid1(2,1);
 		TestStr mid2(2,3);
