@@ -63,6 +63,8 @@ class Forest
 		const Type & at (key name) const;
 		unsigned getNestingLevel (key name) const;
 
+		const Type & getParent (key name) const;
+
 		bool isExsist (key name) const;
 		bool isRoot (key name) const;
 		
@@ -192,6 +194,7 @@ class Forest
 		STRING_MESSAGE_EXCEPTION(non_excistent_node, forest_exception);
 		STRING_MESSAGE_EXCEPTION(not_root, forest_exception);
 		STRING_MESSAGE_EXCEPTION(not_leaf, forest_exception);
+		STRING_MESSAGE_EXCEPTION(not_descendant, forest_exception);
 		STRING_MESSAGE_EXCEPTION(closing_motion, forest_exception);
 
 };

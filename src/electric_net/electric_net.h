@@ -99,12 +99,18 @@ namespace electric_net
 			virtual void rename (string newTitle) override;
 
 			virtual void calculte () const override;
+			virtual InputResults getInputResults (key inputName) const override;
+			virtual ConverterResults getConverterResults (key convertertName) const override;
+			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const override;
+			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const override;
+
 			virtual void iterateAndExecuteForEach (function<void (key)> functor) override;
 
 
 
 
 		private:
+
 #pragma todo there is probably doubling with the data structures of specified nodes in the interface. It needs to eliminate that.
 			struct ElectricNode
 			{
@@ -120,6 +126,8 @@ namespace electric_net
 
 				CvType type;
 				double cvValue;
+
+				double avValue = NAN;
 			};
 
 			struct Input : Source
@@ -133,6 +141,8 @@ namespace electric_net
 
 				ConverterType type;
 				double efficiency;
+
+				double inputValue = NAN;
 			};
 
 			struct Load : ElectricNode
@@ -147,6 +157,8 @@ namespace electric_net
 				OneParamLoad (LoadType type, double param);
 
 				double param;
+
+				double inputValue = NAN;
 			};
 			
 			struct TwoParamLoad : Load
@@ -162,6 +174,10 @@ namespace electric_net
 			string title;
 
 			Forest< string, shared_ptr<ElectricNode> > net;
+
+
+
+			CvType calcInputVarTypeByParent (key parentName) const;
 
 	};
 

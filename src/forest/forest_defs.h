@@ -770,6 +770,17 @@ unsigned Forest<key, Type>::getNestingLevel (key name) const
 
 
 template <typename key, typename Type>
+const Type & Forest<key, Type>::getParent (key name) const
+{
+	if ( !(nodes.at(name) ->hasParent()) )    throw not_descendant("getParent");
+
+	AUTO_CONST_PTR parent_ptr = (nodes.at(name)) ->getParent();
+	AUTO_CONST_REF parentContent = parent_ptr->get();
+	return parentContent;
+}
+
+
+template <typename key, typename Type>
 inline bool Forest<key, Type>::isExsist (key name) const
 {
 	bool result = (nodes.count(name) == 1);

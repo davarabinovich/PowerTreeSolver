@@ -321,6 +321,7 @@ namespace electric_net
 		AUTO_CONST_REF input = dynamic_pointer_cast<Input>(node);
 
 		data.name = inputName;
+
 		data.type = input->type;
 		data.value = input->cvValue;
 
@@ -339,7 +340,7 @@ namespace electric_net
 		data.nestingLevel = net.getNestingLevel(converterName);
 
 		data.cvType = converter->Source::type;
-		data.value = converter->Source::cvValue;
+		data.value = converter->cvValue;
 		data.type = converter->type;
 		data.efficiency = converter->efficiency;
 
@@ -390,7 +391,7 @@ namespace electric_net
 		data.nestingLevel = net.getNestingLevel(loadName);
 
 		data.forwardVoltage = load->mainParam;
-		data.forwardCurrent = load-> secondaryParam;
+		data.forwardCurrent = load->secondaryParam;
 
 		return data;
 	}
@@ -407,7 +408,7 @@ namespace electric_net
 		data.nestingLevel = net.getNestingLevel(loadName);
 
 		data.nominalPower = load->mainParam; 
-		data.nominalVoltage = load-> secondaryParam; 
+		data.nominalVoltage = load->secondaryParam; 
 
 		return data;
 	}
@@ -451,10 +452,94 @@ namespace electric_net
 	}
 
 
+	InputResults ElectricNet::getInputResults (key inputName) const
+	{
+		InputResults results;
+
+		AUTO_CONST_REF node = net.at(inputName);
+		AUTO_CONST_REF input = dynamic_pointer_cast<Input>(node);
+
+		results.name = inputName;
+
+		results.type = input->type;
+		results.value = input->cvValue;
+
+		results.avValue = input->avValue;
+
+		return results;
+	}
+
+
+	ConverterResults ElectricNet::getConverterResults (key convertertName) const
+	{
+		ConverterResults results;
+
+		AUTO_CONST_REF node = net.at(convertertName);
+		AUTO_CONST_REF converter = dynamic_pointer_cast<Converter>(node);
+
+		results.name = convertertName;
+		results.nestingLevel = net.getNestingLevel(convertertName);
+
+		results.cvType = converter->Source::type;
+		results.value = converter->cvValue;
+		results.type = converter->type;
+
+		results.avValue = converter->avValue;
+		results.inputValue = converter->inputValue;
+
+		return results;
+	}
+
+
+	ResistiveLoadResults ElectricNet::getResistiveLoadResults (key loadName) const
+	{
+		ResistiveLoadResults results;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<OneParamLoad>(node);
+
+		results.name = loadName;
+		results.nestingLevel = net.getNestingLevel(loadName);
+
+		results.resistance = load->param;
+
+		results.inputValue = load->inputValue;
+		results.inputVarType = calcInputVarTypeByParent(loadName);
+
+		return results;
+	}
+
+
+	ConstantCurrentLoadResults ElectricNet::getConstantCurrentLoadResults (key loadName) const
+	{
+		ConstantCurrentLoadResults results;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<OneParamLoad>(node);
+
+		results.name = loadName;
+		results.nestingLevel = net.getNestingLevel(loadName);
+
+		results.current = load->param;
+
+		return results;
+	}
+		
+		
 	void ElectricNet::iterateAndExecuteForEach (function<void (key)> functor)
 	{
 		for (AUTO_CONST_REF node : net)
 			functor(node.first);
+	}
+
+
+
+
+	CvType ElectricNet::calcInputVarTypeByParent (key loadName) const
+	{
+		auto parent_ptr = net.getParent(loadName);
+		auto type = dynamic_pointer_cast<Source>(parent_ptr)->type;
+		return type;
 	}
 
 	

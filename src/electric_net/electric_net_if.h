@@ -44,6 +44,7 @@ namespace electric_net
 
 
 
+#pragma todo rename to VarType and add inversion
 	enum class CvType { VOLTAGE, CURRENT };
 	
 	inline ostream & operator << (ostream & os, const CvType & type)
@@ -99,7 +100,21 @@ namespace electric_net
 			case CvType::VOLTAGE:
 				return "V";
 			case CvType::CURRENT:
-				return "C";
+				return "A";
+	
+			default:
+				throw exception("Invalid type of controlled variable");
+		}
+	}
+
+	inline string getAvUnitDesignatorStr (const CvType type)
+	{
+		switch (type)
+		{
+			case CvType::VOLTAGE:
+				return "A";
+			case CvType::CURRENT:
+				return "V";
 	
 			default:
 				throw exception("Invalid type of controlled variable");
@@ -293,6 +308,20 @@ namespace electric_net
 		return ConverterType::PULSE;
 	}
 
+	inline string toStr (ConverterType type)
+	{
+		switch (type)
+		{
+		case ConverterType::PULSE:
+			return "pulse";
+		case ConverterType::LINEAR:
+			return "linear";
+	
+		default:
+			throw exception("Invalid type of converter");
+		}
+	}
+
 
 
 	using key = string;
@@ -351,6 +380,51 @@ namespace electric_net
 		double nominalPower;
 		double nominalVoltage;
 	};
+
+
+
+	struct InputResults
+	{
+		key name;
+
+		CvType type;
+		double value;
+
+		double avValue;
+	};
+
+	struct ConverterResults
+	{
+		key name;
+		unsigned nestingLevel;
+
+		CvType cvType;
+		double value;
+		ConverterType type;
+
+		double avValue;
+		double inputValue;
+	};
+
+	struct ResistiveLoadResults
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double resistance;
+
+		double inputValue;
+		CvType inputVarType;
+	};
+
+	struct ConstantCurrentLoadResults
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double current;
+	};
+
 
 
 
@@ -425,6 +499,10 @@ namespace electric_net
 			virtual void rename (string newTitle) = 0;
 
 			virtual void calculte () const = 0;
+			virtual InputResults getInputResults (key inputName) const = 0;
+			virtual ConverterResults getConverterResults (key convertertName) const = 0;
+			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const = 0;
+			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const = 0;
 
 #pragma todo make this const
 			virtual void iterateAndExecuteForEach (function<void (key)> functor) = 0;

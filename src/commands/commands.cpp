@@ -477,245 +477,188 @@ namespace commands
 	};
 		
 	
+
 	
 	
-	class CommandWithShowingResults : public CommandWorkingWithExsistingTree
+	class CommandWithShowingStrucute : public CommandWorkingWithExsistingTree
 	{
 		
+		protected:
+			
+			static const unsigned spaces_per_level_shift = 12;
+
+
+
+			void displayHeader () const
+			{
+				string treeTitle = activePowerTree->getTitle();
+				cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
+			}
+
+	};
+
+
+
+
+
+	class CommandSolve : public CommandWithShowingStrucute
+	{
+	
 		public:
 		
 			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
-	
-	
-				Arguments args = parseArguments(tokens);
-	
-				Results results = GetResults();
-	
-				try { showResults(results, args); }
-				catch (exception & ex) { cout << ex.what(); }
+
+				activePowerTree->calculte();
+				displayResults();
 			}
 		
 		
 		
 		
-		protected:
-		
-			struct Arguments
-			{
-				bool needsShowPowers = false;
-				bool needsShowSecondaryLoadParams = false;
-			};
-	
-	
-	
-			CommandWithShowingResults () {}
-	
-	
-	
-			Arguments parseArguments (TokensDeque & tokens) const
-			{
-				if (tokens.size() > 2)	throw exception("Too many arguments for this command");
-	
-				Arguments args;
-				if (tokens.size() == 0)    return args;
-	
-				unsigned unparsedArgs_cnt = tokens.size();
-				for (const auto& token : tokens)
-				{
-					if (isPowerFlag(token))
-					{
-						args.needsShowPowers = true;
-						unparsedArgs_cnt--;
-						continue;
-					}
-					if (isSecondaryParamsFlag(token))
-					{
-						args.needsShowSecondaryLoadParams = true;
-						unparsedArgs_cnt--;
-						continue;
-					}
-				}
-				return args;
-			}
-	
-			void showResults (Results results, Arguments args) const
-			{
-				cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
-				for (auto& input : results.inputs)
-					showSourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
-				cout << endl;
-			}
-	
-	
-	
-	
 		private:
-	
-			void showSourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
-				unsigned hierarchy_level = 1) const
+
+			#pragma todo decide what kind of functional object is the best
+			class DisplayResultsForElectricNode
 			{
-				/*shiftSpaces(4 * hierarchy_level);
-				if (hierarchy_level != 1)
-					cout << "- ";*/
-	
-				cout << source.name << ": " << source.cvValue << " " << source.cvType << ", ";
-	
-				if (source.cvType == CvType::VOLTAGE)
-					cout << "consumpted current: " << source.avValue << " " << "A";
-				else
-					cout << "output voltage: " << source.avValue << " " << "V";
-	
-				if (needsShowPower)
-					cout << ", consumpted power:" << source.power << " W";
-	
+				public:
+					void operator () (key nodeName)
+					{
+						auto nodeType = activePowerTree->getNodeType(nodeName);
+						switch (nodeType)
+						{
+							case DeviceType::INPUT:
+							{
+								auto inputResults = activePowerTree->getInputResults(nodeName);
+								displayInputResults(inputResults);
+								break;
+							}
+
+							case DeviceType::CONVERTER:
+							{
+								auto converterResults = activePowerTree->getConverterResults(nodeName);
+								displayConverterResults(converterResults);
+								break;
+							}
+
+							case DeviceType::LOAD:
+							{
+								displayLoadResults(nodeName);
+								break;
+							}
+
+							default:
+								throw exception("Invalid type of device");
+
+						}
+					}
+			};
+			const DisplayResultsForElectricNode displayResultsForElectricNode;
+
+
+
+			void displayResults () const
+			{
+				displayHeader();
+				activePowerTree->iterateAndExecuteForEach(displayResultsForElectricNode);
 				cout << endl;
-	
-	
-				for (const auto & converterSink : source.converterSinks)
-					showSourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
-	
-				for (const auto & loadSink : source.loadSinks)
-					showLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
 			}
-	
-			void showLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
-				                    unsigned hierarchy_level) const
+
+
+			static void displayInputResults (InputResults results)
 			{
+				auto [name, type, value, avValue] = results;
+
+				string output = to_string(value) + getCvUnitDesignatorStr(type) + " source \"" + name + "\":\n";
+				output += ("   gives " + to_string(avValue) + getAvUnitDesignatorStr(type));
+
+				cout << output << endl << endl;
+			}
+
+
+			static void displayConverterResults (ConverterResults results)
+			{
+				auto [name, nestingLevel, cvType, value, type, avValue, inputValue] = results;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+
+				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
+				output += (shift + "   gives " + to_string(avValue) + getAvUnitDesignatorStr(cvType) + "\n");
+				output += (shift + "   consumes " + to_string(inputValue) + "A");
+
+				cout << output << endl << endl;
+			}
+
+
+			static void displayLoadResults (key loadName)
+			{
+				auto type = activePowerTree->getLoadType(loadName);
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+					{
+						auto loadResults = activePowerTree->getResistiveLoadResults(loadName);
+						displayResistiveLoadResults(loadResults);
+						break;
+					}
 				
-	
-				cout << load.name << ": " << load.type << " load " << load.value << " ";
-	
-				if (load.type == LoadType::RESISTIVE)
-					cout << "Ohm";
-				else if (load.type == LoadType::CONSTANT_CURRENT)
-					cout << "A";
+					case LoadType::CONSTANT_CURRENT:
+					{
+						auto loadResults = activePowerTree->getConstantCurrentLoadResults(loadName);
+						displayConstantCurrentLoadResults(loadResults);
+						break;
+					}
+				
+					/*case LoadType::ENERGY:
+					{
+						auto loadData = activePowerTree->getEnergyLoadData(loadName);
+						displayEnergyLoad(loadData);
+						break;
+					}
+									
+					case LoadType::DIODE:
+					{
+						auto loadData = activePowerTree->getDiodeLoadData(loadName);
+						displayDiodeLoad(loadData);
+						break;
+					}*/
+				
+					default:
+							throw exception("Invalid type of load");
+				}
+			}
+
+
+			static void displayResistiveLoadResults (ResistiveLoadResults results)
+			{
+				auto [name, nestingLevel, resistance, inputValue, inputVarType] = results;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE) + ":\n";
+				
+				output += shift;
+				if (inputVarType == CvType::VOLTAGE)
+					output += "   consumes ";
 				else
-					cout << "W";
-	
-				if (needsShowPower)
-					cout << ", " << load.power << " W";
-	
-				if (load.type == LoadType::ENERGY)
-					if (needsShowSecondaryLoadParams)
-						cout << load.secondaryParam << " V";
-	
-				cout << endl;
+					output += "   works by ";
+				output += (to_string(inputValue) + getCvUnitDesignatorStr(inputVarType));
+
+				cout << output << endl << endl;
 			}
-		
-			bool isPowerFlag (string token) const
+
+
+			static void displayConstantCurrentLoadResults (ConstantCurrentLoadResults results)
 			{
-				if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
-					return true;
-				return false;
+
 			}
-		
-			bool isSecondaryParamsFlag (string token) const
-			{
-				if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
-					return true;
-				return false;
-			}
-	
+
 	};
 	
-	
-	
-	
-	class CommandSolve : public CommandWithShowingResults
-{
-
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const override
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args = parseArguments(tokens);
-
-			if (!args.needsToShowResults)
-				args.needsToShowResults = suggestShowResultsAndGetAnswer();
-
-			Solve();
-			reportCalculationsFinishs();
-
-			if (args.needsToShowResults)
-			{
-				Results results = GetResults();
-
-				try { showResults(results, args.dispParams); }
-				catch (exception & ex) { cout << ex.what(); }
-			}
-		}
-	
-	
-	
-	
-	private:
-
-		struct Arguments
-		{
-			bool needsToShowResults = false;
-			CommandWithShowingResults::Arguments dispParams;
-		};
 
 
 
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
 
-			if (tokens.size() == 0)    return args;
-
-			const auto & handeledArg = tokens.front();
-			if (isBool_str(handeledArg))
-			{
-				args.needsToShowResults = isYes(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-			}
-			else
-				throw exception(   string("Invalid argument \"" + handeledArg + "\"").c_str()   );
-
-			if (args.needsToShowResults)
-				args.dispParams = CommandWithShowingResults::parseArguments(tokens);
-			
-			throw exception("You can't specify structure displaying parameters if you don't wanna show results");
-		}
-
-		[[nodiscard]] bool suggestShowResultsAndGetAnswer () const
-		{
-			#pragma todo these must be generalised in the same function with the all similar functions (e. g. CommandCreate::suggestEnterNameAndGet)
-			cout << "Do you want to see results ?" << endl;
-			string answer_str; getline(cin, answer_str);
-
-			if (answer_str == "yes" || answer_str == "Yes" || answer_str == "y" || answer_str == "Y")
-				return true;
-			else if (answer_str != "no" && answer_str != "No" && answer_str != "n" && answer_str != "N")
-				throw exception("Invalid answer");
-
-			return false;
-		}
-
-		void reportCalculationsFinishs () const
-		{
-			cout << "Calculations has finished successfully." << endl;
-		}
-
-};
-	
-	
-	
-	
-	class CommandShowResults : public CommandWithShowingResults {};
-	
-	
-	
-	
-	class CommandShowStructure : public CommandWorkingWithExsistingTree
+	class CommandShowStructure : public CommandWithShowingStrucute
 	{
 		
 		public:
@@ -732,11 +675,7 @@ namespace commands
 		
 		private:
 
-			static const unsigned spaces_per_level_shift = 7;
-
-
-
-#pragma todo decide what kind of functional object is the best
+			#pragma todo decide what kind of functional object is the best
 			class DisplayElectricNode
 			{
 				public:
@@ -782,15 +721,6 @@ namespace commands
 				cout << endl;
 			}
 
-			
-			void displayHeader () const
-			{
-				string treeTitle = activePowerTree->getTitle();
-				cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
-			}
-
-
-
 
 			static void displayInput (InputData data)
 			{
@@ -802,11 +732,11 @@ namespace commands
 
 			static void displayConverter (ConverterData data)
 			{
-				auto [name, nestingLevel, cvtype, value, type, efficiency] = data;
+				auto [name, nestingLevel, cvType, value, type, efficiency] = data;
 				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
 				
-				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvtype) + " dc/dc \"" + name 
-					                             + "\" (eff. " + to_string(efficiency) + "%):   ";
+				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name
+					                  + "\" (eff. " + to_string(efficiency) + "%):";
 				cout << output << endl;
 			}
 
@@ -2499,7 +2429,6 @@ namespace commands
 	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()           },
 																				{ "rn", make_shared<CommandRename>()           },
 																				{ "sv", make_shared<CommandSolve>()            },
-																				{ "sr", make_shared<CommandShowResults>()      },
 																				{ "ss", make_shared<CommandShowStructure>()    },
 	
 																				{ "ci", make_shared<CommandCreateInput>()      },
