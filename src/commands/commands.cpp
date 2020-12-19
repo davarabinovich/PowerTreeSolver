@@ -801,13 +801,14 @@ namespace commands
 
 			static unsigned displayConverterAndReturnNewShift (ConverterData data)
 			{
-				auto [name, cvType, value, type, efficiency] = data;
+				/*auto [name, cvType, value, type, efficiency] = data;
 				string output = to_string(value) + getCvUnitDesignatorStr(cvType) + " DC\DC \"" + name 
 					                             + "\" (eff. " + to_string(efficiency) + "%):   ";
 				cout << output;
 
 				unsigned newShift = output.size() + 1;
-				return newShift;
+				return newShift;*/
+				return 1;
 			}
 		
 	};

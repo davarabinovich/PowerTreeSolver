@@ -310,6 +310,7 @@ namespace electric_net
 	struct ConverterData
 	{
 		key name;
+		unsigned nestingLevel;
 
 		CvType cvType;
 		double value;

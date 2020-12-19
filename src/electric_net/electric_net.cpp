@@ -336,6 +336,7 @@ namespace electric_net
 		AUTO_CONST_REF converter = dynamic_pointer_cast<Converter>(node);
 
 		data.name = converterName;
+		//data.nestingLevel = 
 		data.cvType = converter->Source::type;
 		data.value = converter->Source::cvValue;
 		data.type = converter->type;

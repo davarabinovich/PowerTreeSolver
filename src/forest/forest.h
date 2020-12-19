@@ -61,6 +61,7 @@ class Forest
 
 		Type & operator [] (key name);
 		const Type & at (key name) const;
+		unsigned getNestingLevel (key name) const;
 
 		bool isExsist (key name) const;
 		bool isRoot (key name) const;
@@ -73,7 +74,7 @@ class Forest
 
 
 	private:
-
+#pragma todo make as a structure
 		class Node
 		{
 			public:
@@ -84,6 +85,7 @@ class Forest
 				const Type & get () const;
 				Type & getToModify ();
 				key getName () const;
+				unsigned getNestingLevel () const;
 				bool hasParent () const;
 				Node * getParent () const;
 				bool hasDesces () const;

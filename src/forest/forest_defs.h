@@ -62,6 +62,13 @@ inline key Forest<key, Type>::Node::getName () const
 
 
 template <typename key, typename Type>
+unsigned Forest<key, Type>::Node::getNestingLevel () const
+{
+	return nestingLevel;
+}
+
+
+template <typename key, typename Type>
 inline bool Forest<key, Type>::Node::hasParent () const
 {
 	if (parent_ptr == nullptr)
@@ -749,6 +756,14 @@ inline const Type & Forest<key, Type>::at (key name) const
 
 	AUTO_CONST_REF content = nodes.at(name) ->get();
 	return content;
+}
+
+
+template <typename key, typename Type>
+unsigned Forest<key, Type>::getNestingLevel (key name) const
+{
+	unsigned result = nodes.at(name)->getNestingLevel();
+	return result;
 }
 
 
