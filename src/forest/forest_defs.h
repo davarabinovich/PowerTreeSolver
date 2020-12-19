@@ -168,55 +168,34 @@ inline Forest<key, Type>::iterator::iterator ()
 
 template <typename key, typename Type>
 inline Forest<key, Type>::iterator::iterator (const iterator & it)
-	: nodesStack(it.nodesStack) {;}
+	: nodesStack(it.nodesStack), end_it(it.end_it) {;}
 
 
 template <typename key, typename Type>
-inline Forest<key, Type>::iterator::iterator (typename set<Node *>::iterator it, const set<Node *> & roots)
+inline Forest<key, Type>::iterator::iterator (typename set<Node*>::iterator genBegin_it, typename set<Node*>::iterator genEnd_it)
+	: end_it(genEnd_it)
 {
-#pragma todo to understand why it is required
-	auto getParentsSetIt = [this, roots] (typename set< Node *>::iterator it) -> typename set< Node *>::iterator
-	{
-		typename set<Node *>::iterator result_it;
-		auto parent_ptr = (*it)->getParent();
-		const set<Node *> * setWithParent;
-	#pragma todo replace all calls "->hasParent()" with the calls with signatures "isRoot"
-	
-		if (!isRoot(parent_ptr))
-			setWithParent = &(parent_ptr->getParent()->getDesces());
-		else
-			setWithParent = &roots;
-	
-		result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
-		return result_it;
-	};
-
-
-	if (it == roots.end())    return;
-
-	nodesStack.push_front(it);
-	while ((*it)->hasParent())
-	{
-		it = getParentsSetIt(it);
-		nodesStack.push_front(it);
-	}
+	nodesStack.push_front(genBegin_it);
 }
+
+
 
 
 template <typename key, typename Type>
 inline bool Forest<key, Type>::iterator::operator != (const iterator & other_it) const
 {
-	bool isEmpty = nodesStack.empty();
-	bool isOtherEmpty = other_it.nodesStack.empty();
+	auto setIt = nodesStack.back();
+	auto other_setIt = other_it.nodesStack.back();
 
-	if (isEmpty || isOtherEmpty)
-	{
-		if (isEmpty && isOtherEmpty) return false;
+	bool isEnd = (setIt == end_it);
+	bool isOtherEnd = (other_setIt == other_it.end_it);
+
+	if (isEnd != isOtherEnd)
 		return true;
-	}
+	if (isEnd)
+		return false;
 
-
-	bool result = (nodesStack.back() == other_it.nodesStack.back());
+	bool result = (*setIt != *other_setIt);
 	return result;
 }
 
@@ -246,9 +225,14 @@ inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::opera
 				nodesStack.pop_back();
 
 			if (!isLastDesc())
+			{
 				nodesStack.back()++;
+			}
 			else
-				return
+			{
+				nodesStack.clear();
+				nodesStack.push_front(end_it);
+			}
 		}
 
 	}
@@ -284,6 +268,7 @@ template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator = (const iterator & other_it)
 {
 	nodesStack = other_it.nodesStack;
+	end_it = other_it.end_it;
 	return *this;
 }
 
@@ -742,7 +727,7 @@ inline bool Forest<key, Type>::isRoot (key name) const
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
 {
-	iterator it(roots.begin(), roots);
+	iterator it(roots.begin(), roots.end());
 	return it;
 }
 
@@ -750,7 +735,7 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::begin ()
 template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
-	iterator it(roots.end(), roots);
+	iterator it(roots.end(), roots.end());
 	return it;
 }
 
