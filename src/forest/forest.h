@@ -103,9 +103,12 @@ class Forest
 			private:
 				Node (const Node & otherNode) = delete;
 				Node operator = (const Node & otherNode) = delete;
+
+				void updateNestingLevel ();
 				
 				key name;
 				typename Type * content;
+				unsigned nestingLevel = 0;
 
 				Node * parent_ptr;
 				set<Node *> * desces_ptr;

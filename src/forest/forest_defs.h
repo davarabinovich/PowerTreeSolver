@@ -11,6 +11,8 @@ template <typename key, typename Type>
 inline Forest<key, Type>::Node::Node (key nm, Node * prnt)
 	: name(nm), parent_ptr(prnt) 
 {
+	updateNestingLevel();
+
 	content = new Type();
 	desces_ptr = new set<Node *>();
 }
@@ -20,6 +22,8 @@ template <typename key, typename Type>
 inline Forest<key, Type>::Node::Node (key nm, typename const Type & cntnt, Node * prnt)
 	: name(nm),  parent_ptr(prnt) 
 {
+	updateNestingLevel();
+
 	content = new Type();
 	*content = cntnt;
 
@@ -141,6 +145,16 @@ template <typename key, typename Type>
 inline void Forest<key, Type>::Node::disconnectAllDesces ()
 {
 	desces_ptr->clear();
+}
+
+
+
+
+template <typename key, typename Type>
+void Forest<key, Type>::Node::updateNestingLevel ()
+{
+	if (parent_ptr != nullptr)
+		nestingLevel = getParent()->nestingLevel + 1;
 }
 
 
