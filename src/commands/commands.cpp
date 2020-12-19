@@ -724,8 +724,7 @@ namespace commands
 			{
 				ensureIfThereAreSomeTree();
 	
-				TreeStructure treeStructure = activePowerTree->getStructure();
-				displayTreeStructure(treeStructure);
+				displayTreeStructure();
 			}
 		
 		
@@ -733,9 +732,9 @@ namespace commands
 		
 		private:
 		
-			void displayTreeStructure (const TreeStructure & trStr) const
+			void displayTreeStructure () const
 			{
-				cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
+				/*cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
 	
 				for (const auto & input : trStr.inputs)
 					displayInputWithDescendantes(input);
@@ -745,10 +744,10 @@ namespace commands
 				for (const auto & load : trStr.flyingLoads)
 					displayLoad(load, 10);
 	
-				cout << endl;
+				cout << endl;*/
 			}
 	
-			void displayInputWithDescendantes (const TreeStructure::Input & inp) const
+			/*void displayInputWithDescendantes (const TreeStructure::Input & inp) const
 			{
 				string thisSourceInfo = "\"" + inp.name + "\": " + inp.cvType + " input" + to_string(inp.cvValue) + " ";
 				if (inp.cvType == CvType::VOLTAGE)
@@ -791,7 +790,7 @@ namespace commands
 				shiftSpaces(shiftLength);
 	
 				string thisLoadInfo = "- \"" + ld.name + "\": " + ld.type + " load" + to_string(ld.value);
-			}
+			}*/
 		
 	};
 
@@ -921,551 +920,551 @@ namespace commands
 	
 	
 	class CommandCreateConverter : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
-
-			if (isnan(args.cvValue))
-				args.cvValue = requestCvValue(args.cvType);
-			if (args.parentName == "")
-				args.parentName = suggestSpecifieParentAndGet();
-	
-			createConverterByArgs(args);
-	
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string name = "";
-			CvType cvType = CvType::VOLTAGE;
-			double cvValue = NAN;
-
-			ConverterType type = ConverterType::PULSE;
-			double efficiency = NAN;
-
-			string parentName = "";
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty())    return args;
-
-
-			auto handeledArg = tokens.front();
-
-			if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
 			{
-				args.name = handeledArg;
-
-				tokens.pop_front();
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+	
+				if (isnan(args.cvValue))
+					args.cvValue = requestCvValue(args.cvType);
+				if (args.parentName == "")
+					args.parentName = suggestSpecifieParentAndGet();
+		
+				createConverterByArgs(args);
+		
+				reportExecution(args);
+			}
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
+			{
+				string name = "";
+				CvType cvType = CvType::VOLTAGE;
+				double cvValue = NAN;
+	
+				ConverterType type = ConverterType::PULSE;
+				double efficiency = NAN;
+	
+				string parentName = "";
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+	
 				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (isCvTypeString(handeledArg))
-			{
-				args.cvType = parseCvType(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (isFloatNumberString(handeledArg))
-			{
-				args.cvValue = strToDouble(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (isConverterTypeString(handeledArg))
-			{
-				args.type = parseConverterType(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (isFloatNumberString(handeledArg))
-			{
-				args.efficiency = strToDouble(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
-			{
-				args.parentName = handeledArg;
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-			}
-
-			throw exception("There is at least one invalid argument");
-		}
-
-
-		double requestCvValue (const CvType type) const
-		{
-			cout << "Plase enter a value of " << type << endl;
-			string enteredValue; getline(cin, enteredValue);
-			auto value = strToDouble(enteredValue);
-			return value;
-		}
-
-		string suggestSpecifieParentAndGet () const
-		{
-			string parentName = "";
-			cout << "Do you want to leave the new converter unconnected?" << endl;
-			string answer; getline(cin, answer);
-
-			if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
-			{
-				cout << "Enter the name of parent source" << endl;
-				getline(cin, parentName);
-			}
-			else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
-				throw exception("Invalid answer");
-
-			return parentName;
-		}
-
-		void createConverterByArgs (const Arguments & args) const
-		{
-			if (args.parentName == "")
-				activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiency);
-			else
-				activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiency);
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			bool isFree = args.parentName.empty();
-
-
-			string name = "\"" + args.name + "\" ";
-
-			string cvUnit = "V";
-			if (args.cvType == CvType::CURRENT)
-				cvUnit = "A";
-
-
-			cout << "A new ";
-			if (isFree)
-				cout << "free ";
-			cout << args.type << " converter " << name << args.cvValue << " " << cvUnit;
-			cout << " is created";
-			if (!isFree)
-				cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
-			cout << endl << endl;
-		}
 	
-};
+	
+				auto handeledArg = tokens.front();
+	
+				if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+				{
+					args.name = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isCvTypeString(handeledArg))
+				{
+					args.cvType = parseCvType(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isFloatNumberString(handeledArg))
+				{
+					args.cvValue = strToDouble(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isConverterTypeString(handeledArg))
+				{
+					args.type = parseConverterType(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isFloatNumberString(handeledArg))
+				{
+					args.efficiency = strToDouble(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+				{
+					args.parentName = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+				}
+	
+				throw exception("There is at least one invalid argument");
+			}
+	
+	
+			double requestCvValue (const CvType type) const
+			{
+				cout << "Plase enter a value of " << type << endl;
+				string enteredValue; getline(cin, enteredValue);
+				auto value = strToDouble(enteredValue);
+				return value;
+			}
+	
+			string suggestSpecifieParentAndGet () const
+			{
+				string parentName = "";
+				cout << "Do you want to leave the new converter unconnected?" << endl;
+				string answer; getline(cin, answer);
+	
+				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+				{
+					cout << "Enter the name of parent source" << endl;
+					getline(cin, parentName);
+				}
+				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+					throw exception("Invalid answer");
+	
+				return parentName;
+			}
+	
+			void createConverterByArgs (const Arguments & args) const
+			{
+				if (args.parentName == "")
+					activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiency);
+				else
+					activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiency);
+			}
+	
+			void reportExecution (const Arguments & args) const
+			{
+				bool isFree = args.parentName.empty();
+	
+	
+				string name = "\"" + args.name + "\" ";
+	
+				string cvUnit = "V";
+				if (args.cvType == CvType::CURRENT)
+					cvUnit = "A";
+	
+	
+				cout << "A new ";
+				if (isFree)
+					cout << "free ";
+				cout << args.type << " converter " << name << args.cvValue << " " << cvUnit;
+				cout << " is created";
+				if (!isFree)
+					cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
+				cout << endl << endl;
+			}
+		
+	};
 	
 	
 	
 	
 	class CommandCreateLoad : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception & ex) { throw exception(ex.what()); }
-
-			if (args.name == "")
-				args.name = requestAndGetNewName();
-			if (isnan(args.value))
-				args.value = requestValue(args.type);
-			if (args.parentName == "")
-				args.parentName = suggestSpecifieParentAndGet();
-
-			createLoadByArgs(args);
-
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string name = "";
-			LoadType type = LoadType::RESISTIVE;
-			double value = NAN;
-
-			double addValue = NAN;
-
-			string parentName = "";
-		};
-	
-
-
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty())    return args;
-
-
-			auto handeledArg = tokens.front();
-
-			if (!isLoadTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
 			{
-				args.name = handeledArg;
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+	
+				if (args.name == "")
+					args.name = requestAndGetNewName();
+				if (isnan(args.value))
+					args.value = requestValue(args.type);
+				if (args.parentName == "")
+					args.parentName = suggestSpecifieParentAndGet();
+	
+				createLoadByArgs(args);
+	
+				reportExecution(args);
 			}
-
-			if (isLoadTypeString(handeledArg))
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
 			{
-				args.type = parseLoadType(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-
-			if (isFloatNumberString(handeledArg))
+				string name = "";
+				LoadType type = LoadType::RESISTIVE;
+				double value = NAN;
+	
+				double addValue = NAN;
+	
+				string parentName = "";
+			};
+		
+	
+	
+			Arguments parseArguments (TokensDeque & tokens) const
 			{
-				args.value = strToDouble(handeledArg);
-
-				tokens.pop_front();
-
+				Arguments args;
+	
 				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-
-				if (isFloatNumberString(handeledArg))
+	
+	
+				auto handeledArg = tokens.front();
+	
+				if (!isLoadTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 				{
-					args.addValue = strToDouble(handeledArg);
-
+					args.name = handeledArg;
+	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
 				}
-			}
-
-			args.parentName = tokens.front();
-			tokens.pop_front();
-			if (tokens.empty())    return args;
-
-			throw exception("There is at least one invalid argument");
-		}
-
-		string requestAndGetNewName () const
-		{
-			cout << "Enter a name of new load: ";
-			string newName;
-			getline(cin, newName);
-			return newName;
-		}
-
-		double requestValue (const LoadType type) const
-		{
-			cout << "Enter a value of ";
-			string mainParam; 
-			switch (type)
-			{
-				case LoadType::RESISTIVE:
-					mainParam = "resistance";
-					break;
-
-				case LoadType::CONSTANT_CURRENT:
-					mainParam = "current";
-					break;
-
-				case LoadType::ENERGY:
-					mainParam = "power";
-					break;
-
-				case LoadType::DIODE:
-					mainParam = "forward voltage";
-					break;
-			
-				default:
-						throw exception("Invalid type of load");
-			}
-			cout << mainParam << endl;
-			
-			string enteredValue; getline(cin, enteredValue);
-			auto value = strToDouble(enteredValue);
-			return value;
-		}
-
-		string suggestSpecifieParentAndGet () const
-		{
-			string parentName = "";
-			cout << "Do you want to leave the new load unconnected?" << endl;
-			string answer; getline(cin, answer);
-
-			if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
-			{
-				cout << "Enter the name of parent source" << endl;
-				getline(cin, parentName);
-			}
-			else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
-				throw exception("Invalid answer");
-
-			return parentName;
-		}
-
-		void createLoadByArgs (const Arguments & args) const
-		{
-			switch (args.type)
-			{
-				case (LoadType::RESISTIVE): [[__fallthrough]]
-				case (LoadType::CONSTANT_CURRENT):
-				{
-					if (args.parentName == "")
-						activePowerTree->addLoad(args.name, args.type, args.value);
-					else
-						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value);
-
-					break;
-				}
-
-				case (LoadType::DIODE): [[__fallthrough]]
-				case (LoadType::ENERGY):
-				{
-					if (args.parentName == "")
-						activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
-					else
-						activePowerTree->addLoad(args.name, args.parentName, args.type, args.value, args.addValue);
-
-					break;
-				}
-			}
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			bool isFree = args.parentName.empty();
-
-
-			string name = "\"" + args.name + "\" ";
-
-			string valueUnit = "Ohm";
-			if (args.type == LoadType::CONSTANT_CURRENT)
-				valueUnit = "A";
-			else if (args.type == LoadType::ENERGY)
-				valueUnit = "W";
-
-
-			cout << "A new ";
-			if (isFree)
-				cout << "free ";
-			cout << args.type << " load " << name << args.value << " " << valueUnit;
-			cout << " is created";
-			if (!isFree)
-				cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
-			cout << endl << endl;
-		}
 	
-};
+				if (isLoadTypeString(handeledArg))
+				{
+					args.type = parseLoadType(handeledArg);
 	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isFloatNumberString(handeledArg))
+				{
+					args.value = strToDouble(handeledArg);
+	
+					tokens.pop_front();
+	
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+	
+					if (isFloatNumberString(handeledArg))
+					{
+						args.addValue = strToDouble(handeledArg);
+	
+						tokens.pop_front();
+						if (tokens.empty())    return args;
+					}
+				}
+	
+				args.parentName = tokens.front();
+				tokens.pop_front();
+				if (tokens.empty())    return args;
+	
+				throw exception("There is at least one invalid argument");
+			}
+	
+			string requestAndGetNewName () const
+			{
+				cout << "Enter a name of new load: ";
+				string newName;
+				getline(cin, newName);
+				return newName;
+			}
+	
+			double requestValue (const LoadType type) const
+			{
+				cout << "Enter a value of ";
+				string mainParam; 
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+						mainParam = "resistance";
+						break;
+	
+					case LoadType::CONSTANT_CURRENT:
+						mainParam = "current";
+						break;
+	
+					case LoadType::ENERGY:
+						mainParam = "power";
+						break;
+	
+					case LoadType::DIODE:
+						mainParam = "forward voltage";
+						break;
+				
+					default:
+							throw exception("Invalid type of load");
+				}
+				cout << mainParam << endl;
+				
+				string enteredValue; getline(cin, enteredValue);
+				auto value = strToDouble(enteredValue);
+				return value;
+			}
+	
+			string suggestSpecifieParentAndGet () const
+			{
+				string parentName = "";
+				cout << "Do you want to leave the new load unconnected?" << endl;
+				string answer; getline(cin, answer);
+	
+				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+				{
+					cout << "Enter the name of parent source" << endl;
+					getline(cin, parentName);
+				}
+				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+					throw exception("Invalid answer");
+	
+				return parentName;
+			}
+	
+			void createLoadByArgs (const Arguments & args) const
+			{
+				switch (args.type)
+				{
+					case (LoadType::RESISTIVE): [[__fallthrough]]
+					case (LoadType::CONSTANT_CURRENT):
+					{
+						if (args.parentName == "")
+							activePowerTree->addLoad(args.name, args.type, args.value);
+						else
+							activePowerTree->addLoad(args.name, args.parentName, args.type, args.value);
+	
+						break;
+					}
+	
+					case (LoadType::DIODE): [[__fallthrough]]
+					case (LoadType::ENERGY):
+					{
+						if (args.parentName == "")
+							activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
+						else
+							activePowerTree->addLoad(args.name, args.parentName, args.type, args.value, args.addValue);
+	
+						break;
+					}
+				}
+			}
+	
+			void reportExecution (const Arguments & args) const
+			{
+				bool isFree = args.parentName.empty();
+	
+	
+				string name = "\"" + args.name + "\" ";
+	
+				string valueUnit = "Ohm";
+				if (args.type == LoadType::CONSTANT_CURRENT)
+					valueUnit = "A";
+				else if (args.type == LoadType::ENERGY)
+					valueUnit = "W";
+	
+	
+				cout << "A new ";
+				if (isFree)
+					cout << "free ";
+				cout << args.type << " load " << name << args.value << " " << valueUnit;
+				cout << " is created";
+				if (!isFree)
+					cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
+				cout << endl << endl;
+			}
+		
+	};
+		
 	
 	
 	
 	class CommandModifyInput : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
-
-			modifyInputParams(args);
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string currentName;
-
-			optional<string> newName;
-			optional<CvType> cvType;
-			optional<double> cvValue;
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-			if (tokens.empty())    return args;
-
-			args.currentName = tokens.front();
-			if (tokens.empty())    return args;
-
-			tokens.pop_front();
-			for (const auto & token : tokens)
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const
 			{
-				if (isParamWithKey(token))
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+	
+				modifyInputParams(args);
+				reportExecution(args);
+			}
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
+			{
+				string currentName;
+	
+				optional<string> newName;
+				optional<CvType> cvType;
+				optional<double> cvValue;
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+				if (tokens.empty())    return args;
+	
+				args.currentName = tokens.front();
+				if (tokens.empty())    return args;
+	
+				tokens.pop_front();
+				for (const auto & token : tokens)
 				{
-					string key = extractKeyFromToken(token);
-					if (key == "n")
+					if (isParamWithKey(token))
 					{
-						if (args.newName)    
-							continue;
-
-						args.newName = extractParamFromToken(token);
-					}
-					else if (key == "u")
-					{
-						if (args.cvType)    
-							continue;
-
-						args.cvType = parseCvType(extractParamFromToken(token));
-					}
-					else if (key == "v")
-					{
-						if (args.cvValue)    
-							continue;
-
-						args.cvValue = strToDouble(extractParamFromToken(token));
+						string key = extractKeyFromToken(token);
+						if (key == "n")
+						{
+							if (args.newName)    
+								continue;
+	
+							args.newName = extractParamFromToken(token);
+						}
+						else if (key == "u")
+						{
+							if (args.cvType)    
+								continue;
+	
+							args.cvType = parseCvType(extractParamFromToken(token));
+						}
+						else if (key == "v")
+						{
+							if (args.cvValue)    
+								continue;
+	
+							args.cvValue = strToDouble(extractParamFromToken(token));
+						}
+						else
+							throw exception(  string("Unrecognized parameter \"" + key).c_str()  );
 					}
 					else
-						throw exception(  string("Unrecognized parameter \"" + key).c_str()  );
-				}
-				else
-				{
-					if (isCvTypeString(token))
 					{
-						if (args.cvType)
+						if (isCvTypeString(token))
 						{
-							args.cvType = parseCvType(token);
-							continue;
+							if (args.cvType)
+							{
+								args.cvType = parseCvType(token);
+								continue;
+							}
 						}
-					}
-
-					if (isFloatNumberString(token))
-					{
-						if (args.cvValue)
-						{
-							args.cvValue = strToDouble(token);
-							continue;
-						}
-					}
-					
-					if (args.newName)    
-						continue;
-
-					args.newName = token;
-				}
-			}
-
-			return args;
-		}
-
-		bool isParamWithKey (const string & token) const
-		{
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			if (charEqual_it != token.end())    return true;
-			return false;
-		}
-
-		string extractKeyFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(token.begin(), charEqual_it);
-			return result;
-		}
-
-		string extractParamFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(charEqual_it+1, token.end());
-			return result;
-		}
-
-
-		void modifyInputParams (const Arguments & args) const
-		{
-			if (args.cvType)
-				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
-			if (args.cvValue)
-				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
-			if (args.newName)
-				activePowerTree->renameNode(args.currentName, *args.newName);
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
-			
-			if (args.newName)
-				cout << endl << "    Name - \"" << *args.newName << "\"";
-			if (args.cvType)
-				cout << endl << "    Type of controlled variable - " << *args.cvType;
-			if (args.cvValue)
-			{
-				cout << endl << "    Controlled variable - " << *args.cvValue;
-
-				string cvUnit = "V";
-				if (*args.cvType == CvType::CURRENT)
-					cvUnit = "A";
-				cout << " " << cvUnit;
-			}
-
-			cout << endl;
-		}
-
-		void reportNonexsistentInput (const string & name) const
-		{
-			cout << "An input \"" << name << "\" doesn't exsist." << endl;
-		}
 	
-};
+						if (isFloatNumberString(token))
+						{
+							if (args.cvValue)
+							{
+								args.cvValue = strToDouble(token);
+								continue;
+							}
+						}
+						
+						if (args.newName)    
+							continue;
+	
+						args.newName = token;
+					}
+				}
+	
+				return args;
+			}
+	
+			bool isParamWithKey (const string & token) const
+			{
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				if (charEqual_it != token.end())    return true;
+				return false;
+			}
+	
+			string extractKeyFromToken (const string & token) const
+			{
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+	
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(token.begin(), charEqual_it);
+				return result;
+			}
+	
+			string extractParamFromToken (const string & token) const
+			{
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+	
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(charEqual_it+1, token.end());
+				return result;
+			}
+	
+	
+			void modifyInputParams (const Arguments & args) const
+			{
+				if (args.cvType)
+					activePowerTree->setSourceCvType(args.currentName, *args.cvType);
+				if (args.cvValue)
+					activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
+				if (args.newName)
+					activePowerTree->renameNode(args.currentName, *args.newName);
+			}
+	
+			void reportExecution (const Arguments & args) const
+			{
+				cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
+				
+				if (args.newName)
+					cout << endl << "    Name - \"" << *args.newName << "\"";
+				if (args.cvType)
+					cout << endl << "    Type of controlled variable - " << *args.cvType;
+				if (args.cvValue)
+				{
+					cout << endl << "    Controlled variable - " << *args.cvValue;
+	
+					string cvUnit = "V";
+					if (*args.cvType == CvType::CURRENT)
+						cvUnit = "A";
+					cout << " " << cvUnit;
+				}
+	
+				cout << endl;
+			}
+	
+			void reportNonexsistentInput (const string & name) const
+			{
+				cout << "An input \"" << name << "\" doesn't exsist." << endl;
+			}
+		
+	};
 	
 	
 	

@@ -281,44 +281,7 @@ namespace electric_net
 
 
 
-	struct TreeStructure
-	{
-		struct Load
-		{
-			string name;
-			LoadType type;
-			double value;
-		};
 	
-		struct Converter
-		{
-			string name;
-			CvType cvType;
-			double cvValue;
-			ConverterType type;
-	
-			vector<Converter> converterSinks;
-			vector<Load>      loadSinks;
-		};
-	
-		struct Input
-		{
-			string name;
-			CvType cvType;
-			double cvValue;
-	
-			vector<Converter> converterSinks;
-			vector<Load>      loadSinks;
-		};
-	
-	
-	
-	
-		vector<Input> inputs;
-		vector<Converter> flyingConverters;
-		vector<Load> flyingLoads;
-	};
-
 
 
 
@@ -389,7 +352,10 @@ namespace electric_net
 			virtual void rename (string newTitle) = 0;
 
 			virtual void calculte () const = 0;
-			virtual TreeStructure getStructure () const = 0;
+
+			
+			template <class Functor>
+			void iterate (Functor functor) = 0;
 			
 
 

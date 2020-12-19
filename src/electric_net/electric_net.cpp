@@ -350,12 +350,6 @@ namespace electric_net
 
 	}
 
-
-	TreeStructure ElectricNet::getStructure () const
-	{
-		return TreeStructure();
-	}
-
 	
 
 
