@@ -336,11 +336,78 @@ namespace electric_net
 		AUTO_CONST_REF converter = dynamic_pointer_cast<Converter>(node);
 
 		data.name = converterName;
-		//data.nestingLevel = 
+		data.nestingLevel = net.getNestingLevel(converterName);
+
 		data.cvType = converter->Source::type;
 		data.value = converter->Source::cvValue;
 		data.type = converter->type;
 		data.efficiency = converter->efficiency;
+
+		return data;
+	}
+
+
+	ResistiveLoadData ElectricNet::getResistiveLoadData (key loadName)
+	{
+		ResistiveLoadData data;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<OneParamLoad>(node);
+
+		data.name = loadName;
+		data.nestingLevel = net.getNestingLevel(loadName);
+
+		data.resistance = load->param;
+
+		return data;
+	}
+
+
+	ConstantCurrentLoadData ElectricNet::getConstantCurrentLoadData (key loadName)
+	{
+		ConstantCurrentLoadData data;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<OneParamLoad>(node);
+
+		data.name = loadName;
+		data.nestingLevel = net.getNestingLevel(loadName);
+
+		data.current = load->param;
+
+		return data;
+	}
+
+
+	DiodeLoadData ElectricNet::getDiodeLoadData (key loadName)
+	{
+		DiodeLoadData data;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
+
+		data.name = loadName;
+		data.nestingLevel = net.getNestingLevel(loadName);
+
+		data.forwardVoltage = load->mainParam;
+		data.forwardCurrent = load-> secondaryParam;
+
+		return data;
+	}
+
+
+	EnergyLoadData ElectricNet::getEnergyLoadData (key loadName)
+	{
+		EnergyLoadData data;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
+
+		data.name = loadName;
+		data.nestingLevel = net.getNestingLevel(loadName);
+
+		data.nominalPower = load->mainParam; 
+		data.nominalVoltage = load-> secondaryParam; 
 
 		return data;
 	}

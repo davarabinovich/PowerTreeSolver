@@ -318,6 +318,40 @@ namespace electric_net
 		double efficiency;
 	};
 
+	struct ResistiveLoadData
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double resistance;
+	};
+
+	struct ConstantCurrentLoadData
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double current;
+	};
+
+	struct DiodeLoadData
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double forwardVoltage;
+		double forwardCurrent;
+	};
+
+	struct EnergyLoadData
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double nominalPower;
+		double nominalVoltage;
+	};
+
 
 
 
@@ -380,6 +414,10 @@ namespace electric_net
 			virtual DeviceType getNodeType (key name) = 0;
 			virtual InputData getInputData (key inputName) = 0;
 			virtual ConverterData getConverterData (key converterName) = 0;
+			virtual ResistiveLoadData getResistiveLoadData (key loadName) = 0;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) = 0;
+			virtual DiodeLoadData getDiodeLoadData (key loadName) = 0;
+			virtual EnergyLoadData getEnergyLoadData (key loadName) = 0;
 			virtual bool isLoadExsist (key name) = 0;
 			virtual LoadType getLoadType (key name) = 0;
 

@@ -556,9 +556,9 @@ namespace commands
 			void showSourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
 				unsigned hierarchy_level = 1) const
 			{
-				shiftSpaces(4 * hierarchy_level);
+				/*shiftSpaces(4 * hierarchy_level);
 				if (hierarchy_level != 1)
-					cout << "- ";
+					cout << "- ";*/
 	
 				cout << source.name << ": " << source.cvValue << " " << source.cvType << ", ";
 	
@@ -583,7 +583,7 @@ namespace commands
 			void showLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
 				                    unsigned hierarchy_level) const
 			{
-				shiftSpaces(4 * (hierarchy_level + 1));
+				
 	
 				cout << load.name << ": " << load.type << " load " << load.value << " ";
 	
@@ -731,41 +731,45 @@ namespace commands
 		
 		
 		private:
+
+			static const unsigned spaces_per_level_shift = 7;
+
+
+
 #pragma todo decide what kind of functional object is the best
 			class DisplayElectricNode
 			{
 				public:
 					void operator () (key nodeName)
 					{
-						DeviceType nodeType = activePowerTree->getNodeType(nodeName);
+						auto nodeType = activePowerTree->getNodeType(nodeName);
 						switch (nodeType)
 						{
 							case DeviceType::INPUT:
 							{
-								cout << endl;
 								auto inputData = activePowerTree->getInputData(nodeName);
-								actualShift = displayInputAndReturnNewShift(inputData);
+								displayInput(inputData);
 								break;
 							}
 
 							case DeviceType::CONVERTER:
 							{
 								auto converterData = activePowerTree->getConverterData(nodeName);
-								actualShift += displayConverterAndReturnNewShift(converterData);
+								displayConverter(converterData);
 								break;
 							}
 
 							case DeviceType::LOAD:
+							{
+								displayLoad(nodeName);
 								break;
+							}
 
 							default:
 								throw exception("Invalid type of device");
 
 						}
 					}
-
-				private:
-					unsigned actualShift = 0;
 			};
 			const DisplayElectricNode displayElectricNode;
 
@@ -782,33 +786,109 @@ namespace commands
 			void displayHeader () const
 			{
 				string treeTitle = activePowerTree->getTitle();
-				cout << "Structure of power net \"" << treeTitle << "\":" << endl;
+				cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
 			}
 
 
 
 
-			static unsigned displayInputAndReturnNewShift (InputData data)
+			static void displayInput (InputData data)
 			{
 				auto [name, type, value] = data;
 				string output = to_string(value) + getCvUnitDesignatorStr(type) + " source \"" + name + "\":   ";
-				cout << output;
-
-				unsigned newShift = output.size() + 1;
-				return newShift;
+				cout << output << endl;
 			}
 
 
-			static unsigned displayConverterAndReturnNewShift (ConverterData data)
+			static void displayConverter (ConverterData data)
 			{
-				/*auto [name, cvType, value, type, efficiency] = data;
-				string output = to_string(value) + getCvUnitDesignatorStr(cvType) + " DC\DC \"" + name 
+				auto [name, nestingLevel, cvtype, value, type, efficiency] = data;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvtype) + " dc/dc \"" + name 
 					                             + "\" (eff. " + to_string(efficiency) + "%):   ";
-				cout << output;
+				cout << output << endl;
+			}
 
-				unsigned newShift = output.size() + 1;
-				return newShift;*/
-				return 1;
+
+			static void displayLoad (key loadName)
+			{
+				auto type = activePowerTree->getLoadType(loadName);
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+					{
+						auto loadData = activePowerTree->getResistiveLoadData(loadName);
+						displayResistiveLoad(loadData);
+						break;
+					}
+				
+					case LoadType::CONSTANT_CURRENT:
+					{
+						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+						displayConstantCurrentLoad(loadData);
+						break;
+					}
+				
+					case LoadType::ENERGY:
+					{
+						auto loadData = activePowerTree->getEnergyLoadData(loadName);
+						displayEnergyLoad(loadData);
+						break;
+					}
+									
+					case LoadType::DIODE:
+					{
+						auto loadData = activePowerTree->getDiodeLoadData(loadName);
+						displayDiodeLoad(loadData);
+						break;
+					}
+				
+					default:
+							throw exception("Invalid type of load");
+				}
+			}
+
+
+			static void displayResistiveLoad (ResistiveLoadData data)
+			{
+				auto [name, nestingLevel, resistance] = data;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE);
+				cout << output << endl;
+			}
+
+
+			static void displayConstantCurrentLoad (ConstantCurrentLoadData data)
+			{
+				auto [name, nestingLevel, current] = data;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(current) + getMainUnitDesignatorStr(LoadType::CONSTANT_CURRENT);
+				cout << output << endl;
+			}
+
+
+			static void displayDiodeLoad (DiodeLoadData data)
+			{
+				auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(forwardVoltage) + getMainUnitDesignatorStr(LoadType::DIODE)
+					                  + " (forw. cur. " + to_string(forwardCurrent) + getAddUnitDesignatorStr(LoadType::DIODE) + ")";
+				cout << output << endl;
+			}
+
+
+			static void displayEnergyLoad (EnergyLoadData data)
+			{
+				auto [name, nestingLevel, nominalPower, nominalVoltage] = data;
+				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(nominalPower) + getMainUnitDesignatorStr(LoadType::ENERGY)
+					                  + " (nom. volt. " + to_string(nominalVoltage) + getAddUnitDesignatorStr(LoadType::ENERGY) + ")";
+				cout << output << endl;
 			}
 		
 	};
@@ -974,7 +1054,7 @@ namespace commands
 				double cvValue = NAN;
 	
 				ConverterType type = ConverterType::PULSE;
-				double efficiency = NAN;
+				double efficiency = 100.0;
 	
 				string parentName = "";
 			};

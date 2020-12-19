@@ -46,13 +46,6 @@ inline void ensureIsNameNotEmpty (string name, string itemType_str = "")
 }
 
 
-inline void shiftSpaces (unsigned spaces_qty)
-{
-	for (; spaces_qty != 0; spaces_qty--)
-		cout << " ";
-}
-
-
 inline void scrollInteratorToNewWord_unsafe(string::const_iterator & char_it)
 {
 	while (*char_it == ' ') char_it++;

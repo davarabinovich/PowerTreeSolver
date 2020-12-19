@@ -88,6 +88,10 @@ namespace electric_net
 			virtual DeviceType getNodeType (key name) override;
 			virtual InputData getInputData (key inputName) override;
 			virtual ConverterData getConverterData (key converterName) override;
+			virtual ResistiveLoadData getResistiveLoadData (key loadName) override;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) override;
+			virtual DiodeLoadData getDiodeLoadData (key loadName) override;
+			virtual EnergyLoadData getEnergyLoadData (key loadName) override;
 			virtual bool isLoadExsist (key name) override;
 			virtual LoadType getLoadType (key name) override;
 
@@ -128,7 +132,7 @@ namespace electric_net
 				Converter (CvType cvType, double value, ConverterType type, double efficiency);
 
 				ConverterType type;
-				double efficiency = 100.0;
+				double efficiency;
 			};
 
 			struct Load : ElectricNode
