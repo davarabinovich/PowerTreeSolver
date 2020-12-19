@@ -118,6 +118,7 @@ class Forest
 
 		class iterator
 		{
+#pragma todo add type of iterator
 			public:
 				iterator ();
 				iterator (const iterator & it);

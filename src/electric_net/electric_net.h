@@ -31,10 +31,6 @@ namespace electric_net
 	
 		public:
 			
-			using key = string;
-
-			
-			
 			ElectricNet (string name);
 
 
@@ -90,6 +86,8 @@ namespace electric_net
 			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
 
 			virtual DeviceType getNodeType (key name) override;
+			virtual InputData getInputData (key inputName) override;
+			virtual ConverterData getConverterData (key converterName) override;
 			virtual bool isLoadExsist (key name) override;
 			virtual LoadType getLoadType (key name) override;
 
@@ -97,12 +95,13 @@ namespace electric_net
 			virtual void rename (string newTitle) override;
 
 			virtual void calculte () const override;
+			virtual void iterateAndExecuteForEach (function<void (key)> functor) override;
 
 
 
 
 		private:
-				
+#pragma todo there is probably doubling with the data structures of specified nodes in the interface. It needs to eliminate that.
 			struct ElectricNode
 			{
 				ElectricNode (DeviceType type);
@@ -129,7 +128,7 @@ namespace electric_net
 				Converter (CvType cvType, double value, ConverterType type, double efficiency);
 
 				ConverterType type;
-				double efficiency;
+				double efficiency = 100.0;
 			};
 
 			struct Load : ElectricNode

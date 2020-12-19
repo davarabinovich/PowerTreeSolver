@@ -410,215 +410,215 @@ namespace commands
 
 
 	class CommandRename : public CommandWorkingWithExsistingTree
-{
-
-	public:
+	{
 	
-		virtual void execute (TokensDeque& tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-			if (tokens.size() > 1)    throw exception("Too many arguments for this command");
-
-			string newName;
-			if (tokens.size() == 0)
-				newName = requestAndGetNewName();
-			else
-				newName = tokens.front();
-
-			string oldName = activePowerTree->getTitle();
-			activePowerTree->rename(newName);
-
-			Arguments args = { newName, oldName };
-			reportExecution(args);
-		}
-
-
-
-
-	private:
-	
-		struct Arguments
-		{
-			string newName = "";
-			string oldName = "";
-	
-			bool operator == (const Arguments & partner)
+		public:
+		
+			virtual void execute (TokensDeque& tokens) const
 			{
-				if (newName != partner.newName)    return false;
-				if (newName != partner.oldName)    return false;
-				return true;
+				ensureIfThereAreSomeTree();
+	
+				if (tokens.size() > 1)    throw exception("Too many arguments for this command");
+	
+				string newName;
+				if (tokens.size() == 0)
+					newName = requestAndGetNewName();
+				else
+					newName = tokens.front();
+	
+				string oldName = activePowerTree->getTitle();
+				activePowerTree->rename(newName);
+	
+				Arguments args = { newName, oldName };
+				reportExecution(args);
 			}
 	
-			bool operator != (const Arguments & partner)
-			{
-				bool result = !(*this == partner);
-				return result;
-			}
-		};
-
-
-
-
-		string requestAndGetNewName () const
-		{
-			cout << "Enter a new name for this power tree: ";
-			string newName;
-			getline(cin, newName);
-			return newName;
-		}
-
-		void reportExecution (const Arguments & args) const
-		{
-			cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
-				 << endl << endl;
-		}
-
-};
 	
+	
+	
+		private:
+		
+			struct Arguments
+			{
+				string newName = "";
+				string oldName = "";
+		
+				bool operator == (const Arguments & partner)
+				{
+					if (newName != partner.newName)    return false;
+					if (newName != partner.oldName)    return false;
+					return true;
+				}
+		
+				bool operator != (const Arguments & partner)
+				{
+					bool result = !(*this == partner);
+					return result;
+				}
+			};
+	
+	
+	
+	
+			string requestAndGetNewName () const
+			{
+				cout << "Enter a new name for this power tree: ";
+				string newName;
+				getline(cin, newName);
+				return newName;
+			}
+	
+			void reportExecution (const Arguments & args) const
+			{
+				cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
+					 << endl << endl;
+			}
+	
+	};
+		
 	
 	
 	
 	class CommandWithShowingResults : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const override
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args = parseArguments(tokens);
-
-			Results results = GetResults();
-
-			try { showResults(results, args); }
-			catch (exception & ex) { cout << ex.what(); }
-		}
-	
-	
-	
-	
-	protected:
-	
-		struct Arguments
-		{
-			bool needsShowPowers = false;
-			bool needsShowSecondaryLoadParams = false;
-		};
-
-
-
-		CommandWithShowingResults () {}
-
-
-
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			if (tokens.size() > 2)	throw exception("Too many arguments for this command");
-
-			Arguments args;
-			if (tokens.size() == 0)    return args;
-
-			unsigned unparsedArgs_cnt = tokens.size();
-			for (const auto& token : tokens)
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const override
 			{
-				if (isPowerFlag(token))
-				{
-					args.needsShowPowers = true;
-					unparsedArgs_cnt--;
-					continue;
-				}
-				if (isSecondaryParamsFlag(token))
-				{
-					args.needsShowSecondaryLoadParams = true;
-					unparsedArgs_cnt--;
-					continue;
-				}
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args = parseArguments(tokens);
+	
+				Results results = GetResults();
+	
+				try { showResults(results, args); }
+				catch (exception & ex) { cout << ex.what(); }
 			}
-			return args;
-		}
-
-		void showResults (Results results, Arguments args) const
-		{
-			cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
-			for (auto& input : results.inputs)
-				showSourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
-			cout << endl;
-		}
-
-
-
-
-	private:
-
-		void showSourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
-			unsigned hierarchy_level = 1) const
-		{
-			shiftSpaces(4 * hierarchy_level);
-			if (hierarchy_level != 1)
-				cout << "- ";
-
-			cout << source.name << ": " << source.cvValue << " " << source.cvType << ", ";
-
-			if (source.cvType == CvType::VOLTAGE)
-				cout << "consumpted current: " << source.avValue << " " << "A";
-			else
-				cout << "output voltage: " << source.avValue << " " << "V";
-
-			if (needsShowPower)
-				cout << ", consumpted power:" << source.power << " W";
-
-			cout << endl;
-
-
-			for (const auto & converterSink : source.converterSinks)
-				showSourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
-
-			for (const auto & loadSink : source.loadSinks)
-				showLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
-		}
-
-		void showLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
-			                    unsigned hierarchy_level) const
-		{
-			shiftSpaces(4 * (hierarchy_level + 1));
-
-			cout << load.name << ": " << load.type << " load " << load.value << " ";
-
-			if (load.type == LoadType::RESISTIVE)
-				cout << "Ohm";
-			else if (load.type == LoadType::CONSTANT_CURRENT)
-				cout << "A";
-			else
-				cout << "W";
-
-			if (needsShowPower)
-				cout << ", " << load.power << " W";
-
-			if (load.type == LoadType::ENERGY)
-				if (needsShowSecondaryLoadParams)
-					cout << load.secondaryParam << " V";
-
-			cout << endl;
-		}
+		
+		
+		
+		
+		protected:
+		
+			struct Arguments
+			{
+				bool needsShowPowers = false;
+				bool needsShowSecondaryLoadParams = false;
+			};
 	
-		bool isPowerFlag (string token) const
-		{
-			if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
-				return true;
-			return false;
-		}
 	
-		bool isSecondaryParamsFlag (string token) const
-		{
-			if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
-				return true;
-			return false;
-		}
-
-};
+	
+			CommandWithShowingResults () {}
+	
+	
+	
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				if (tokens.size() > 2)	throw exception("Too many arguments for this command");
+	
+				Arguments args;
+				if (tokens.size() == 0)    return args;
+	
+				unsigned unparsedArgs_cnt = tokens.size();
+				for (const auto& token : tokens)
+				{
+					if (isPowerFlag(token))
+					{
+						args.needsShowPowers = true;
+						unparsedArgs_cnt--;
+						continue;
+					}
+					if (isSecondaryParamsFlag(token))
+					{
+						args.needsShowSecondaryLoadParams = true;
+						unparsedArgs_cnt--;
+						continue;
+					}
+				}
+				return args;
+			}
+	
+			void showResults (Results results, Arguments args) const
+			{
+				cout << "Calcultion's results for the power tree \"" << GetNameOfTree() << "\":" << endl;
+				for (auto& input : results.inputs)
+					showSourceResults(input, args.needsShowPowers, args.needsShowSecondaryLoadParams);
+				cout << endl;
+			}
+	
+	
+	
+	
+		private:
+	
+			void showSourceResults (const Results::Source & source, bool needsShowPower, bool needsShowSecondaryLoadParams,
+				unsigned hierarchy_level = 1) const
+			{
+				shiftSpaces(4 * hierarchy_level);
+				if (hierarchy_level != 1)
+					cout << "- ";
+	
+				cout << source.name << ": " << source.cvValue << " " << source.cvType << ", ";
+	
+				if (source.cvType == CvType::VOLTAGE)
+					cout << "consumpted current: " << source.avValue << " " << "A";
+				else
+					cout << "output voltage: " << source.avValue << " " << "V";
+	
+				if (needsShowPower)
+					cout << ", consumpted power:" << source.power << " W";
+	
+				cout << endl;
+	
+	
+				for (const auto & converterSink : source.converterSinks)
+					showSourceResults(converterSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
+	
+				for (const auto & loadSink : source.loadSinks)
+					showLoadResults(loadSink, needsShowPower, needsShowSecondaryLoadParams, hierarchy_level + 1);
+			}
+	
+			void showLoadResults (const Results::Load & load, bool needsShowPower, bool needsShowSecondaryLoadParams,
+				                    unsigned hierarchy_level) const
+			{
+				shiftSpaces(4 * (hierarchy_level + 1));
+	
+				cout << load.name << ": " << load.type << " load " << load.value << " ";
+	
+				if (load.type == LoadType::RESISTIVE)
+					cout << "Ohm";
+				else if (load.type == LoadType::CONSTANT_CURRENT)
+					cout << "A";
+				else
+					cout << "W";
+	
+				if (needsShowPower)
+					cout << ", " << load.power << " W";
+	
+				if (load.type == LoadType::ENERGY)
+					if (needsShowSecondaryLoadParams)
+						cout << load.secondaryParam << " V";
+	
+				cout << endl;
+			}
+		
+			bool isPowerFlag (string token) const
+			{
+				if (token == "sp" || token == "Sp" || token == "showPower" || token == "ShowPower")
+					return true;
+				return false;
+			}
+		
+			bool isSecondaryParamsFlag (string token) const
+			{
+				if (token == "ss" || token == "Ss" || token == "showSec" || token == "ShowSec")
+					return true;
+				return false;
+			}
+	
+	};
 	
 	
 	
@@ -731,66 +731,84 @@ namespace commands
 		
 		
 		private:
-		
+#pragma todo decide what kind of functional object is the best
+			class DisplayElectricNode
+			{
+				public:
+					void operator () (key nodeName)
+					{
+						DeviceType nodeType = activePowerTree->getNodeType(nodeName);
+						switch (nodeType)
+						{
+							case DeviceType::INPUT:
+							{
+								cout << endl;
+								auto inputData = activePowerTree->getInputData(nodeName);
+								actualShift = displayInputAndReturnNewShift(inputData);
+								break;
+							}
+
+							case DeviceType::CONVERTER:
+							{
+								auto converterData = activePowerTree->getConverterData(nodeName);
+								actualShift += displayConverterAndReturnNewShift(converterData);
+								break;
+							}
+
+							case DeviceType::LOAD:
+								break;
+
+							default:
+								throw exception("Invalid type of device");
+
+						}
+					}
+
+				private:
+					unsigned actualShift = 0;
+			};
+			const DisplayElectricNode displayElectricNode;
+
+
+
 			void displayTreeStructure () const
 			{
-				/*cout << "Structure of the power tree \"" << GetNameOfTree() << "\":" << endl;
-	
-				for (const auto & input : trStr.inputs)
-					displayInputWithDescendantes(input);
-				
-				for (const auto & converter : trStr.flyingConverters)
-					displayConverterWithDescendantes(converter, 10);
-				for (const auto & load : trStr.flyingLoads)
-					displayLoad(load, 10);
-	
-				cout << endl;*/
+				displayHeader();
+				activePowerTree->iterateAndExecuteForEach(displayElectricNode);
+				cout << endl;
 			}
-	
-			/*void displayInputWithDescendantes (const TreeStructure::Input & inp) const
+
+			
+			void displayHeader () const
 			{
-				string thisSourceInfo = "\"" + inp.name + "\": " + inp.cvType + " input" + to_string(inp.cvValue) + " ";
-				if (inp.cvType == CvType::VOLTAGE)
-					thisSourceInfo += "V";
-				else
-					thisSourceInfo += "A";
-				cout << thisSourceInfo;
-	
-				for (const auto & converter : inp.converterSinks)
-					displayConverterWithDescendantes(converter, thisSourceInfo.size());
-				for (const auto & load : inp.loadSinks)
-					displayLoad(load, thisSourceInfo.size());
-	
-				if (inp.converterSinks.size() == 0 && inp.loadSinks.size() == 0)
-					cout << endl;
+				string treeTitle = activePowerTree->getTitle();
+				cout << "Structure of power net \"" << treeTitle << "\":" << endl;
 			}
-	
-			void displayConverterWithDescendantes (const TreeStructure::Converter & cnvr, unsigned shiftLength = 0) const
+
+
+
+
+			static unsigned displayInputAndReturnNewShift (InputData data)
 			{
-				shiftSpaces(shiftLength);
-	
-				string thisSourceInfo = "- \"" + cnvr.name + "\": " + cnvr.cvType + " source" + to_string(cnvr.cvValue) + " ";
-				if (cnvr.cvType == CvType::VOLTAGE)
-					thisSourceInfo += "V";
-				else
-					thisSourceInfo += "A";
-				cout << thisSourceInfo;
-	
-				for (const auto & converter : cnvr.converterSinks)
-					displayConverterWithDescendantes(converter, thisSourceInfo.size());
-				for (const auto & load : cnvr.loadSinks)
-					displayLoad(load, thisSourceInfo.size());
-	
-				if (cnvr.converterSinks.size() == 0 && cnvr.loadSinks.size() == 0)
-					cout << endl;
+				auto [name, type, value] = data;
+				string output = to_string(value) + getCvUnitDesignatorStr(type) + " source \"" + name + "\":   ";
+				cout << output;
+
+				unsigned newShift = output.size() + 1;
+				return newShift;
 			}
-	
-			void displayLoad (const TreeStructure::Load & ld, unsigned shiftLength = 0) const
+
+
+			static unsigned displayConverterAndReturnNewShift (ConverterData data)
 			{
-				shiftSpaces(shiftLength);
-	
-				string thisLoadInfo = "- \"" + ld.name + "\": " + ld.type + " load" + to_string(ld.value);
-			}*/
+				auto [name, cvType, value, type, efficiency] = data;
+				string output = to_string(value) + getCvUnitDesignatorStr(cvType) + " DC\DC \"" + name 
+					                             + "\" (eff. " + to_string(efficiency) + "%):   ";
+				cout << output;
+
+				unsigned newShift = output.size() + 1;
+				return newShift;
+			}
 		
 	};
 
@@ -1887,19 +1905,19 @@ namespace commands
 				
 				if (args.value)
 				{
-					string paramStr = capitalize( getValueTypeStrByLoadType(actualType) );
+					string paramStr = capitalize( getValueTypeStr(actualType) );
 					cout << endl << "    " << paramStr << " - " << *args.value;
 		
-					string valueUnit = getMainUnitDesignatorStrByLoadType(actualType);
+					string valueUnit = getMainUnitDesignatorStr(actualType);
 					cout << " " << valueUnit;
 				}
 	
 				if (args.addValue)
 				{
-					string paramStr = capitalize( getAddValueTypeStrByLoadType(actualType) );
+					string paramStr = capitalize( getAddValueTypeStr(actualType) );
 					cout << endl << "    " << paramStr << " - " << *args.addValue;
 		
-					string valueUnit = getAddUnitDesignatorStrByLoadType(actualType);
+					string valueUnit = getAddUnitDesignatorStr(actualType);
 					cout << " " << valueUnit;
 				}
 		

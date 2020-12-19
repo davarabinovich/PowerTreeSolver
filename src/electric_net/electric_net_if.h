@@ -3,6 +3,7 @@
 
 
 #include <sstream>
+#include <functional>
 
 
 #include "config.h"
@@ -32,7 +33,7 @@ namespace electric_net
 				return "load";
 	
 			default:
-				throw exception("Invalid type of controlled variable");
+				throw exception("Invalid type of device");
 		}
 	}
 
@@ -49,13 +50,13 @@ namespace electric_net
 	{
 		switch (type)
 		{
-		case CvType::VOLTAGE:
-			return os << "voltage";
-		case CvType::CURRENT:
-			return os << "current";
+			case CvType::VOLTAGE:
+				return os << "voltage";
+			case CvType::CURRENT:
+				return os << "current";
 	
-		default:
-			throw exception("Invalid type of controlled variable");
+			default:
+				throw exception("Invalid type of controlled variable");
 		}
 	}
 	
@@ -89,6 +90,20 @@ namespace electric_net
 
 		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return CvType::CURRENT;
 		return CvType::VOLTAGE;
+	}
+
+	inline string getCvUnitDesignatorStr (const CvType type)
+	{
+		switch (type)
+		{
+			case CvType::VOLTAGE:
+				return "V";
+			case CvType::CURRENT:
+				return "C";
+	
+			default:
+				throw exception("Invalid type of controlled variable");
+		}
 	}
 	
 	
@@ -159,7 +174,7 @@ namespace electric_net
 		return LoadType::DIODE;
 	}
 
-	inline string getValueTypeStrByLoadType (const LoadType type)
+	inline string getValueTypeStr (const LoadType type)
 	{
 		switch (type)
 		{
@@ -181,7 +196,7 @@ namespace electric_net
 		}
 	}
 
-	inline string getMainUnitDesignatorStrByLoadType (const LoadType type)
+	inline string getMainUnitDesignatorStr (const LoadType type)
 	{
 		switch (type)
 		{
@@ -203,7 +218,7 @@ namespace electric_net
 		}
 	}
 
-	inline string getAddValueTypeStrByLoadType (const LoadType type)
+	inline string getAddValueTypeStr (const LoadType type)
 	{
 		switch (type)
 		{
@@ -223,7 +238,7 @@ namespace electric_net
 		}
 	}
 
-	inline string getAddUnitDesignatorStrByLoadType (const LoadType type)
+	inline string getAddUnitDesignatorStr (const LoadType type)
 	{
 		switch (type)
 		{
@@ -280,8 +295,28 @@ namespace electric_net
 
 
 
+	using key = string;
 
-	
+
+
+	struct InputData
+	{
+		key name;
+
+		CvType type;
+		double value;
+	};
+
+	struct ConverterData
+	{
+		key name;
+
+		CvType cvType;
+		double value;
+		ConverterType type; 
+		double efficiency;
+	};
+
 
 
 
@@ -290,9 +325,6 @@ namespace electric_net
 		
 		public:
 
-			using key = string;
-
-			
 #pragma todo add const qualificators
 			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) = 0;
 			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
@@ -345,6 +377,8 @@ namespace electric_net
 			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
 			
 			virtual DeviceType getNodeType (key name) = 0;
+			virtual InputData getInputData (key inputName) = 0;
+			virtual ConverterData getConverterData (key converterName) = 0;
 			virtual bool isLoadExsist (key name) = 0;
 			virtual LoadType getLoadType (key name) = 0;
 
@@ -353,9 +387,8 @@ namespace electric_net
 
 			virtual void calculte () const = 0;
 
-			
-			template <class Functor>
-			void iterate (Functor functor) = 0;
+#pragma todo make this const
+			virtual void iterateAndExecuteForEach (function<void (key)> functor) = 0;
 			
 
 

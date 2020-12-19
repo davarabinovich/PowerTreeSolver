@@ -313,6 +313,38 @@ namespace electric_net
 	}
 
 
+	InputData ElectricNet::getInputData (key inputName)
+	{
+		InputData data;
+
+		AUTO_CONST_REF node = net.at(inputName);
+		AUTO_CONST_REF input = dynamic_pointer_cast<Input>(node);
+
+		data.name = inputName;
+		data.type = input->type;
+		data.value = input->cvValue;
+
+		return data;
+	}
+
+
+	ConverterData ElectricNet::getConverterData (key converterName)
+	{
+		ConverterData data;
+
+		AUTO_CONST_REF node = net.at(converterName);
+		AUTO_CONST_REF converter = dynamic_pointer_cast<Converter>(node);
+
+		data.name = converterName;
+		data.cvType = converter->Source::type;
+		data.value = converter->Source::cvValue;
+		data.type = converter->type;
+		data.efficiency = converter->efficiency;
+
+		return data;
+	}
+
+
 	bool ElectricNet::isLoadExsist (key name)
 	{
 		if (net.isExsist(name))
@@ -348,6 +380,13 @@ namespace electric_net
 	void ElectricNet::calculte () const
 	{
 
+	}
+
+
+	void ElectricNet::iterateAndExecuteForEach (function<void (key)> functor)
+	{
+		for (AUTO_CONST_REF node : net)
+			functor(node.first);
 	}
 
 	

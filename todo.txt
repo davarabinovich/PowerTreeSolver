@@ -1,3 +1,4 @@
+- Use a fast method of structures returning
 - It's forbidden to use shared pointers for static objects
 - Package ciflib on .lib or .dll
 - Unifie behavior with an undefined name of command object
