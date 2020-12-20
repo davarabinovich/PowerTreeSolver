@@ -187,10 +187,10 @@ namespace electric_net
 			double calculateAndUpdateGivenParams (Desc_it source_it);
 			void writeAvValueToSource (double newAvValue, key sourceName);
 			void writeInputValueToConverter (double newInputValue, key converterName);
-			void writeInputValueToLoad (double newInputValue, key loadName);
+			void writeInputValueToResistiveLoad (double newInputValue, key loadName);
 			double calculateConsumption (Desc_it sink_it, Desc_it source_it);
 			double reduceOutputToInput (Desc_it sink_it, Desc_it source_it);
-			double calculateLoadConsumption (Desc_it sink_it, Desc_it source_it);
+			double calculateLoadConsumption (Desc_it load_it, Desc_it source_it);
 
 			VarKind calcInputVarTypeByParent (key parentName) const;
 

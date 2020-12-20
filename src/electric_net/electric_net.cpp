@@ -544,7 +544,7 @@ namespace electric_net
 
 	double ElectricNet::calculateAndUpdateGivenParams (Desc_it source_it)
 	{
-		double accOutputCurrent(0.0);
+		double accOutputCurrent = 0.0;
 		for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
 			                                       desc_it != net.dgend((*source_it).first); desc_it++)
 			accOutputCurrent += calculateConsumption (desc_it, source_it);
@@ -569,7 +569,7 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::writeInputValueToLoad (double newInputValue, key loadName)
+	void ElectricNet::writeInputValueToResistiveLoad (double newInputValue, key loadName)
 	{
 		AUTO_CONST_REF source = dynamic_pointer_cast<OneParamLoad>(net.at(loadName));
 		source->inputValue = newInputValue;
@@ -602,30 +602,63 @@ namespace electric_net
 
 	double ElectricNet::reduceOutputToInput (Desc_it sink_it, Desc_it source_it)
 	{
-		auto sink = dynamic_pointer_cast<Converter>( (*sink_it).second );
 		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
+		auto converter = dynamic_pointer_cast<Converter>( (*sink_it).second );
+		auto converterType = converter->type;
 
-		double outputVoltage(sink->cvValue);
-		double outputCurrent(sink->avValue);
-		double efficiency(sink->efficiency);
-		double inputVoltage(source->cvValue);
+		double outputVoltage = converter->cvValue;
+		double outputCurrent = converter->avValue;
+		double efficiency = converter->efficiency;
+		double inputVoltage = source->cvValue;
 
-		double inputCurrent = 100 * (outputVoltage * outputCurrent) / (efficiency * inputVoltage);
+		double inputCurrent;
+		switch (converterType)
+		{
+			case ConverterType::PULSE:
+				inputCurrent = 100 * (outputVoltage * outputCurrent) / (efficiency * inputVoltage);
+				break;
+
+			case ConverterType::LINEAR:
+				inputCurrent = outputCurrent;
+				break;
+
+			default:
+				throw exception("Invalid type of converter");
+		}
+		
 		return inputCurrent;
 	}
 
 
-	double ElectricNet::calculateLoadConsumption (Desc_it sink_it, Desc_it source_it)
+	double ElectricNet::calculateLoadConsumption (Desc_it load_it, Desc_it source_it)
 	{
-		auto sink = dynamic_pointer_cast<OneParamLoad>( (*sink_it).second );
 		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
+		auto load = dynamic_pointer_cast<OneParamLoad>( (*load_it).second );
+		auto loadType = load->type;
 
-		double resistance(sink->param);
-		double voltage(source->cvValue);
+		double voltage = source->cvValue;
 
-		double loadCurrent = voltage / resistance;
-		writeInputValueToLoad(loadCurrent, (*sink_it).first);
-		return loadCurrent;
+
+		switch (loadType)
+		{
+			case LoadType::RESISTIVE:
+			{
+				double resistance = load->param;
+
+				double loadCurrent = voltage / resistance;
+				writeInputValueToResistiveLoad(loadCurrent, (*load_it).first);
+				return loadCurrent;
+			}
+
+			case LoadType::CONSTANT_CURRENT:
+			{
+				double current = load->param;
+				return current;
+			}
+
+			default:
+				throw exception("Invalid type of load");
+		}
 	}
 
 
