@@ -544,14 +544,51 @@ namespace electric_net
 
 	double ElectricNet::calculateAndUpdateGivenParams (Desc_it source_it)
 	{
-		double accOutputCurrent = 0.0;
-		for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
-			                                       desc_it != net.dgend((*source_it).first); desc_it++)
-			accOutputCurrent += calculateConsumption (desc_it, source_it);
+		auto varKind = dynamic_pointer_cast<Source>((*source_it).second)->cvKind;
 
-		writeAvValueToSource(accOutputCurrent, (*source_it).first);
+		switch (varKind)
+		{
+			case VarKind::VOLTAGE:
+			{
+				double accOutputCurrent = 0.0;
+				for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
+					                                       desc_it != net.dgend((*source_it).first); desc_it++)
+					accOutputCurrent += calculateConsumption (desc_it, source_it);
 
-		return accOutputCurrent;
+				writeAvValueToSource(accOutputCurrent, (*source_it).first);
+
+				return accOutputCurrent;
+			}
+
+			case VarKind::CURRENT:
+			{
+				double accLoadsTotalConductivity = 0.0;
+				for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
+					                                       desc_it != net.dgend((*source_it).first); desc_it++)
+				{
+					double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
+					accLoadsTotalConductivity += 1 / loadResistance;
+				}
+
+				double sourceCurrent = dynamic_pointer_cast<Converter>((*source_it).second) ->cvValue;
+				double outputVoltage = sourceCurrent / accLoadsTotalConductivity;
+				writeAvValueToSource(outputVoltage, (*source_it).first);
+
+				for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first);
+					                                       desc_it != net.dgend((*source_it).first); desc_it++)
+				{
+					double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
+					double loadCurrent = outputVoltage / loadResistance;
+					writeInputValueToResistiveLoad(loadCurrent, (*desc_it).first);
+				}
+
+				return outputVoltage;
+			}
+
+
+			default:
+				throw exception("invalind kind of controlled variable");
+		}
 	}
 	
 
@@ -595,8 +632,11 @@ namespace electric_net
 				double loadCurrent = calculateLoadConsumption(sink_it, source_it);
 				return loadCurrent;
 			}
+
+
+			default:
+				throw exception("Input doesn't consume");
 		}
-		return 1;
 	}
 
 
@@ -605,9 +645,9 @@ namespace electric_net
 		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
 		auto converter = dynamic_pointer_cast<Converter>( (*sink_it).second );
 		auto converterType = converter->type;
+		auto converterVarKind = converter->cvKind;
 
-		double outputVoltage = converter->cvValue;
-		double outputCurrent = converter->avValue;
+		double outputPower = (converter->cvValue) * (converter->avValue);
 		double efficiency = converter->efficiency;
 		double inputVoltage = source->cvValue;
 
@@ -615,12 +655,26 @@ namespace electric_net
 		switch (converterType)
 		{
 			case ConverterType::PULSE:
-				inputCurrent = 100 * (outputVoltage * outputCurrent) / (efficiency * inputVoltage);
+				inputCurrent = 100 * outputPower / (efficiency * inputVoltage);
 				break;
 
 			case ConverterType::LINEAR:
-				inputCurrent = outputCurrent;
+				switch (converterVarKind)
+				{
+					case VarKind::VOLTAGE:
+						inputCurrent = converter->avValue;
+						break;
+
+					case VarKind::CURRENT:
+						inputCurrent = converter->cvValue;
+						break;
+
+
+					default:
+						throw exception("invalind kind of controlled variable");
+				}
 				break;
+
 
 			default:
 				throw exception("Invalid type of converter");
