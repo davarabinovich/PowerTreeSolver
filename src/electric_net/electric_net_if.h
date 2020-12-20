@@ -45,32 +45,32 @@ namespace electric_net
 
 
 #pragma todo rename to VarType and add inversion
-	enum class CvType { VOLTAGE, CURRENT };
+	enum class VarKind { VOLTAGE, CURRENT };
 	
-	inline ostream & operator << (ostream & os, const CvType & type)
+	inline ostream & operator << (ostream & os, const VarKind & type)
 	{
 		switch (type)
 		{
-			case CvType::VOLTAGE:
+			case VarKind::VOLTAGE:
 				return os << "voltage";
-			case CvType::CURRENT:
+			case VarKind::CURRENT:
 				return os << "current";
 	
 			default:
-				throw exception("Invalid type of controlled variable");
+				throw exception("Invalid kind of controlled variable");
 		}
 	}
 	
-	inline const string operator + (const CvType & tp, const string & str)
+	inline const string operator + (const VarKind & tp, const string & str)
 	{
-		if (tp == CvType::VOLTAGE)
+		if (tp == VarKind::VOLTAGE)
 			return ("voltage" + str);
 		return ("current" + str);
 	}
 	
-	inline const string operator + (const string & str, const CvType & tp)
+	inline const string operator + (const string & str, const VarKind & tp)
 	{
-		if (tp == CvType::VOLTAGE)
+		if (tp == VarKind::VOLTAGE)
 			return (str + "voltage");
 		return (str + "current");
 	}
@@ -83,41 +83,41 @@ namespace electric_net
 		return true;
 	}
 	
-	inline CvType parseCvType (const string & str)
+	inline VarKind parseCvType (const string & str)
 	{
 		if (!isCvTypeString(str))
 #pragma todo write exceptions message
 			throw exception();
 
-		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return CvType::CURRENT;
-		return CvType::VOLTAGE;
+		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return VarKind::CURRENT;
+		return VarKind::VOLTAGE;
 	}
 
-	inline string getCvUnitDesignatorStr (const CvType type)
+	inline string getCvUnitDesignatorStr (const VarKind type)
 	{
 		switch (type)
 		{
-			case CvType::VOLTAGE:
+			case VarKind::VOLTAGE:
 				return "V";
-			case CvType::CURRENT:
+			case VarKind::CURRENT:
 				return "A";
 	
 			default:
-				throw exception("Invalid type of controlled variable");
+				throw exception("Invalid kind of controlled variable");
 		}
 	}
 
-	inline string getAvUnitDesignatorStr (const CvType type)
+	inline string getAvUnitDesignatorStr (const VarKind type)
 	{
 		switch (type)
 		{
-			case CvType::VOLTAGE:
+			case VarKind::VOLTAGE:
 				return "A";
-			case CvType::CURRENT:
+			case VarKind::CURRENT:
 				return "V";
 	
 			default:
-				throw exception("Invalid type of controlled variable");
+				throw exception("Invalid kind of controlled variable");
 		}
 	}
 	
@@ -332,7 +332,7 @@ namespace electric_net
 	{
 		key name;
 
-		CvType type;
+		VarKind type;
 		double value;
 	};
 
@@ -341,7 +341,7 @@ namespace electric_net
 		key name;
 		unsigned nestingLevel;
 
-		CvType cvType;
+		VarKind cvType;
 		double value;
 		ConverterType type; 
 		double efficiency;
@@ -387,7 +387,7 @@ namespace electric_net
 	{
 		key name;
 
-		CvType type;
+		VarKind type;
 		double value;
 
 		double avValue;
@@ -398,7 +398,7 @@ namespace electric_net
 		key name;
 		unsigned nestingLevel;
 
-		CvType cvType;
+		VarKind cvType;
 		double value;
 		ConverterType type;
 
@@ -414,7 +414,7 @@ namespace electric_net
 		double resistance;
 
 		double inputValue;
-		CvType inputVarType;
+		VarKind inputVarType;
 	};
 
 	struct ConstantCurrentLoadResults
@@ -435,15 +435,15 @@ namespace electric_net
 		public:
 
 #pragma todo add const qualificators
-			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) = 0;
-			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+			virtual void addInput (key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) = 0;
+			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							   double cvValue = 0.0, double efficiency = 100.0) = 0;
-			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
+			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
 							   double efficiency = 100.0) = 0;
-			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							      double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
-								  CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
+								  VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void addLoad (key name, key sourceName, LoadType type, double param) = 0;
 			virtual void addLoad (key name, LoadType type, double param) = 0;
 			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) = 0;
@@ -473,7 +473,7 @@ namespace electric_net
 			virtual void freeNode (key name, key newSinksSourceName) = 0;
 
 			virtual void renameNode (key name, key newName) = 0;
-			virtual void setSourceCvType (key name, CvType newType) = 0;
+			virtual void setSourceCvType (key name, VarKind newType) = 0;
 			virtual void setSourceCvValue (key name, double value) = 0;
 			virtual void setConverterType (key name, ConverterType type) = 0;
 			virtual void setConverterEfficiency (key name, double efficiency) = 0;
@@ -498,7 +498,8 @@ namespace electric_net
 			virtual string getTitle () = 0;
 			virtual void rename (string newTitle) = 0;
 
-			virtual void calculte () const = 0;
+#pragma todo make calculate const again
+			virtual void calculte () = 0;
 			virtual InputResults getInputResults (key inputName) const = 0;
 			virtual ConverterResults getConverterResults (key convertertName) const = 0;
 			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const = 0;

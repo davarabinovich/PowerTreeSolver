@@ -35,15 +35,15 @@ namespace electric_net
 
 
 
-			virtual void addInput (key name, CvType type = CvType::VOLTAGE, double cvValue = 0.0) override;
-			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+			virtual void addInput (key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) override;
+			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							          double cvValue = 0.0, double efficiency = 100.0) override;
-			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, double cvValue = 0.0,
+			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
 							           double efficiency = 100.0) override;
-			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, CvType cvType = CvType::VOLTAGE, 
+			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							              double cvValue = 0.0, double efficiency = 100.0) override;
 			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
-								          CvType cvType = CvType::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) override;
+								          VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) override;
 			virtual void addLoad (key name, key sourceName, LoadType type, double param) override;
 			virtual void addLoad (key name, LoadType type, double param) override;
 			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) override;
@@ -73,7 +73,7 @@ namespace electric_net
 			virtual void freeNode (key name, key newSinksSourceName) override;
 
 			virtual void renameNode (key name, key newName) override;
-			virtual void setSourceCvType (key name, CvType newType) override;
+			virtual void setSourceCvType (key name, VarKind newType) override;
 			virtual void setSourceCvValue (key name, double value) override;
 			virtual void setConverterType (key name, ConverterType type) override;
 			virtual void setConverterEfficiency (key name, double efficiency) override;
@@ -98,7 +98,7 @@ namespace electric_net
 			virtual string getTitle () override;
 			virtual void rename (string newTitle) override;
 
-			virtual void calculte () const override;
+			virtual void calculte () override;
 			virtual InputResults getInputResults (key inputName) const override;
 			virtual ConverterResults getConverterResults (key convertertName) const override;
 			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const override;
@@ -122,9 +122,9 @@ namespace electric_net
 
 			struct Source : ElectricNode
 			{
-				Source (DeviceType devType, CvType type, double value);
+				Source (DeviceType devType, VarKind type, double value);
 
-				CvType type;
+				VarKind cvKind;
 				double cvValue;
 
 				double avValue = NAN;
@@ -132,12 +132,12 @@ namespace electric_net
 
 			struct Input : Source
 			{
-				Input (CvType type, double value);
+				Input (VarKind type, double value);
 			};
 
 			struct Converter : Source
 			{
-				Converter (CvType cvType, double value, ConverterType type, double efficiency);
+				Converter (VarKind cvType, double value, ConverterType type, double efficiency);
 
 				ConverterType type;
 				double efficiency;
@@ -170,14 +170,29 @@ namespace electric_net
 			};
 
 
+			using Node_ptr = shared_ptr<ElectricNode>;
+			using ElectricForest = Forest< string, Node_ptr >;
+			using Desc_it = ElectricForest::desces_group_iterator;
+
+
 			
 			string title;
 
-			Forest< string, shared_ptr<ElectricNode> > net;
+			Forest< string, Node_ptr > net;
 
 
 
-			CvType calcInputVarTypeByParent (key parentName) const;
+			#pragma todo make const
+			void updateCalculations ();
+			double calculateAndUpdateGivenParams (Desc_it source_it);
+			void writeAvValueToSource (double newAvValue, key sourceName);
+			void writeInputValueToConverter (double newInputValue, key converterName);
+			void writeInputValueToLoad (double newInputValue, key loadName);
+			double calculateConsumption (Desc_it sink_it, Desc_it source_it);
+			double reduceOutputToInput (Desc_it sink_it, Desc_it source_it);
+			double calculateLoadConsumption (Desc_it sink_it, Desc_it source_it);
+
+			VarKind calcInputVarTypeByParent (key parentName) const;
 
 	};
 

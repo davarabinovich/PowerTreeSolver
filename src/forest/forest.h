@@ -67,6 +67,7 @@ class Forest
 
 		bool isExsist (key name) const;
 		bool isRoot (key name) const;
+		bool isParent (key name) const;
 		
 
 
@@ -123,6 +124,9 @@ class Forest
 
 	public:
 
+		using nodes_set_it = typename set<Node *>::iterator;
+
+#pragma todo implement access for writing for this and the desces_group
 		class iterator
 		{
 #pragma todo add type of iterator
@@ -133,8 +137,8 @@ class Forest
 
 				bool operator != (const iterator & other_it) const;
                 bool operator == (const iterator & other_it) const;
-                iterator & operator++ ();   
-                iterator & operator++ (int);
+                iterator operator++ ();   
+                iterator operator++ (int);
                 pair<key, Type> operator * () const;    
 				iterator operator = (const iterator & other_it);
 
@@ -148,10 +152,32 @@ class Forest
 				STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
 		};
 
+		class desces_group_iterator
+		{
+#pragma todo add type of iterator
+			public:
+				desces_group_iterator ();
+				desces_group_iterator (const desces_group_iterator & gen_it);
+				desces_group_iterator (typename nodes_set_it gen_it);
+
+				bool operator != (const desces_group_iterator & other_it) const;
+                bool operator == (const desces_group_iterator & other_it) const;
+                desces_group_iterator operator++ ();   
+                desces_group_iterator operator++ (int);
+                pair<key, Type> operator * () const;    
+				desces_group_iterator operator = (const desces_group_iterator & other_it);
+
+			private:
+				nodes_set_it it;
+		};
+
 
 
 		iterator begin ();
 		iterator end ();
+
+		desces_group_iterator dgbegin (key parentName = "");
+		desces_group_iterator dgend (key parentName = "");
 
 
 

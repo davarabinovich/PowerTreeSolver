@@ -252,7 +252,7 @@ inline bool Forest<key, Type>::iterator::operator == (const iterator & other_it)
 
 
 template <typename key, typename Type>
-inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ ()
+inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator++ ()
 {
 	auto & it = nodesStack.back();
 
@@ -286,10 +286,10 @@ inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::opera
 
 
 template <typename key, typename Type>
-inline typename Forest<key, Type>::iterator & Forest<key, Type>::iterator::operator++ (int)
+inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operator++ (int)
 {
 	auto temp_it = *this;
-	(*this)++;
+	++(*this);
 	return temp_it;
 }
 
@@ -333,6 +333,80 @@ inline bool Forest<key, Type>::iterator::isLastDesc () const
 	}
 
 	return result;
+}
+
+
+
+
+
+
+
+
+
+
+#pragma todo whether is it required?
+template <typename key, typename Type>
+inline Forest<key, Type>::desces_group_iterator::desces_group_iterator ()
+{;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::desces_group_iterator::desces_group_iterator (const desces_group_iterator & gen_it)
+	: it(gen_it.it)    {;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::desces_group_iterator::desces_group_iterator (typename nodes_set_it gen_it)
+	: it(gen_it)    {;}
+
+
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::desces_group_iterator::operator != (const desces_group_iterator & other_it) const
+{
+	bool result = (it != other_it.it);
+	return result;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::desces_group_iterator::operator == (const desces_group_iterator & other_it) const
+{
+	bool result = !(*this != other_it);
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::desces_group_iterator Forest<key, Type>::desces_group_iterator::operator++ ()
+{
+	it++;
+	return *this;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::desces_group_iterator Forest<key, Type>::desces_group_iterator::operator++ (int)
+{
+	auto temp_it = *this;
+	++(*this);
+	return temp_it;
+}
+
+
+template <typename key, typename Type>
+inline pair<key, Type> Forest<key, Type>::desces_group_iterator::operator * () const
+{
+	auto node_ptr = *it;
+	auto content = make_pair(node_ptr->getName(), node_ptr->getToModify());
+	return content;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::desces_group_iterator Forest<key, Type>::desces_group_iterator::operator = (const desces_group_iterator & other_it)
+{
+	it = other_it.it;
 }
 
 
@@ -791,7 +865,15 @@ inline bool Forest<key, Type>::isExsist (key name) const
 template <typename key, typename Type>
 inline bool Forest<key, Type>::isRoot (key name) const
 {
-	bool result = !( nodes.at(name) ->hasParent() );
+	bool result = !(nodes.at(name) ->hasParent());
+	return result;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::isParent (key name) const
+{
+	bool result = (nodes.at(name) ->hasDesces());
 	return result;
 }
 
@@ -808,6 +890,34 @@ template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
 	return iterator();
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::desces_group_iterator Forest<key, Type>::dgbegin (key parentName)
+{
+	set<Node *> * desces_ptr;
+	if (!parentName.empty())
+		desces_ptr = nodes.at(parentName) ->getDescesSet();
+	else
+		desces_ptr = &roots;
+
+	desces_group_iterator it(desces_ptr->begin());
+	return it;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::desces_group_iterator Forest<key, Type>::dgend (key parentName)
+{
+	set<Node *> * desces_ptr;
+	if (!parentName.empty())
+		desces_ptr = nodes.at(parentName) ->getDescesSet();
+	else
+		desces_ptr = &roots;
+
+	desces_group_iterator it(desces_ptr->end());
+	return it;
 }
 
 

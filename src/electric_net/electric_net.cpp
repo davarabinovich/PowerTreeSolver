@@ -13,35 +13,35 @@ namespace electric_net
 
 	 
 
-	void ElectricNet::addInput (key name, CvType type, double cvValue)
+	void ElectricNet::addInput (key name, VarKind type, double cvValue)
 	{
 #pragma all checking
 		auto newInput_ptr = make_shared<Input>(type, cvValue);
 		net.addRoot(name, newInput_ptr);
 	}
 
-	void ElectricNet::addConverter (key name, key sourceName, ConverterType type, CvType cvType, double cvValue, double efficiency)
+	void ElectricNet::addConverter (key name, key sourceName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.pushBackLeaf(name, sourceName, newConverter_ptr);
 	}
 
 
-	void ElectricNet::addConverter (key name, ConverterType type, CvType cvType, double cvValue, double efficiency)
+	void ElectricNet::addConverter (key name, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.addRoot(name, newConverter_ptr);
 	}
 
 
-	void ElectricNet::insertConverter (key name, key sourceName, ConverterType type, CvType cvType, double cvValue, double efficiency)
+	void ElectricNet::insertConverter (key name, key sourceName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.insertDesc(name, sourceName, newConverter_ptr);
 	}
 
 
-	void ElectricNet::insertConverter (key name, key sourceName, key sinkName, ConverterType type, CvType cvType, double cvValue, double efficiency)
+	void ElectricNet::insertConverter (key name, key sourceName, key sinkName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.insertDesc(name, sourceName, sinkName, newConverter_ptr);
@@ -228,10 +228,10 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::setSourceCvType (key name, CvType newType)
+	void ElectricNet::setSourceCvType (key name, VarKind newType)
 	{
 		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
-		source_ptr->type = newType;
+		source_ptr->cvKind = newType;
 	}
 
 
@@ -322,7 +322,7 @@ namespace electric_net
 
 		data.name = inputName;
 
-		data.type = input->type;
+		data.type = input->cvKind;
 		data.value = input->cvValue;
 
 		return data;
@@ -339,7 +339,7 @@ namespace electric_net
 		data.name = converterName;
 		data.nestingLevel = net.getNestingLevel(converterName);
 
-		data.cvType = converter->Source::type;
+		data.cvType = converter->Source::cvKind;
 		data.value = converter->cvValue;
 		data.type = converter->type;
 		data.efficiency = converter->efficiency;
@@ -446,9 +446,9 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::calculte () const
+	void ElectricNet::calculte ()
 	{
-
+		updateCalculations();
 	}
 
 
@@ -461,7 +461,7 @@ namespace electric_net
 
 		results.name = inputName;
 
-		results.type = input->type;
+		results.type = input->cvKind;
 		results.value = input->cvValue;
 
 		results.avValue = input->avValue;
@@ -480,7 +480,7 @@ namespace electric_net
 		results.name = convertertName;
 		results.nestingLevel = net.getNestingLevel(convertertName);
 
-		results.cvType = converter->Source::type;
+		results.cvType = converter->Source::cvKind;
 		results.value = converter->cvValue;
 		results.type = converter->type;
 
@@ -535,10 +535,104 @@ namespace electric_net
 
 
 
-	CvType ElectricNet::calcInputVarTypeByParent (key loadName) const
+	void ElectricNet::updateCalculations ()
+	{
+		for (ElectricForest::desces_group_iterator root_it = net.dgbegin(); root_it != net.dgend(); root_it++)
+			calculateAndUpdateGivenParams(root_it);
+	}
+
+
+	double ElectricNet::calculateAndUpdateGivenParams (Desc_it source_it)
+	{
+		double accOutputCurrent(0.0);
+		for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
+			                                       desc_it != net.dgend((*source_it).first); desc_it++)
+			accOutputCurrent += calculateConsumption (desc_it, source_it);
+
+		writeAvValueToSource(accOutputCurrent, (*source_it).first);
+
+		return accOutputCurrent;
+	}
+	
+
+	void ElectricNet::writeAvValueToSource (double newAvValue, key sourceName)
+	{
+		AUTO_CONST_REF source = dynamic_pointer_cast<Source>(net.at(sourceName));
+		source->avValue = newAvValue;
+	}
+	
+
+	void ElectricNet::writeInputValueToConverter (double newInputValue, key converterName)
+	{
+		AUTO_CONST_REF source = dynamic_pointer_cast<Converter>(net.at(converterName));
+		source->inputValue = newInputValue;
+	}
+
+
+	void ElectricNet::writeInputValueToLoad (double newInputValue, key loadName)
+	{
+		AUTO_CONST_REF source = dynamic_pointer_cast<OneParamLoad>(net.at(loadName));
+		source->inputValue = newInputValue;
+	}
+
+
+	double ElectricNet::calculateConsumption (Desc_it sink_it, Desc_it source_it)
+	{
+		DeviceType type = (*sink_it).second->type;
+
+		switch (type)
+		{
+			case DeviceType::CONVERTER:
+			{
+				calculateAndUpdateGivenParams(sink_it);
+				double inputCurrent = reduceOutputToInput(sink_it, source_it);
+				writeInputValueToConverter(inputCurrent, (*sink_it).first);
+				return inputCurrent;
+			}
+
+			case DeviceType::LOAD:
+			{
+				double loadCurrent = calculateLoadConsumption(sink_it, source_it);
+				return loadCurrent;
+			}
+		}
+		return 1;
+	}
+
+
+	double ElectricNet::reduceOutputToInput (Desc_it sink_it, Desc_it source_it)
+	{
+		auto sink = dynamic_pointer_cast<Converter>( (*sink_it).second );
+		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
+
+		double outputVoltage(sink->cvValue);
+		double outputCurrent(sink->avValue);
+		double efficiency(sink->efficiency);
+		double inputVoltage(source->cvValue);
+
+		double inputCurrent = 100 * (outputVoltage * outputCurrent) / (efficiency * inputVoltage);
+		return inputCurrent;
+	}
+
+
+	double ElectricNet::calculateLoadConsumption (Desc_it sink_it, Desc_it source_it)
+	{
+		auto sink = dynamic_pointer_cast<OneParamLoad>( (*sink_it).second );
+		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
+
+		double resistance(sink->param);
+		double voltage(source->cvValue);
+
+		double loadCurrent = voltage / resistance;
+		writeInputValueToLoad(loadCurrent, (*sink_it).first);
+		return loadCurrent;
+	}
+
+
+	VarKind ElectricNet::calcInputVarTypeByParent (key loadName) const
 	{
 		auto parent_ptr = net.getParent(loadName);
-		auto type = dynamic_pointer_cast<Source>(parent_ptr)->type;
+		auto type = dynamic_pointer_cast<Source>(parent_ptr)->cvKind;
 		return type;
 	}
 
@@ -555,21 +649,21 @@ namespace electric_net
 
 
 
-	ElectricNet::Source::Source (DeviceType devType, CvType tp, double value)
-		: ElectricNode(devType), type(tp), cvValue(value)    {;}
+	ElectricNet::Source::Source (DeviceType devType, VarKind tp, double value)
+		: ElectricNode(devType), cvKind(tp), cvValue(value)    {;}
 
 
 
 
 
-	ElectricNet::Input::Input (CvType type, double cvValue)
+	ElectricNet::Input::Input (VarKind type, double cvValue)
 		: Source(DeviceType::INPUT, type, cvValue)    {;}
 
 
 
 
 
-	ElectricNet::Converter::Converter (CvType cvType, double value, ConverterType tp, double effcnc)
+	ElectricNet::Converter::Converter (VarKind cvType, double value, ConverterType tp, double effcnc)
 		: Source(DeviceType::CONVERTER, cvType, value), type(tp), efficiency(effcnc)    {;}
 
 

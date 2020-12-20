@@ -55,7 +55,7 @@ struct Results
 	struct Source
 	{
 		string name;
-		CvType cvType;
+		VarKind cvType;
 		double cvValue;
 		double avValue;
 		double power;
@@ -179,7 +179,7 @@ namespace commands
 			{
 				string name = "";
 				string inputName = "";
-				CvType inputCvType = CvType::VOLTAGE;
+				VarKind inputCvType = VarKind::VOLTAGE;
 				double inputCvValue = NAN;
 
 				bool operator == (const Arguments & partner)
@@ -365,7 +365,7 @@ namespace commands
 				name = "\"" + name + "\" ";
 				
 				string cvType = "voltage";
-				if (args.inputCvType == CvType::CURRENT)
+				if (args.inputCvType == VarKind::CURRENT)
 					cvType = "current"; 
 
 				bool isCvValuePresent = false;
@@ -373,7 +373,7 @@ namespace commands
 				if (!isnan(args.inputCvValue))
 				{
 					isCvValuePresent = true;
-					if (args.inputCvType == CvType::CURRENT)
+					if (args.inputCvType == VarKind::CURRENT)
 						cvUnit = "A";
 				}
 
@@ -637,7 +637,7 @@ namespace commands
 				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE) + ":\n";
 				
 				output += shift;
-				if (inputVarType == CvType::VOLTAGE)
+				if (inputVarType == VarKind::VOLTAGE)
 					output += "   consumes ";
 				else
 					output += "   works by ";
@@ -859,7 +859,7 @@ namespace commands
 		struct Arguments
 		{
 			string name = "";
-			CvType cvType = CvType::VOLTAGE;
+			VarKind cvType = VarKind::VOLTAGE;
 			double cvValue = NAN;
 		};
 	
@@ -906,7 +906,7 @@ namespace commands
 
 	
 
-		double requestCvValue (const CvType type) const
+		double requestCvValue (const VarKind type) const
 		{
 			cout << "Plase enter a value of " << type << endl;
 			string enteredValue; getline(cin, enteredValue);
@@ -924,7 +924,7 @@ namespace commands
 			string name = "\"" + args.name + "\" ";
 
 			string cvType = "voltage";
-			if (args.cvType == CvType::CURRENT)
+			if (args.cvType == VarKind::CURRENT)
 				cvType = "current";
 
 			bool isCvValuePresent = false;
@@ -932,7 +932,7 @@ namespace commands
 			if (!isnan(args.cvValue))
 			{
 				isCvValuePresent = true;
-				if (args.cvType == CvType::CURRENT)
+				if (args.cvType == VarKind::CURRENT)
 					cvUnit = "A";
 			}
 
@@ -980,7 +980,7 @@ namespace commands
 			struct Arguments
 			{
 				string name = "";
-				CvType cvType = CvType::VOLTAGE;
+				VarKind cvType = VarKind::VOLTAGE;
 				double cvValue = NAN;
 	
 				ConverterType type = ConverterType::PULSE;
@@ -1057,7 +1057,7 @@ namespace commands
 			}
 	
 	
-			double requestCvValue (const CvType type) const
+			double requestCvValue (const VarKind type) const
 			{
 				cout << "Plase enter a value of " << type << endl;
 				string enteredValue; getline(cin, enteredValue);
@@ -1098,7 +1098,7 @@ namespace commands
 				string name = "\"" + args.name + "\" ";
 	
 				string cvUnit = "V";
-				if (args.cvType == CvType::CURRENT)
+				if (args.cvType == VarKind::CURRENT)
 					cvUnit = "A";
 	
 	
@@ -1355,7 +1355,7 @@ namespace commands
 				string currentName;
 	
 				optional<string> newName;
-				optional<CvType> cvType;
+				optional<VarKind> cvType;
 				optional<double> cvValue;
 			};
 		
@@ -1480,7 +1480,7 @@ namespace commands
 					cout << endl << "    Controlled variable - " << *args.cvValue;
 	
 					string cvUnit = "V";
-					if (*args.cvType == CvType::CURRENT)
+					if (*args.cvType == VarKind::CURRENT)
 						cvUnit = "A";
 					cout << " " << cvUnit;
 				}
@@ -1528,7 +1528,7 @@ namespace commands
 			string currentName;
 	
 			optional<string> newName; 
-			optional<CvType> cvType;
+			optional<VarKind> cvType;
 			optional<double> cvValue; 
 
 			optional<ConverterType> type;
@@ -1686,7 +1686,7 @@ namespace commands
 				cout << endl << "    Controlled variable - " << *args.cvValue;
 	
 				string cvUnit = "V";
-				if (*args.cvType == CvType::CURRENT)
+				if (*args.cvType == VarKind::CURRENT)
 					cvUnit = "A";
 				cout << " " << cvUnit;
 			}
