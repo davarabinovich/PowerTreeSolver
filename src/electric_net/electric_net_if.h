@@ -393,7 +393,7 @@ namespace electric_net
 		double resistance;
 
 		double inputValue;
-		VarKind inputVarType;
+		VarKind inputVarKind;
 	};
 
 	struct ConstantCurrentLoadResults
@@ -402,6 +402,17 @@ namespace electric_net
 		unsigned nestingLevel;
 
 		double current;
+		
+		double inputVoltage;
+	};
+
+	struct DiodeLoadResults
+	{
+		key name;
+		unsigned nestingLevel;
+
+		double forwardVoltage;
+		double forwardCurrent;
 	};
 
 
@@ -461,8 +472,6 @@ namespace electric_net
 			virtual void setLoadCurrent (key name, double current) = 0;
 			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) = 0;
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) = 0;
-			virtual void setLoadNomPower (key name, double nomPower) = 0;
-			virtual void setLoadNomVoltage (key name, double nomVoltage) = 0;
 			
 			virtual DeviceType getNodeType (key name) = 0;
 			virtual InputData getInputData (key inputName) = 0;
@@ -483,6 +492,7 @@ namespace electric_net
 			virtual ConverterResults getConverterResults (key convertertName) const = 0;
 			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const = 0;
 			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const = 0;
+			virtual DiodeLoadResults getDiodeLoadResults (key loadName) const = 0;
 
 #pragma todo make this const
 			virtual void iterateAndExecuteForEach (function<void (key)> functor) = 0;

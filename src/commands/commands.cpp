@@ -580,7 +580,7 @@ namespace commands
 			static void displayConverterResults (ConverterResults results)
 			{
 				auto [name, nestingLevel, cvType, value, type, avValue, inputValue] = results;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = generateShift(nestingLevel);
 
 				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
 				output += (shift + "   gives " + to_string(avValue) + getAvUnitDesignatorStr(cvType) + "\n");
@@ -609,19 +609,12 @@ namespace commands
 						break;
 					}
 				
-					/*case LoadType::ENERGY:
-					{
-						auto loadData = activePowerTree->getEnergyLoadData(loadName);
-						displayEnergyLoad(loadData);
-						break;
-					}
-									
 					case LoadType::DIODE:
 					{
-						auto loadData = activePowerTree->getDiodeLoadData(loadName);
-						displayDiodeLoad(loadData);
+						auto loadData = activePowerTree->getDiodeLoadResults(loadName);
+						displayDiodeLoadResults(loadData);
 						break;
-					}*/
+					}
 				
 					default:
 							throw exception("Invalid type of load");
@@ -632,16 +625,16 @@ namespace commands
 			static void displayResistiveLoadResults (ResistiveLoadResults results)
 			{
 				auto [name, nestingLevel, resistance, inputValue, inputVarType] = results;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = generateShift(nestingLevel);
 				
-				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE) + ":\n";
+				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:";
 				
 				output += shift;
 				if (inputVarType == VarKind::VOLTAGE)
 					output += "   consumes ";
 				else
 					output += "   works by ";
-				output += (to_string(inputValue) + getCvUnitDesignatorStr(inputVarType));
+				output += (to_string(inputValue) + getAvUnitDesignatorStr(inputVarType));
 
 				cout << output << endl << endl;
 			}
@@ -649,7 +642,30 @@ namespace commands
 
 			static void displayConstantCurrentLoadResults (ConstantCurrentLoadResults results)
 			{
+				auto [name, nestingLevel, current, inputVoltage] = results;
+				auto shift = generateShift(nestingLevel);
+				
+				string output = shift + "Load \"" + name + "\" " + to_string(current) + "A";
 
+				cout << output << endl << endl;
+			}
+
+
+			static void displayDiodeLoadResults (DiodeLoadResults metadata)
+			{
+				auto [name, nestingLevel, voltage, current] = metadata;
+				auto shift = generateShift(nestingLevel);
+				
+				string output = shift + "Diode \"" + name + "\" " + to_string(voltage) + "V, " + to_string(current) + "A";
+
+				cout << output << endl << endl;
+			}
+
+
+			static string generateShift (unsigned shifts_qty)
+			{
+				auto shift = string(shifts_qty*spaces_per_level_shift, ' ');
+				return shift;
 			}
 
 	};
@@ -1722,80 +1738,80 @@ namespace commands
 		
 		
 			Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-			if (tokens.empty())    return args;
-	
-			args.currentName = tokens.front();
-			if (tokens.empty())    return args;
-	
-			tokens.pop_front();
-			for (const auto & token : tokens)
 			{
-				if (isParamWithKey(token))
+				Arguments args;
+				if (tokens.empty())    return args;
+	
+				args.currentName = tokens.front();
+				if (tokens.empty())    return args;
+	
+				tokens.pop_front();
+				for (const auto & token : tokens)
 				{
-					string key = extractKeyFromToken(token);
-					if (key == "n")
+					if (isParamWithKey(token))
 					{
-						if (args.newName)    continue;
+						string key = extractKeyFromToken(token);
+						if (key == "n")
+						{
+							if (args.newName)    continue;
 	
-						args.newName = extractParamFromToken(token);
-					}
-					else if (key == "t")
-					{
-						if (args.type)    continue;
+							args.newName = extractParamFromToken(token);
+						}
+						else if (key == "t")
+						{
+							if (args.type)    continue;
 	
-						args.type = parseLoadType(extractParamFromToken(token));
-					}
-					else if (key == "v")
-					{
-						if (args.value)    continue;
+							args.type = parseLoadType(extractParamFromToken(token));
+						}
+						else if (key == "v")
+						{
+							if (args.value)    continue;
 	
-						args.value = strToDouble(extractParamFromToken(token));
-					}
-					else if (key == "a")
-					{
-						if (args.addValue)    continue;
+							args.value = strToDouble(extractParamFromToken(token));
+						}
+						else if (key == "a")
+						{
+							if (args.addValue)    continue;
 	
-						args.addValue = strToDouble(extractParamFromToken(token));
+							args.addValue = strToDouble(extractParamFromToken(token));
+						}
+						else
+							throw exception(string("Unrecognized parameter \"" + key).c_str());
 					}
 					else
-						throw exception(string("Unrecognized parameter \"" + key).c_str());
-				}
-				else
-				{
-					if (isLoadTypeString(token))
 					{
-						if (args.type)
+						if (isLoadTypeString(token))
 						{
-							args.type = parseLoadType(token);
-							continue;
+							if (args.type)
+							{
+								args.type = parseLoadType(token);
+								continue;
+							}
 						}
-					}
 	
-					if (isFloatNumberString(token))
-					{
-						if (args.value)
+						if (isFloatNumberString(token))
 						{
-							args.value = strToDouble(token);
-							continue;
-						}
+							if (args.value)
+							{
+								args.value = strToDouble(token);
+								continue;
+							}
 
-						if (args.addValue)
-						{
-							args.addValue = strToDouble(token);
-							continue;
+							if (args.addValue)
+							{
+								args.addValue = strToDouble(token);
+								continue;
+							}
 						}
+	
+						if (args.newName)    continue;
+	
+						args.newName = token;
 					}
-	
-					if (args.newName)    continue;
-	
-					args.newName = token;
 				}
-			}
 	
-			return args;
-		}
+				return args;
+			}
 		
 			bool isParamWithKey (const string & token) const
 			{
@@ -1857,9 +1873,9 @@ namespace commands
 					case LoadType::DIODE:
 					{
 						if (args.value)
-							activePowerTree->setLoadNomPower(actualName, *args.value);
-						if (args.value)
-							activePowerTree->setLoadNomVoltage(actualName, *args.addValue);
+							activePowerTree->setLoadForawrdVoltage(actualName, *args.value);
+						if (args.addValue)
+							activePowerTree->setLoadForwardCurrent(actualName, *args.addValue);
 						return;
 					}
 				}
@@ -2463,73 +2479,5 @@ namespace commands
 	{
 		return command_mnemonic();
 	}
-	
-	
-	
-	
-	//void TestCreateArgumentsParsing()
-	//{
-	//	using Arguments = CommandCreate::Arguments;
-	//
-	//
-	//
-	//
-	//	{
-	//		TokensDeque emptyTokens;
-	//
-	//		Arguments emptyArgs;
-	//
-	//		auto emptyOut = cr.parseArguments(emptyTokens);
-	//
-	//		Assert(emptyArgs == emptyOut, "");
-	//	}
-	//
-	//
-	//
-	//
-	//	{
-	//		TokensDeque onlyNameTokens = { "name" };
-	//
-	//		CommandCreate::Arguments onlyNameArgs;
-	//		onlyNameArgs.name = "name";
-	//
-	//		auto onlyNameOut = cr.parseArguments(onlyNameTokens);
-	//
-	//		Assert(onlyNameArgs == onlyNameOut, "");
-	//	}
-	//
-	//
-	//
-	//
-	//	{
-	//		TokensDeque onlyTypeTokens = { "cur" };
-	//
-	//		Arguments onlyTypeArgs;
-	//		onlyTypeArgs.inputCvType = CvType::CURRENT;
-	//
-	//		auto onlyTypeOut = cr.parseArguments(onlyTypeTokens);
-	//
-	//		Assert(onlyTypeArgs == onlyTypeOut, "");
-	//	}
-	//
-	//
-	//
-	//
-	//	{
-	//		TokensDeque onlyValueTokens = { "24" };
-	//
-	//		Arguments onlyValueArgs;
-	//		onlyValueArgs.inputCvValue = 24;
-	//
-	//		auto onlyValueOut = cr.parseArguments(onlyValueTokens);
-	//
-	//		Assert(onlyValueArgs == onlyValueOut, "");
-	//	}
-	//}
-	
-
-
-
-
 
 }

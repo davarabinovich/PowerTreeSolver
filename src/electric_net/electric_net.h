@@ -82,8 +82,6 @@ namespace electric_net
 			virtual void setLoadCurrent (key name, double current) override;
 			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) override;
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) override;
-			virtual void setLoadNomPower (key name, double nomPower) override;
-			virtual void setLoadNomVoltage (key name, double nomVoltage) override;
 
 			virtual DeviceType getNodeType (key name) override;
 			virtual InputData getInputData (key inputName) override;
@@ -103,6 +101,7 @@ namespace electric_net
 			virtual ConverterResults getConverterResults (key convertertName) const override;
 			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const override;
 			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const override;
+			virtual DiodeLoadResults getDiodeLoadResults (key loadName) const override;
 
 			virtual void iterateAndExecuteForEach (function<void (key)> functor) override;
 
@@ -179,6 +178,9 @@ namespace electric_net
 			string title;
 
 			Forest< string, Node_ptr > net;
+
+
+			bool isStoragedResultsActual = false;
 
 
 

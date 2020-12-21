@@ -15,6 +15,8 @@ namespace electric_net
 
 	void ElectricNet::addInput (key name, VarKind type, double cvValue)
 	{
+		isStoragedResultsActual = false;
+
 #pragma all checking
 		auto newInput_ptr = make_shared<Input>(type, cvValue);
 		net.addRoot(name, newInput_ptr);
@@ -22,6 +24,8 @@ namespace electric_net
 
 	void ElectricNet::addConverter (key name, key sourceName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
+		isStoragedResultsActual = false;
+
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.pushBackLeaf(name, sourceName, newConverter_ptr);
 	}
@@ -29,6 +33,8 @@ namespace electric_net
 
 	void ElectricNet::addConverter (key name, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
+		isStoragedResultsActual = false;
+
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.addRoot(name, newConverter_ptr);
 	}
@@ -36,6 +42,8 @@ namespace electric_net
 
 	void ElectricNet::insertConverter (key name, key sourceName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
+		isStoragedResultsActual = false;
+
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.insertDesc(name, sourceName, newConverter_ptr);
 	}
@@ -43,6 +51,8 @@ namespace electric_net
 
 	void ElectricNet::insertConverter (key name, key sourceName, key sinkName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
 	{
+		isStoragedResultsActual = false;
+
 		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
 		net.insertDesc(name, sourceName, sinkName, newConverter_ptr);
 	}
@@ -52,6 +62,9 @@ namespace electric_net
 	{
 		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
 
+
+		isStoragedResultsActual = false;
+
 		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
 		net.pushBackLeaf(name, sourceName, newLoad_ptr);
 	}
@@ -60,6 +73,9 @@ namespace electric_net
 	void ElectricNet::addLoad (key name, LoadType type, double param)
 	{
 		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
+
+
+		isStoragedResultsActual = false;
 
 		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
 		net.addRoot(name, newLoad_ptr);
@@ -71,6 +87,9 @@ namespace electric_net
 		if (type == LoadType::RESISTIVE)     throw exception("Resistive load can have only one parameter");
 		if (type == LoadType::CONSTANT_CURRENT)    throw exception("Constant current load can have only one parameter");
 
+
+		isStoragedResultsActual = false;
+
 		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
 		net.pushBackLeaf(name, sourceName, newLoad_ptr);
 	}
@@ -81,6 +100,9 @@ namespace electric_net
 		if (type == LoadType::RESISTIVE)     throw exception("Resistive load can have only one parameter");
 		if (type == LoadType::CONSTANT_CURRENT)    throw exception("Constant current load can have only one parameter");
 
+
+		isStoragedResultsActual = false;
+
 		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
 		net.addRoot(name, newLoad_ptr);
 	}
@@ -88,6 +110,8 @@ namespace electric_net
 
 	void ElectricNet::deleteInput (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveAllDesces(name, newSourceName);
 		net.popFrontRoot(name);
 	}
@@ -95,11 +119,15 @@ namespace electric_net
 
 	void ElectricNet::deleteInput (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.popFrontRoot(name);
 	}
 
 	void ElectricNet::deleteConverter (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveAllDesces(name, newSourceName);
 		net.popBackLeaf(name);
 	}
@@ -107,6 +135,8 @@ namespace electric_net
 
 	void ElectricNet::deleteConverter (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeAllDesces(name);
 		net.popBackLeaf(name);
 	}
@@ -114,12 +144,16 @@ namespace electric_net
 
 	void ElectricNet::deleteLoad (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.popBackLeaf(name);
 	}
 
 
 	void ElectricNet::deleteNode (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveAllDesces(name, newSourceName);
 		net.popBackLeaf(name);
 	}
@@ -127,6 +161,8 @@ namespace electric_net
 
 	void ElectricNet::deleteNode (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeAllDesces(name);
 
 		if ( net.isRoot(name) )
@@ -138,96 +174,128 @@ namespace electric_net
 
 	void ElectricNet::deleteSubnet (key headerName)
 	{
+		isStoragedResultsActual = false;
+
 		net.popBackSubtree(headerName);
 	}
 
 
 	void ElectricNet::deleteAllSinks (key sourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.eraseAllDesces(sourceName);
 	}
 
 
 	void ElectricNet::moveConverter (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveNode(name, newSourceName);
 	}
 
 
 	void ElectricNet::moveConverter (key name, key newSourceName, key newSinksSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveNode(name, newSourceName, newSinksSourceName);
 	}
 
 
 	void ElectricNet::freeConverter (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeNode(name);
 	}
 	 
 
 	void ElectricNet::freeConverter (key name, key newSinksSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeNode(name, newSinksSourceName);
 	}
 	 
 
 	void ElectricNet::moveLoad (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveLeaf(name, newSourceName);
 	}
 	 
 
 	void ElectricNet::freeLoad (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeLeaf(name);
 	}
 
 
 	void ElectricNet::moveSubnet (key headerName, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveSubtree(headerName, newSourceName);
 	}
 
 
 	void ElectricNet::freeSubnet (key headerName)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeSubtree(headerName);
 	}
 
 
 	void ElectricNet::moveNode (key name, key newSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveNode(name, newSourceName);
 	}
 
 
 	void ElectricNet::moveNode (key name, key newSourceName, key newSinksSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.moveNode(name, newSourceName, newSinksSourceName);
 	}
 
 
 	void ElectricNet::freeNode (key name)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeNode(name);
 	}
 
 
 	void ElectricNet::freeNode (key name, key newSinksSourceName)
 	{
+		isStoragedResultsActual = false;
+
 		net.freeNode(name, newSinksSourceName);
 	}
 
 
 	void ElectricNet::renameNode (key name, key newName)
 	{
+		isStoragedResultsActual = false;
+
 		net.renameNode(name, newName);
 	}
 
 
 	void ElectricNet::setSourceCvType (key name, VarKind newType)
 	{
+		isStoragedResultsActual = false;
+
 		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
 		source_ptr->cvKind = newType;
 	}
@@ -235,6 +303,8 @@ namespace electric_net
 
 	void ElectricNet::setSourceCvValue (key name, double newValue)
 	{
+		isStoragedResultsActual = false;
+
 		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
 		source_ptr->cvValue = newValue;
 	}
@@ -242,6 +312,8 @@ namespace electric_net
 
 	void ElectricNet::setConverterType (key name, ConverterType newType)
 	{
+		isStoragedResultsActual = false;
+
 		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
 		converter_ptr->type = newType;
 	}
@@ -249,6 +321,8 @@ namespace electric_net
 
 	void ElectricNet::setConverterEfficiency (key name, double newEfficiency)
 	{
+		isStoragedResultsActual = false;
+
 		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
 		converter_ptr->efficiency = newEfficiency;
 	}
@@ -256,6 +330,8 @@ namespace electric_net
 
 	void ElectricNet::setLoadType (key name, LoadType newType)
 	{
+		isStoragedResultsActual = false;
+
 		auto load_ptr = dynamic_pointer_cast<Load>( net[name] );
 		load_ptr->type = newType;
 	}
@@ -263,6 +339,8 @@ namespace electric_net
 
 	void ElectricNet::setLoadResistance (key name, double resistance)
 	{
+		isStoragedResultsActual = false;
+
 		auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
 		load_ptr->param = resistance;
 	}
@@ -270,6 +348,8 @@ namespace electric_net
 
 	void ElectricNet::setLoadCurrent (key name, double current)
 	{
+		isStoragedResultsActual = false;
+
 		auto load_ptr = dynamic_pointer_cast<OneParamLoad>( net[name] );
 		load_ptr->param = current;
 	}
@@ -277,6 +357,8 @@ namespace electric_net
 
 	void ElectricNet::setLoadForawrdVoltage (key name, double forwardVoltage)
 	{
+		isStoragedResultsActual = false;
+
 		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
 		load_ptr->mainParam = forwardVoltage;
 	}
@@ -284,22 +366,10 @@ namespace electric_net
 
 	void ElectricNet::setLoadForwardCurrent (key name, double forwardCurrent)
 	{
+		isStoragedResultsActual = false;
+
 		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
 		load_ptr->secondaryParam = forwardCurrent;
-	}
-
-
-	void ElectricNet::setLoadNomPower (key name, double nomPower)
-	{
-		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-		load_ptr->mainParam = nomPower;
-	}
-
-
-	void ElectricNet::setLoadNomVoltage (key name, double nomVoltage)
-	{
-		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
-		load_ptr->secondaryParam = nomVoltage;
 	}
 
 
@@ -446,7 +516,11 @@ namespace electric_net
 
 	void ElectricNet::calculte ()
 	{
-		updateCalculations();
+		if (!isStoragedResultsActual)
+		{
+			updateCalculations();
+			isStoragedResultsActual = true;
+		}
 	}
 
 
@@ -502,7 +576,7 @@ namespace electric_net
 		results.resistance = load->param;
 
 		results.inputValue = load->inputValue;
-		results.inputVarType = calcInputVarTypeByParent(loadName);
+		results.inputVarKind = calcInputVarTypeByParent(loadName);
 
 		return results;
 	}
@@ -520,10 +594,29 @@ namespace electric_net
 
 		results.current = load->param;
 
+		results.inputVoltage = load->inputValue;
+
 		return results;
 	}
 		
-		
+	
+	DiodeLoadResults ElectricNet::getDiodeLoadResults (key loadName) const
+	{
+		DiodeLoadResults results;
+
+		AUTO_CONST_REF node = net.at(loadName);
+		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
+
+		results.name = loadName;
+		results.nestingLevel = net.getNestingLevel(loadName);
+
+		results.forwardVoltage = load->mainParam;
+		results.forwardCurrent = load->secondaryParam;
+
+		return results;
+	}
+
+
 	void ElectricNet::iterateAndExecuteForEach (function<void (key)> functor)
 	{
 		for (AUTO_CONST_REF node : net)
