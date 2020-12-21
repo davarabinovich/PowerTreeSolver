@@ -1,0 +1,10 @@
+
+Forbidden connections:
+	- Different types of loads to the same source
+	- Constant current load to current source
+	- Diode load to the voltage if their voltages differ
+	- Diode loads of different forward voltages to the same current source
+	- Diode loads to current sourcce if their total forward current doesn't equal to the source's current
+	- Linear sources of both CV kindes to any current source
+	- Different types of sinks to any current source
+	- More than one converter to any current source

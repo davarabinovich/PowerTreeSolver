@@ -51,7 +51,6 @@ namespace electric_net
 	void ElectricNet::addLoad (key name, key sourceName, LoadType type, double param)
 	{
 		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
-		if (type == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
 
 		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
 		net.pushBackLeaf(name, sourceName, newLoad_ptr);
@@ -61,7 +60,6 @@ namespace electric_net
 	void ElectricNet::addLoad (key name, LoadType type, double param)
 	{
 		if (type == LoadType::DIODE)     throw exception("Diode load must have two parameters");
-		if (type == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
 
 		auto newLoad_ptr = make_shared<OneParamLoad>(type, param);
 		net.addRoot(name, newLoad_ptr);
@@ -544,9 +542,9 @@ namespace electric_net
 
 	double ElectricNet::calculateAndUpdateGivenParams (Desc_it source_it)
 	{
-		auto varKind = dynamic_pointer_cast<Source>((*source_it).second)->cvKind;
+		auto sourceVarKind = dynamic_pointer_cast<Source>((*source_it).second)->cvKind;
 
-		switch (varKind)
+		switch (sourceVarKind)
 		{
 			case VarKind::VOLTAGE:
 			{
@@ -562,27 +560,51 @@ namespace electric_net
 
 			case VarKind::CURRENT:
 			{
-				double accLoadsTotalConductivity = 0.0;
-				for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
-					                                       desc_it != net.dgend((*source_it).first); desc_it++)
+				auto firstDesc_it = net.dgbegin((*source_it).first);
+				auto descesType = dynamic_pointer_cast<Load>((*firstDesc_it).second) ->type;
+
+				switch (descesType)
 				{
-					double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
-					accLoadsTotalConductivity += 1 / loadResistance;
+					case LoadType::RESISTIVE:
+					{
+						double accLoadsTotalConductivity = 0.0;
+						for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first); 
+							                                       desc_it != net.dgend((*source_it).first); desc_it++)
+						{
+							double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
+							accLoadsTotalConductivity += 1 / loadResistance;
+						}
+						
+						double sourceCurrent = dynamic_pointer_cast<Converter>((*source_it).second) ->cvValue;
+						double outputVoltage = sourceCurrent / accLoadsTotalConductivity;
+						writeAvValueToSource(outputVoltage, (*source_it).first);
+						
+						for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first);
+							                                       desc_it != net.dgend((*source_it).first); desc_it++)
+						{
+							double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
+							double loadCurrent = outputVoltage / loadResistance;
+							writeInputValueToResistiveLoad(loadCurrent, (*desc_it).first);
+						}
+						
+						return outputVoltage;
+					}
+
+					case LoadType::CONSTANT_CURRENT:
+					{
+						throw exception("\"calculateAndUpdateGivenParams\": Constant current load can't be supplied from current source");
+					}
+
+					case LoadType::DIODE:
+					{
+						double forwardVoltage = dynamic_pointer_cast<TwoParamLoad>((*firstDesc_it).second) ->mainParam;
+						return forwardVoltage;
+					}
+
+
+					default:
+						throw exception("Invalid type of load");
 				}
-
-				double sourceCurrent = dynamic_pointer_cast<Converter>((*source_it).second) ->cvValue;
-				double outputVoltage = sourceCurrent / accLoadsTotalConductivity;
-				writeAvValueToSource(outputVoltage, (*source_it).first);
-
-				for (ElectricForest::desces_group_iterator desc_it = net.dgbegin((*source_it).first);
-					                                       desc_it != net.dgend((*source_it).first); desc_it++)
-				{
-					double loadResistance = dynamic_pointer_cast<OneParamLoad>((*desc_it).second) ->param;
-					double loadCurrent = outputVoltage / loadResistance;
-					writeInputValueToResistiveLoad(loadCurrent, (*desc_it).first);
-				}
-
-				return outputVoltage;
 			}
 
 
@@ -613,23 +635,23 @@ namespace electric_net
 	}
 
 
-	double ElectricNet::calculateConsumption (Desc_it sink_it, Desc_it source_it)
+	double ElectricNet::calculateConsumption (Desc_it consumer_it, Desc_it source_it)
 	{
-		DeviceType type = (*sink_it).second->type;
+		DeviceType type = (*consumer_it).second->type;
 
 		switch (type)
 		{
 			case DeviceType::CONVERTER:
 			{
-				calculateAndUpdateGivenParams(sink_it);
-				double inputCurrent = reduceOutputToInput(sink_it, source_it);
-				writeInputValueToConverter(inputCurrent, (*sink_it).first);
-				return inputCurrent;
+				calculateAndUpdateGivenParams(consumer_it);
+				double inputValue = reduceOutputToInput(consumer_it, source_it);
+				writeInputValueToConverter(inputValue, (*consumer_it).first);
+				return inputValue;
 			}
 
 			case DeviceType::LOAD:
 			{
-				double loadCurrent = calculateLoadConsumption(sink_it, source_it);
+				double loadCurrent = calculateLoadConsumptionDrivenByVoltageSource(consumer_it, source_it);
 				return loadCurrent;
 			}
 
@@ -649,29 +671,29 @@ namespace electric_net
 
 		double outputPower = (converter->cvValue) * (converter->avValue);
 		double efficiency = converter->efficiency;
-		double inputVoltage = source->cvValue;
+		double sourcesCv = source->cvValue;
 
-		double inputCurrent;
+		double inputValue;
 		switch (converterType)
 		{
 			case ConverterType::PULSE:
-				inputCurrent = 100 * outputPower / (efficiency * inputVoltage);
+				inputValue = 100 * outputPower / (efficiency * sourcesCv);
 				break;
 
 			case ConverterType::LINEAR:
 				switch (converterVarKind)
 				{
 					case VarKind::VOLTAGE:
-						inputCurrent = converter->avValue;
+						inputValue = converter->avValue;
 						break;
 
 					case VarKind::CURRENT:
-						inputCurrent = converter->cvValue;
+						inputValue = converter->cvValue;
 						break;
 
 
 					default:
-						throw exception("invalind kind of controlled variable");
+						throw exception("Invalind kind of controlled variable");
 				}
 				break;
 
@@ -680,24 +702,20 @@ namespace electric_net
 				throw exception("Invalid type of converter");
 		}
 		
-		return inputCurrent;
+		return inputValue;
 	}
 
 
-	double ElectricNet::calculateLoadConsumption (Desc_it load_it, Desc_it source_it)
+	double ElectricNet::calculateLoadConsumptionDrivenByVoltageSource (Desc_it load_it, Desc_it source_it)
 	{
-		auto source = dynamic_pointer_cast<Source>( (*source_it).second );
-		auto load = dynamic_pointer_cast<OneParamLoad>( (*load_it).second );
-		auto loadType = load->type;
-
-		double voltage = source->cvValue;
-
+		auto loadType = dynamic_pointer_cast<Load>((*load_it).second) ->type;
 
 		switch (loadType)
 		{
 			case LoadType::RESISTIVE:
 			{
-				double resistance = load->param;
+				double resistance = dynamic_pointer_cast<OneParamLoad>((*load_it).second) ->param;
+				double voltage = dynamic_pointer_cast<Source>((*source_it).second) ->cvValue;
 
 				double loadCurrent = voltage / resistance;
 				writeInputValueToResistiveLoad(loadCurrent, (*load_it).first);
@@ -706,7 +724,13 @@ namespace electric_net
 
 			case LoadType::CONSTANT_CURRENT:
 			{
-				double current = load->param;
+				auto current = dynamic_pointer_cast<OneParamLoad>((*load_it).second) ->param;
+				return current;
+			}
+
+			case LoadType::DIODE:
+			{
+				auto current = dynamic_pointer_cast<TwoParamLoad>((*load_it).second) ->secondaryParam;
 				return current;
 			}
 
@@ -768,7 +792,6 @@ namespace electric_net
 		: Load(tp), param(param)    
 	{
 		if (tp == LoadType::DIODE)     throw exception("Diode load must have two parameters");
-		if (tp == LoadType::ENERGY)    throw exception("Energy load must have two parameters");
 	}
 	
 

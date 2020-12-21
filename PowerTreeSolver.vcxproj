@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="high-level design\commands list.txt" />
+    <Text Include="high-level design\connections constraints.txt" />
     <Text Include="high-level design\tree data structure requirements.txt" />
     <Text Include="high-level design\tree%27s nodes and parameters.txt" />
     <Text Include="todo.txt" />

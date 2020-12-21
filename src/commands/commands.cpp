@@ -760,13 +760,6 @@ namespace commands
 						break;
 					}
 				
-					case LoadType::ENERGY:
-					{
-						auto loadData = activePowerTree->getEnergyLoadData(loadName);
-						displayEnergyLoad(loadData);
-						break;
-					}
-									
 					case LoadType::DIODE:
 					{
 						auto loadData = activePowerTree->getDiodeLoadData(loadName);
@@ -807,17 +800,6 @@ namespace commands
 				
 				string output = shift + "Load \"" + name + "\" " + to_string(forwardVoltage) + getMainUnitDesignatorStr(LoadType::DIODE)
 					                  + " (forw. cur. " + to_string(forwardCurrent) + getAddUnitDesignatorStr(LoadType::DIODE) + ")";
-				cout << output << endl;
-			}
-
-
-			static void displayEnergyLoad (EnergyLoadData data)
-			{
-				auto [name, nestingLevel, nominalPower, nominalVoltage] = data;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(nominalPower) + getMainUnitDesignatorStr(LoadType::ENERGY)
-					                  + " (nom. volt. " + to_string(nominalVoltage) + getAddUnitDesignatorStr(LoadType::ENERGY) + ")";
 				cout << output << endl;
 			}
 		
@@ -1235,10 +1217,6 @@ namespace commands
 						mainParam = "current";
 						break;
 	
-					case LoadType::ENERGY:
-						mainParam = "power";
-						break;
-	
 					case LoadType::DIODE:
 						mainParam = "forward voltage";
 						break;
@@ -1286,7 +1264,6 @@ namespace commands
 					}
 	
 					case (LoadType::DIODE): [[__fallthrough]]
-					case (LoadType::ENERGY):
 					{
 						if (args.parentName == "")
 							activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
@@ -1308,8 +1285,8 @@ namespace commands
 				string valueUnit = "Ohm";
 				if (args.type == LoadType::CONSTANT_CURRENT)
 					valueUnit = "A";
-				else if (args.type == LoadType::ENERGY)
-					valueUnit = "W";
+				else if (args.type == LoadType::DIODE)
+					valueUnit = "V";
 	
 	
 				cout << "A new ";
@@ -1874,15 +1851,6 @@ namespace commands
 					{
 						if (args.value)
 							activePowerTree->setLoadCurrent(actualName, *args.value);
-						return;
-					}
-	
-					case LoadType::ENERGY:
-					{
-						if (args.value)
-							activePowerTree->setLoadForawrdVoltage(actualName, *args.value);
-						if (args.value)
-							activePowerTree->setLoadForwardCurrent(actualName, *args.addValue);
 						return;
 					}
 	

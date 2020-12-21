@@ -190,7 +190,7 @@ namespace electric_net
 			void writeInputValueToResistiveLoad (double newInputValue, key loadName);
 			double calculateConsumption (Desc_it sink_it, Desc_it source_it);
 			double reduceOutputToInput (Desc_it sink_it, Desc_it source_it);
-			double calculateLoadConsumption (Desc_it load_it, Desc_it source_it);
+			double calculateLoadConsumptionDrivenByVoltageSource (Desc_it load_it, Desc_it source_it);
 
 			VarKind calcInputVarTypeByParent (key parentName) const;
 

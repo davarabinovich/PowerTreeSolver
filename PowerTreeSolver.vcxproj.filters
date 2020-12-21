@@ -73,5 +73,8 @@
     <Text Include="high-level design\tree data structure requirements.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="high-level design\connections constraints.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

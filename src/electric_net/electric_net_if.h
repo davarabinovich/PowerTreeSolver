@@ -123,7 +123,7 @@ namespace electric_net
 	
 	
 	
-	enum class LoadType { RESISTIVE, CONSTANT_CURRENT, ENERGY, DIODE };
+	enum class LoadType { RESISTIVE, CONSTANT_CURRENT, DIODE };
 	
 	inline ostream & operator << (ostream & os, const LoadType & type)
 	{
@@ -133,8 +133,6 @@ namespace electric_net
 				return os << "resistive";
 			case LoadType::CONSTANT_CURRENT:
 				return os << "constant current";
-			case LoadType::ENERGY:
-				return os << "energy";
 			case LoadType::DIODE:
 				return os << "diode";
 	
@@ -149,9 +147,7 @@ namespace electric_net
 			return ("resistive" + str);
 		if (tp == LoadType::CONSTANT_CURRENT)
 			return ("constant current" + str);
-		if (tp == LoadType::DIODE)
-			return ("diode" + str);
-		return ("power" + str);
+		return ("diode" + str);
 	}
 		
 	inline const string operator + (const string & str, const LoadType & tp)
@@ -160,18 +156,15 @@ namespace electric_net
 			return (str + "resistive");
 		if (tp == LoadType::CONSTANT_CURRENT)
 			return (str + "current");
-		if (tp == LoadType::DIODE)
-			return (str + "diode");
-		return (str + "power");
+		return (str + "diode");
 	}
 
 	inline bool isLoadTypeString (const string & str)
 	{
 		if (str != "r" && str != "R" && str != "res" && str != "Res" && str != "resistive" && str != "Resistive")
 			if (str != "c" && str != "C" && str != "cur" && str != "Cur" && str != "current" && str != "Current")
-				if (str != "e" && str != "E" && str != "en" && str != "En" && str != "energy" && str != "Energy")
-					if (str != "d" && str != "D" && str != "di" && str != "Di" && str != "diode" && str != "Diode")
-						return false;
+				if (str != "d" && str != "D" && str != "di" && str != "Di" && str != "diode" && str != "Diode")
+					return false;
 		return true;
 	}
 	
@@ -184,8 +177,6 @@ namespace electric_net
 			return LoadType::RESISTIVE;
 		if (str == "c" || str == "C" || str == "cur" || str == "Cur" || str == "current" || str == "Current") 
 			return LoadType::CONSTANT_CURRENT;
-		if (str == "e" || str == "E" || str == "en" || str == "En" || str == "energy" || str == "Energy")
-			return LoadType::ENERGY;
 		return LoadType::DIODE;
 	}
 
@@ -198,9 +189,6 @@ namespace electric_net
 
 			case LoadType::CONSTANT_CURRENT:
 				return string("current");
-
-			case LoadType::ENERGY:
-				return string("power");
 
 			case LoadType::DIODE:
 				return string("forward voltage");
@@ -221,9 +209,6 @@ namespace electric_net
 			case LoadType::CONSTANT_CURRENT:
 				return string("A");
 
-			case LoadType::ENERGY:
-				return string("W");
-
 			case LoadType::DIODE:
 				return string("V");
 
@@ -237,9 +222,6 @@ namespace electric_net
 	{
 		switch (type)
 		{
-			case LoadType::ENERGY:
-				return string("nominal voltage");
-
 			case LoadType::DIODE:
 				return string("forward current");
 
@@ -257,9 +239,6 @@ namespace electric_net
 	{
 		switch (type)
 		{
-			case LoadType::ENERGY:
-				return string("V");
-
 			case LoadType::DIODE:
 				return string("A");
 
