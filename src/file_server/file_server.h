@@ -2,6 +2,9 @@
 #pragma once
 
 
+#include <fstream>
+
+
 #include "config.h"
 
 
@@ -11,6 +14,8 @@
 
 
 using namespace electric_net;
+
+using std::ofstream;
 
 
 
@@ -38,5 +43,12 @@ class FileServer
 		const writing_stream & getWritingStream () const;
 		void printTail () const;
 		void saveAndCloseFile () const;
+
+
+
+
+	private:
+		
+		ofstream wstream;
 
 };
