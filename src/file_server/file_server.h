@@ -33,7 +33,7 @@ class FileServer
 
 
 
-		void createOrOpenFile () const;
+		void createOrOpenFile (string fileName) const;
 		void printHeader () const;
 		const writing_stream & getWritingStream () const;
 		void printTail () const;

@@ -29,7 +29,7 @@ FileServer::writing_stream FileServer::writing_stream::operator << (DiodeLoadDat
 	return writing_stream();
 }
 
-void FileServer::createOrOpenFile() const
+void FileServer::createOrOpenFile(string fileName) const
 {
 }
 

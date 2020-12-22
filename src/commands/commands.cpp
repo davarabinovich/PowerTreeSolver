@@ -2434,7 +2434,8 @@ namespace commands
 
 			void recordPowerTree () const
 			{
-				fileServer->createOrOpenFile();
+				string treeTitle = activePowerTree->getTitle();
+				fileServer->createOrOpenFile(treeTitle);
 				fileServer->printHeader();
 
 				AUTO_CONST_REF wfstream = fileServer->getWritingStream();
