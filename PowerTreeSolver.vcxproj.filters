@@ -79,5 +79,8 @@
     <Text Include="high-level design\stroraging_format.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="global_todo.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
