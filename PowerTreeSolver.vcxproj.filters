@@ -76,5 +76,8 @@
     <Text Include="high-level design\connections constraints.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="high-level design\stroraging_format.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
