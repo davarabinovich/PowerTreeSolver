@@ -29,6 +29,7 @@
   <ItemGroup>
     <ClCompile Include="src\commands\commands.cpp" />
     <ClCompile Include="src\electric_net\electric_net.cpp" />
+    <ClCompile Include="src\file_server\file_server.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\tests\tests.cpp" />
     <ClCompile Include="src\test_runner\test_runner.cpp" />
@@ -38,6 +39,7 @@
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\electric_net\electric_net.h" />
     <ClInclude Include="src\electric_net\electric_net_if.h" />
+    <ClInclude Include="src\file_server\file_server.h" />
     <ClInclude Include="src\forest\forest.h" />
     <ClInclude Include="src\forest\forest_defs.h" />
     <ClInclude Include="src\lib\ciflib.h" />
