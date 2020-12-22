@@ -1,5 +1,6 @@
 ﻿
 #include <sstream>
+#include <fstream>
 #include <cctype>
 #include <cmath>
 
@@ -18,6 +19,7 @@
 
 #include "electric_net/electric_net_if.h"
 #include "electric_net/electric_net.h"
+#include "file_server/file_server.h"
 
 
 #include "commands.h"
@@ -2083,7 +2085,8 @@ namespace commands
 			}
 	
 	};
-	
+
+
 	
 	
 	
@@ -2256,7 +2259,8 @@ namespace commands
 			}
 		
 };
-	
+
+
 	
 	
 	
@@ -2400,6 +2404,25 @@ namespace commands
 		}
 	
 };
+
+
+
+
+
+	class CommandSave : public Command
+	{
+
+		public:
+
+			virtual void execute (TokensDeque & tokens) const override
+			{
+				ofstream out;
+				out.open("example.pts");
+				out << "Power tree solver";
+				out.close();
+			}
+
+	};
 	
 	
 	
@@ -2412,7 +2435,7 @@ namespace commands
 	
 	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()           },
 																				{ "rn", make_shared<CommandRename>()           },
-																				{ "sv", make_shared<CommandSolve>()            },
+																				{ "sl", make_shared<CommandSolve>()            },
 																				{ "ss", make_shared<CommandShowStructure>()    },
 	
 																				{ "ci", make_shared<CommandCreateInput>()      },
@@ -2423,7 +2446,9 @@ namespace commands
 																				{ "ml", make_shared<CommandModifyLoad>()       },
 																				{ "ms", make_shared<CommandMoveSink>()         },
 																				{ "ds", make_shared<CommandDisconnectSink>()   },
-																				{ "dn", make_shared<CommandDeleteNode>()       }  };
+																				{ "dn", make_shared<CommandDeleteNode>()       },
+	
+																			    { "sv", make_shared<CommandSave>()             } };
 	
 	
 	
