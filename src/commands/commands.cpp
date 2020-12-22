@@ -1,6 +1,5 @@
 ﻿
 #include <sstream>
-#include <fstream>
 #include <cctype>
 #include <cmath>
 
@@ -96,6 +95,7 @@ string GetNameOfTree() { return string(); }
 
 // Dependencies injection is there
 static shared_ptr<ElectricNet_If> activePowerTree;
+static shared_ptr<FileServer> fileServer = make_shared<FileServer>();
 
 bool isThereSomeTree ()
 { 
@@ -2409,17 +2409,47 @@ namespace commands
 
 
 
-	class CommandSave : public Command
+	class CommandSave : public CommandWorkingWithExsistingTree
 	{
 
 		public:
 
 			virtual void execute (TokensDeque & tokens) const override
 			{
-				ofstream out;
-				out.open("example.pts");
-				out << "Power tree solver";
-				out.close();
+				ensureIfThereAreSomeTree();
+
+				recordPowerTree();
+				reportExecution();
+			}
+
+
+
+
+		private:
+
+			void recordPowerTree () const
+			{
+				fileServer->printHeader();
+
+
+
+				class WriteNode
+				{
+					public:
+						void operator () (key nodeName) 
+						{
+							
+						}
+				};
+				WriteNode writeNode;
+
+				activePowerTree->iterateAndExecuteForEach(writeNode);
+			}
+
+
+			void reportExecution () const
+			{
+				cout << "Power tree \"" << activePowerTree->getTitle() << "\" is been saved successfully";
 			}
 
 	};
