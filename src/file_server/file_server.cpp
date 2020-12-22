@@ -2,36 +2,52 @@
 #pragma once
 
 
+#include <cctype>
+
+
 #include "file_server/file_server.h"
 
 
 
 
-FileServer::writing_stream FileServer::writing_stream::operator<<(InputData & stream) const
+using std::to_string;
+
+
+
+
+
+FileServer::writing_stream FileServer::writing_stream::operator << (InputData & data)
+{
+	wstream << getNodeTagByNestingLevel(1) << " ";
+
+	auto [name, type, value] = data;
+	wstream << input_tag << " " << name << endl;
+	wstream << getVarTagByVarKind(type) << " " << to_string(value) << endl;
+	wstream << endl;
+
+	return *this;
+}
+
+
+FileServer::writing_stream FileServer::writing_stream::operator << (ConverterData & data)
 {
 	return writing_stream();
 }
 
 
-FileServer::writing_stream FileServer::writing_stream::operator << (ConverterData & stream) const
+FileServer::writing_stream FileServer::writing_stream::operator << (ResistiveLoadData & data)
 {
 	return writing_stream();
 }
 
 
-FileServer::writing_stream FileServer::writing_stream::operator << (ResistiveLoadData & stream) const
+FileServer::writing_stream FileServer::writing_stream::operator << (ConstantCurrentLoadData & data)
 {
 	return writing_stream();
 }
 
 
-FileServer::writing_stream FileServer::writing_stream::operator << (ConstantCurrentLoadData & stream) const
-{
-	return writing_stream();
-}
-
-
-FileServer::writing_stream FileServer::writing_stream::operator << (DiodeLoadData & stream) const
+FileServer::writing_stream FileServer::writing_stream::operator << (DiodeLoadData & data)
 {
 	return writing_stream();
 }
@@ -45,31 +61,62 @@ FileServer::writing_stream FileServer::writing_stream::operator << (DiodeLoadDat
 
 
 
-void FileServer::createOrOpenFile (string fileName) const
+const string FileServer::file_extension = ".pts";
+const string FileServer::node_tag_template = "f";
+const string FileServer::input_tag = "in";
+
+
+
+
+FileServer::FileServer (string treeName, string fileName)
 {
-	string fullFileName();
-	wstream.open("");
-}
+	ofstream wstream;
 
-void FileServer::printHeader () const
-{
+	string fileFullName(fileName);
+	fileFullName = fileFullName + file_extension;
+	wstream.open(fileFullName);
 
-}
-
-
-const FileServer::writing_stream & FileServer::getWritingStream () const
-{
-	return writing_stream();
-}
-
-
-void FileServer::printTail () const
-{
-
+	wstream << treeName << endl << endl;
 }
 
 
-void FileServer::saveAndCloseFile () const
+
+
+
+FileServer::writing_stream & FileServer::getWritingStream ()
+{
+	return wstream;
+}
+
+
+
+
+string FileServer::getNodeTagByNestingLevel (unsigned level)
+{
+	string tag(node_tag_template);
+	tag += to_string(level);
+	return tag;
+}
+
+
+string FileServer::getVarTagByVarKind (VarKind kind)
+{
+	switch (kind)
+	{
+		case VarKind::VOLTAGE:
+			return "vol";
+		case VarKind::CURRENT:
+			return "cur";
+		
+		default:
+			throw exception("Invalid kind of controlled variable");
+	}
+}
+
+
+
+
+FileServer::~FileServer ()
 {
 
 }

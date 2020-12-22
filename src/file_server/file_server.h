@@ -29,26 +29,45 @@ class FileServer
 		class writing_stream
 		{
 			public:
-				writing_stream operator << (InputData & stream) const;
-				writing_stream operator << (ConverterData & stream) const;
-				writing_stream operator << (ResistiveLoadData & stream) const;
-				writing_stream operator << (ConstantCurrentLoadData & stream) const;
-				writing_stream operator << (DiodeLoadData & stream) const;
+				writing_stream operator << (InputData & data);
+				writing_stream operator << (ConverterData & data);
+				writing_stream operator << (ResistiveLoadData & data);
+				writing_stream operator << (ConstantCurrentLoadData & data);
+				writing_stream operator << (DiodeLoadData & data);
+
+			private:
+				ofstream wstream;
 		};
 
 
 
-		void createOrOpenFile (string fileName) const;
-		void printHeader () const;
-		const writing_stream & getWritingStream () const;
-		void printTail () const;
-		void saveAndCloseFile () const;
+		FileServer (string treeName, string fileName);
+
+
+
+	    writing_stream & getWritingStream ();
+
+
+
+		~FileServer ();
 
 
 
 
 	private:
 		
-		ofstream wstream;
+		static const string file_extension;
+
+		static const string node_tag_template;
+		static const string input_tag;
+
+
+
+		writing_stream wstream;
+
+
+
+		static string getNodeTagByNestingLevel (unsigned level = 1);
+		static string getVarTagByVarKind (VarKind kind);
 
 };

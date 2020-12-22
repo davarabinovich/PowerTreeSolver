@@ -312,7 +312,7 @@ namespace electric_net
 	{
 		key name;
 
-		VarKind type;
+		VarKind cvKind;
 		double value;
 	};
 
@@ -321,7 +321,7 @@ namespace electric_net
 		key name;
 		unsigned nestingLevel;
 
-		VarKind cvType;
+		VarKind cvKind;
 		double value;
 		ConverterType type; 
 		double efficiency;

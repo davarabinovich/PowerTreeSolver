@@ -95,7 +95,6 @@ string GetNameOfTree() { return string(); }
 
 // Dependencies injection is there
 static shared_ptr<ElectricNet_If> activePowerTree;
-static shared_ptr<FileServer> fileServer = make_shared<FileServer>();
 
 bool isThereSomeTree ()
 { 
@@ -2435,17 +2434,16 @@ namespace commands
 			void recordPowerTree () const
 			{
 				string treeTitle = activePowerTree->getTitle();
-				fileServer->createOrOpenFile(treeTitle);
-				fileServer->printHeader();
+				shared_ptr<FileServer> fileWriter = make_shared<FileServer>(treeTitle, treeTitle);
 
-				AUTO_CONST_REF wfstream = fileServer->getWritingStream();
+				auto & wfstream = fileWriter->getWritingStream();
 
 
 
 				class WriteNode
 				{
 					public:
-						WriteNode (const FileServer::writing_stream & genWfstream)
+						WriteNode (FileServer::writing_stream & genWfstream)
 							: wfstream(genWfstream) {;}
 
 						void operator () (key nodeName) 
@@ -2480,14 +2478,11 @@ namespace commands
 						}
 
 					private:
-						const FileServer::writing_stream & wfstream;
+						FileServer::writing_stream & wfstream;
 				};
 				WriteNode writeNode(wfstream);
 
 				activePowerTree->iterateAndExecuteForEach(writeNode);
-
-				fileServer->printTail();
-				fileServer->saveAndCloseFile();
 			}
 
 
@@ -2497,7 +2492,7 @@ namespace commands
 			}
 
 
-			static void writeLoad (key loadName, const FileServer::writing_stream & wfstream)
+			static void writeLoad (key loadName, FileServer::writing_stream & wfstream)
 			{
 				auto type = activePowerTree->getLoadType(loadName);
 				switch (type)

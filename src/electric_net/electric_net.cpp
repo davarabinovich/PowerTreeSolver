@@ -390,7 +390,7 @@ namespace electric_net
 
 		data.name = inputName;
 
-		data.type = input->cvKind;
+		data.cvKind = input->cvKind;
 		data.value = input->cvValue;
 
 		return data;
@@ -407,7 +407,7 @@ namespace electric_net
 		data.name = converterName;
 		data.nestingLevel = net.getNestingLevel(converterName);
 
-		data.cvType = converter->Source::cvKind;
+		data.cvKind = converter->Source::cvKind;
 		data.value = converter->cvValue;
 		data.type = converter->type;
 		data.efficiency = converter->efficiency;
