@@ -12,6 +12,7 @@
 
 
 using std::ostream;
+using std::function;
 
 
 
@@ -351,15 +352,6 @@ namespace electric_net
 		double forwardCurrent;
 	};
 
-	struct EnergyLoadData
-	{
-		key name;
-		unsigned nestingLevel;
-
-		double nominalPower;
-		double nominalVoltage;
-	};
-
 
 
 	struct InputResults
@@ -479,7 +471,6 @@ namespace electric_net
 			virtual ResistiveLoadData getResistiveLoadData (key loadName) = 0;
 			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) = 0;
 			virtual DiodeLoadData getDiodeLoadData (key loadName) = 0;
-			virtual EnergyLoadData getEnergyLoadData (key loadName) = 0;
 			virtual bool isLoadExsist (key name) = 0;
 			virtual LoadType getLoadType (key name) = 0;
 

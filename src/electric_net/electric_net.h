@@ -89,7 +89,6 @@ namespace electric_net
 			virtual ResistiveLoadData getResistiveLoadData (key loadName) override;
 			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) override;
 			virtual DiodeLoadData getDiodeLoadData (key loadName) override;
-			virtual EnergyLoadData getEnergyLoadData (key loadName) override;
 			virtual bool isLoadExsist (key name) override;
 			virtual LoadType getLoadType (key name) override;
 

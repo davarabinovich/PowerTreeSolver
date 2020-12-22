@@ -465,23 +465,6 @@ namespace electric_net
 	}
 
 
-	EnergyLoadData ElectricNet::getEnergyLoadData (key loadName)
-	{
-		EnergyLoadData data;
-
-		AUTO_CONST_REF node = net.at(loadName);
-		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
-
-		data.name = loadName;
-		data.nestingLevel = net.getNestingLevel(loadName);
-
-		data.nominalPower = load->mainParam; 
-		data.nominalVoltage = load->secondaryParam; 
-
-		return data;
-	}
-
-
 	bool ElectricNet::isLoadExsist (key name)
 	{
 		if (net.isExsist(name))

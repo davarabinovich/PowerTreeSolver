@@ -945,6 +945,7 @@ namespace commands
 	
 };
 	
+
 	
 	
 	
@@ -1113,7 +1114,8 @@ namespace commands
 			}
 		
 	};
-	
+
+
 	
 	
 	
@@ -1318,7 +1320,8 @@ namespace commands
 			}
 		
 	};
-		
+	
+
 	
 	
 	
@@ -1701,6 +1704,7 @@ namespace commands
 };
 	
 	
+
 	
 	
 	class CommandModifyLoad : public CommandWorkingWithExsistingTree
@@ -1930,6 +1934,7 @@ namespace commands
 	
 	
 	
+
 	
 	class CommandDeleteNode : public CommandWorkingWithExsistingTree
 	{
@@ -2429,27 +2434,97 @@ namespace commands
 
 			void recordPowerTree () const
 			{
+				fileServer->createOrOpenFile();
 				fileServer->printHeader();
+
+				AUTO_CONST_REF wfstream = fileServer->getWritingStream();
 
 
 
 				class WriteNode
 				{
 					public:
+						WriteNode (const FileServer::writing_stream & genWfstream)
+							: wfstream(genWfstream) {;}
+
 						void operator () (key nodeName) 
 						{
-							
+							auto nodeType = activePowerTree->getNodeType(nodeName);
+							switch (nodeType)
+							{
+								case DeviceType::INPUT:
+								{
+									auto inputData = activePowerTree->getInputData(nodeName);
+									wfstream << inputData; 
+									break;
+								}
+
+								case DeviceType::CONVERTER:
+								{
+									auto converterData = activePowerTree->getConverterData(nodeName);
+									wfstream << converterData; 
+									break;
+								}
+
+								case DeviceType::LOAD:
+								{
+									writeLoad(nodeName, wfstream);
+									break;
+								}
+
+								default:
+									throw exception("Invalid type of device");
+
+							}
 						}
+
+					private:
+						const FileServer::writing_stream & wfstream;
 				};
-				WriteNode writeNode;
+				WriteNode writeNode(wfstream);
 
 				activePowerTree->iterateAndExecuteForEach(writeNode);
+
+				fileServer->printTail();
+				fileServer->saveAndCloseFile();
 			}
 
 
 			void reportExecution () const
 			{
 				cout << "Power tree \"" << activePowerTree->getTitle() << "\" is been saved successfully";
+			}
+
+
+			static void writeLoad (key loadName, const FileServer::writing_stream & wfstream)
+			{
+				auto type = activePowerTree->getLoadType(loadName);
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+					{
+						auto loadData = activePowerTree->getResistiveLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+				
+					case LoadType::CONSTANT_CURRENT:
+					{
+						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+				
+					case LoadType::DIODE:
+					{
+						auto loadData = activePowerTree->getDiodeLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+				
+					default:
+							throw exception("Invalid type of load");
+				}
 			}
 
 	};
