@@ -96,6 +96,9 @@ string GetNameOfTree() { return string(); }
 // Dependencies injection is there
 static shared_ptr<ElectricNet_If> activePowerTree;
 
+static string fileName;
+static string relativePath;
+
 bool isThereSomeTree ()
 { 
 	bool result = !(activePowerTree == nullptr);
@@ -166,6 +169,8 @@ namespace commands
 					args.inputName = "Input1";
 
 				createTreeByArgs(args);
+				fileName = args.name;
+
 				createInputByArgs(args);
 
 				reportExecution(args);
@@ -2430,6 +2435,14 @@ namespace commands
 
 
 		private:
+
+			struct Arguments
+			{
+				string fileName;
+				string path;
+			};
+
+
 
 			void recordPowerTree () const
 			{
