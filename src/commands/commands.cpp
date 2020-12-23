@@ -628,7 +628,7 @@ namespace commands
 				auto [name, nestingLevel, resistance, inputValue, inputVarType] = results;
 				auto shift = generateShift(nestingLevel);
 				
-				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:";
+				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:" + "\n";
 				
 				output += shift;
 				if (inputVarType == VarKind::VOLTAGE)
@@ -2434,16 +2434,14 @@ namespace commands
 			void recordPowerTree () const
 			{
 				string treeTitle = activePowerTree->getTitle();
-				shared_ptr<FileServer> fileWriter = make_shared<FileServer>(treeTitle, treeTitle);
-
-				auto & wfstream = fileWriter->getWritingStream();
+				FileWriter fileWriter(treeTitle, treeTitle);
 
 
 
 				class WriteNode
 				{
 					public:
-						WriteNode (FileServer::writing_stream & genWfstream)
+						WriteNode (FileWriter & genWfstream)
 							: wfstream(genWfstream) {;}
 
 						void operator () (key nodeName) 
@@ -2478,9 +2476,11 @@ namespace commands
 						}
 
 					private:
-						FileServer::writing_stream & wfstream;
+						FileWriter & wfstream;
 				};
-				WriteNode writeNode(wfstream);
+				WriteNode writeNode(fileWriter);
+
+
 
 				activePowerTree->iterateAndExecuteForEach(writeNode);
 			}
@@ -2488,11 +2488,11 @@ namespace commands
 
 			void reportExecution () const
 			{
-				cout << "Power tree \"" << activePowerTree->getTitle() << "\" is been saved successfully";
+				cout << "Power tree \"" << activePowerTree->getTitle() << "\" is been saved successfully" << endl << endl;
 			}
 
 
-			static void writeLoad (key loadName, FileServer::writing_stream & wfstream)
+			static void writeLoad (key loadName, FileWriter & wfstream)
 			{
 				auto type = activePowerTree->getLoadType(loadName);
 				switch (type)
