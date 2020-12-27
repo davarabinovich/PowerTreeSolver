@@ -2376,6 +2376,7 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
 
+				updateSystemVariables(args);
 				recordPowerTree(args);
 				reportExecution(args);
 			}
@@ -2435,18 +2436,21 @@ namespace commands
 			}
 
 
+			void updateSystemVariables (Arguments args) const
+			{
+				fileName = args.fileName;
+				path = args.path;
+			}
+
+
 			void recordPowerTree (Arguments args) const
 			{
 				string treeTitle = activePowerTree->getTitle();
 
-				auto [fileName, path] = args;
+				auto [newFileName, newPath] = args;
 
-				if (fileName.empty())
-				{
-					fileName = treeTitle;
-					args.fileName = treeTitle;
-				}
-
+				if (args.fileName.empty())
+					args.fileName = fileName;
 
 				unique_ptr<FileWriter> fileWriter;
 				if (path.empty())
@@ -2545,6 +2549,41 @@ namespace commands
 			}
 
 	};
+
+
+
+
+
+	class CommandLoad : public Command
+	{
+
+		public:
+
+			virtual void execute (TokensDeque & tokens) const override
+			{
+				if (isThereSomeTree())
+				{
+					bool needToSaveActiveTree = suggestSaveActiveTree();
+					if (needToSaveActiveTree)
+					{
+						CommandSave commandSave;
+						TokensDeque savingTokens;
+						commandSave.execute(savingTokens);
+					}
+				}
+
+			}
+
+
+
+
+		private:
+
+			bool suggestSaveActiveTree () const
+			{
+				return true;
+			}
+	};
 	
 	
 	
@@ -2570,7 +2609,8 @@ namespace commands
 																				{ "ds", make_shared<CommandDisconnectSink>()   },
 																				{ "dn", make_shared<CommandDeleteNode>()       },
 	
-																			    { "sv", make_shared<CommandSave>()             } };
+																			    { "sv", make_shared<CommandSave>()             },
+																				{ "ld", make_shared<CommandLoad>()             }  };
 	
 	
 	
@@ -2579,6 +2619,8 @@ namespace commands
 	
 	
 	
+
+
 	TokensDeque tokenize (const string & command_string)
 	{
 		if (command_string.size() == 0)    return TokensDeque();
