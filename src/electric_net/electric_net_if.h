@@ -84,7 +84,7 @@ namespace electric_net
 		return true;
 	}
 	
-	inline VarKind parseCvType (const string & str)
+	inline VarKind parseVarKind (const string & str)
 	{
 		if (!isCvTypeString(str))
 #pragma todo write exceptions message

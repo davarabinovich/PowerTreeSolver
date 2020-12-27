@@ -23,21 +23,45 @@ using std::to_string;
 
 
 
-const string FileWriter::file_extension = ".pts";
+istream & operator >> (istream & is, ReadInput & data);
+istream & operator >> (istream & is, ReadConvertert & data);
+istream & operator >> (istream & is, ReadLoad & data);
 
-const string FileWriter::node_tag_template = "f";
-const string FileWriter::node_input_tag = "in";
-const string FileWriter::node_converter_tag = "con";
-const string FileWriter::node_load_tag = "l";
 
-const string FileWriter::var_voltage_tag = "vol";
-const string FileWriter::var_current_tag = "cur";
 
-const string FileWriter::converter_pulse_tag = "p";
-const string FileWriter::converter_linear_tag = "l";
-const string FileWriter::load_resistance_tag = "res";
-const string FileWriter::load_constant_current_tag = "cur";
-const string FileWriter::load_diode_tag = "d";
+
+
+
+
+
+
+
+const string FileHandler::file_extension = ".pts";
+
+const string FileHandler::node_tag_template = "f";
+const string FileHandler::node_input_tag = "in";
+const string FileHandler::node_converter_tag = "con";
+const string FileHandler::node_load_tag = "l";
+
+const string FileHandler::var_voltage_tag = "vol";
+const string FileHandler::var_current_tag = "cur";
+
+const string FileHandler::converter_pulse_tag = "p";
+const string FileHandler::converter_linear_tag = "l";
+const string FileHandler::load_resistance_tag = "res";
+const string FileHandler::load_constant_current_tag = "cur";
+const string FileHandler::load_diode_tag = "d";
+
+
+
+
+FileHandler::FileHandler () { ; }
+
+
+
+
+
+
 
 
 
@@ -167,13 +191,13 @@ string FileWriter::getConverterTypeTagByType (ConverterType type)
 {
 	switch (type)
 	{
-	case ConverterType::PULSE:
-		return converter_pulse_tag;
-	case ConverterType::LINEAR:
-		return converter_linear_tag;
+		case ConverterType::PULSE:
+			return converter_pulse_tag;
+		case ConverterType::LINEAR:
+			return converter_linear_tag;
 
-	default:
-		throw exception("Invalid type of converter");
+		default:
+			throw exception("Invalid type of converter");
 	}
 }
 
@@ -188,7 +212,13 @@ string FileWriter::getConverterTypeTagByType (ConverterType type)
 
 FileReader::FileReader (string fileName, string path)
 {
+	size_t pathSize = path.size();
+	wchar_t lastChar = path[pathSize - 1];
+	if (lastChar != '\\')
+		path += '\\';
 
+	string fileWithPath = path + fileName + file_extension;
+	rstream.open(fileWithPath);
 }
 
 
@@ -196,16 +226,136 @@ FileReader::FileReader (string fileName, string path)
 
 string FileReader::getTitle ()
 {
-	return string();
+	string title;
+	rstream >> title;
+	return title;
 }
 
 
 bool FileReader::hasUnreadNode () const
 {
-	return false;
+	bool result = rstream.eof();
+	return result;
 }
+
 
 FileReader & FileReader::operator >> (ReadNode & node)
 {
+	tag nestingLevel_tag;
+	rstream >> nestingLevel_tag;
+	nestingLevel_tag.erase(0, 1);
+	unsigned nestingLevel = stoi(nestingLevel_tag);
+
+
+	tag nodeType_tag;
+	rstream >> nodeType_tag;
+	
+	if (nodeType_tag == node_input_tag)
+		node.type = DeviceType::INPUT;
+	else if (nodeType_tag == node_converter_tag)
+		node.type = DeviceType::CONVERTER;
+	else if (nodeType_tag == node_load_tag)
+		node.type = DeviceType::LOAD;
+
+	else    throw exception ("Invalid type of electric node");
+
+
+	rstream >> node.name;
+
+
+	switch (node.type)
+	{
+		case DeviceType::INPUT:
+		{
+			ReadInput data;
+			rstream >> data;
+			node.data = data;
+			break;
+		}
+
+		case DeviceType::CONVERTER:
+		{
+			ReadConvertert data;
+
+			rstream >> data;
+			node.data = data;
+			break;
+		}
+
+		case DeviceType::LOAD:
+		{
+			ReadLoad data;
+			rstream >> data;
+			node.data = data;
+			break;
+		}
+	}
+
+
 	return *this;
+}
+
+
+
+
+
+
+
+
+
+
+istream & operator >> (istream & is, ReadInput & data)
+{
+	string cvKind_tag;
+	is >> cvKind_tag;
+	data.cvKind = parseVarKind(cvKind_tag);
+
+	double value;
+	is >> value;
+	data.value = value;
+
+	return is;
+}
+
+
+istream & operator >> (istream & is, ReadConvertert & data)
+{
+	string cvKind_tag;
+	is >> cvKind_tag;
+	data.cvKind = parseVarKind(cvKind_tag);
+
+	double value;
+	is >> value;
+	data.value = value;
+
+	string type_tag;
+	is >> type_tag;
+	data.type = parseConverterType(type_tag);
+
+	double efficiency;
+	is >> efficiency;
+	data.value = efficiency;
+
+	return is;
+}
+
+
+istream & operator >> (istream & is, ReadLoad & data)
+{
+	string type_tag;
+	is >> type_tag;
+	data.type = parseLoadType(type_tag);
+
+	double mainParam;
+	is >> mainParam;
+	data.mainParam = mainParam;
+
+	if (data.type == LoadType::DIODE)
+	{
+		double additionalParam;
+		is >> additionalParam;
+		data.additionalParam = additionalParam;
+	}
+
+	return is;
 }

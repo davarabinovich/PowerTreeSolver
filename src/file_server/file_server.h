@@ -17,12 +17,51 @@
 using namespace electric_net;
 
 using std::ofstream;
+using std::vector;
 
 
 
 
 
-class FileWriter
+class FileHandler
+{
+
+	protected:
+
+		FileHandler ();
+
+
+
+#pragma todo to use
+		using tag = string;
+
+
+
+#pragma make a common for that and reader
+		static const string file_extension;
+
+#pragma todo to other file
+		static const string node_tag_template;
+		static const string node_input_tag;
+		static const string node_converter_tag;
+		static const string node_load_tag;
+
+		static const string var_voltage_tag;
+		static const string var_current_tag;
+
+		static const string converter_pulse_tag;
+		static const string converter_linear_tag;
+		static const string load_resistance_tag;
+		static const string load_constant_current_tag;
+		static const string load_diode_tag;
+
+};
+
+
+
+
+
+class FileWriter : public FileHandler
 {
 
 	public:
@@ -42,29 +81,6 @@ class FileWriter
 
 
 	private:
-#pragma todo to use
-		using tag = string;
-
-
-
-#pragma todo to other file
-		static const string file_extension;
-
-		static const string node_tag_template;
-		static const string node_input_tag;
-		static const string node_converter_tag;
-		static const string node_load_tag;
-
-		static const string var_voltage_tag;
-		static const string var_current_tag;
-
-		static const string converter_pulse_tag;
-		static const string converter_linear_tag;
-		static const string load_resistance_tag;
-		static const string load_constant_current_tag;
-		static const string load_diode_tag;
-
-
 
 		ofstream wstream;
 
@@ -87,7 +103,6 @@ class FileWriter
 
 struct ReadInput
 {
-	key name;
 	VarKind cvKind;
 	double value;
 };
@@ -95,7 +110,6 @@ struct ReadInput
 
 struct ReadConvertert
 {
-	key name;
 	key parentName;
 
 	ConverterType type;
@@ -107,7 +121,6 @@ struct ReadConvertert
 
 struct ReadLoad
 {
-	key name;
 	key parentName;
 
 	LoadType type;
@@ -119,13 +132,14 @@ struct ReadLoad
 struct ReadNode
 {
 	DeviceType type;
+	key name;
 	variant<ReadInput, ReadConvertert, ReadLoad> data;
 };
 
 
 
 
-class FileReader
+class FileReader : public FileHandler
 {
 
 	public:
@@ -138,4 +152,19 @@ class FileReader
 		bool hasUnreadNode () const;
 		FileReader & operator >> (ReadNode & node);
 
+
+
+
+	private:
+	
+		ifstream rstream;
+
+		vector<key> hierarchyStack;
+
+
+
+		friend istream & operator >> (istream & is, ReadInput & data);
+		friend istream & operator >> (istream & is, ReadConvertert & data);
+		friend istream & operator >> (istream & is, ReadLoad & data);
+	
 };

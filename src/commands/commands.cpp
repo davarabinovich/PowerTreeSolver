@@ -179,7 +179,7 @@ namespace commands
 					}
 				else
 				{
-					args.inputCvType = parseCvType(handeledArg);
+					args.inputCvType = parseVarKind(handeledArg);
 
 					if (tokens.size() != 0)
 					{
@@ -216,7 +216,7 @@ namespace commands
 					}
 				else
 				{
-					args.inputCvType = parseCvType(handeledArg);
+					args.inputCvType = parseVarKind(handeledArg);
 
 					if (tokens.size() != 0)
 					{
@@ -255,7 +255,7 @@ namespace commands
 					}
 				else
 			{
-				args.inputCvType = parseCvType(handeledArg);
+				args.inputCvType = parseVarKind(handeledArg);
 
 				if (tokens.size() != 0)
 				{
@@ -836,7 +836,7 @@ namespace commands
 
 			if (isCvTypeString(handeledArg))
 			{
-				args.cvType = parseCvType(handeledArg);
+				args.cvType = parseVarKind(handeledArg);
 
 				tokens.pop_front();
 				if (tokens.empty())    return args;
@@ -963,7 +963,7 @@ namespace commands
 	
 				if (isCvTypeString(handeledArg))
 				{
-					args.cvType = parseCvType(handeledArg);
+					args.cvType = parseVarKind(handeledArg);
 	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
@@ -1336,7 +1336,7 @@ namespace commands
 							if (args.cvType)    
 								continue;
 	
-							args.cvType = parseCvType(extractParamFromToken(token));
+							args.cvType = parseVarKind(extractParamFromToken(token));
 						}
 						else if (key == "v")
 						{
@@ -1354,7 +1354,7 @@ namespace commands
 						{
 							if (args.cvType)
 							{
-								args.cvType = parseCvType(token);
+								args.cvType = parseVarKind(token);
 								continue;
 							}
 						}
@@ -1511,7 +1511,7 @@ namespace commands
 					{
 						if (args.cvType)    continue;
 	
-						args.cvType = parseCvType(extractParamFromToken(token));
+						args.cvType = parseVarKind(extractParamFromToken(token));
 					}
 					else if (key == "v")
 					{
@@ -1540,7 +1540,7 @@ namespace commands
 					{
 						if (args.cvType)
 						{
-							args.cvType = parseCvType(token);
+							args.cvType = parseVarKind(token);
 							continue;
 						}
 					}
@@ -2659,19 +2659,19 @@ namespace commands
 
 			void createNode (ReadNode & node) const
 			{
-				auto [type, data] = node;
+				auto type = node.type;
 				switch (type)
 				{
 					case DeviceType::INPUT:
-						createInputByParams(get<ReadInput>(data));
+						createInputByParams(node);
 						break;
 
 					case DeviceType::CONVERTER:
-						createConverterByParams(get<ReadConvertert>(data));
+						createConverterByParams(node);
 						break;
 
 					case DeviceType::LOAD:
-						createLoadByParams(get<ReadLoad>(data));
+						createLoadByParams(node);
 						break;
 
 
@@ -2681,31 +2681,34 @@ namespace commands
 			}
 
 
-			void createInputByParams (ReadInput data) const
+			void createInputByParams (ReadNode & node) const
 			{
-				activePowerTree->addInput(data.name, data.cvKind, data.value);
+				auto data = get<ReadInput>(node.data);
+				activePowerTree->addInput(node.name, data.cvKind, data.value);
 			}
 
 
-			void createConverterByParams (ReadConvertert data) const
+			void createConverterByParams (ReadNode & node) const
 			{
-				activePowerTree->addConverter(data.name, data.parentName, data.type, data.cvKind, data.value, data.efficiency);
+				auto data = get<ReadConvertert>(node.data);
+				activePowerTree->addConverter(node.name, data.parentName, data.type, data.cvKind, data.value, data.efficiency);
 			}
 
 
-			void createLoadByParams (ReadLoad data) const
+			void createLoadByParams (ReadNode & node) const
 			{
+				auto data = get<ReadLoad>(node.data);
 				auto type = data.type;
 
 				switch (type)
 				{
 					case LoadType::RESISTIVE:
 					case LoadType::CONSTANT_CURRENT:
-						activePowerTree->addLoad(data.name, data.parentName, data.type, data.mainParam);
+						activePowerTree->addLoad(node.name, data.parentName, data.type, data.mainParam);
 						break;
 						
 					case LoadType::DIODE:
-						activePowerTree->addLoad(data.name, data.parentName, data.type, data.mainParam, data.additionalParam);
+						activePowerTree->addLoad(node.name, data.parentName, data.type, data.mainParam, data.additionalParam);
 						break;
 
 					default:
