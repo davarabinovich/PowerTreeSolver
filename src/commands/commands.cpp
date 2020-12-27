@@ -39,16 +39,20 @@ using namespace electric_net;
 
 
 // Dependencies injection is there
+using PowerTree = ElectricNet;
 static shared_ptr<ElectricNet_If> activePowerTree;
-
-static string fileName;
-static string path;
 
 bool isThereSomeTree ()
 { 
 	bool result = !(activePowerTree == nullptr);
 	return result;
 }
+
+
+
+
+static string fileName;
+static string path;
 
 
 
@@ -131,26 +135,26 @@ namespace commands
 				double inputCvValue = NAN;
 
 				bool operator == (const Arguments & partner)
-			{
-				if (name         != partner.name)         return false;
-				if (inputName    != partner.inputName)    return false;
-				if (inputCvType  != partner.inputCvType)  return false;
-				
-				if (isnan(inputCvValue))
-					if (isnan(partner.inputCvValue))
-						return true;
-					else
-						return false;
-				if (inputCvValue != partner.inputCvValue) return false;
-				
-				return true;
-			}
+				{
+					if (name         != partner.name)         return false;
+					if (inputName    != partner.inputName)    return false;
+					if (inputCvType  != partner.inputCvType)  return false;
+					
+					if (isnan(inputCvValue))
+						if (isnan(partner.inputCvValue))
+							return true;
+						else
+							return false;
+					if (inputCvValue != partner.inputCvValue) return false;
+					
+					return true;
+				}
 
 				bool operator != (const Arguments & partner)
-			{
-				bool result = !(*this == partner);
-				return result;
-			}
+				{
+					bool result = !(*this == partner);
+					return result;
+				}
 			}; 
 			
 			
@@ -293,7 +297,7 @@ namespace commands
 				if (name == "")
 					name = defaultTreeName;
 				
-				activePowerTree = make_shared<ElectricNet>(name);
+				activePowerTree = make_shared<PowerTree>(name);
 			}
 
 			void createInputByArgs (const Arguments & args) const
@@ -2428,14 +2432,6 @@ namespace commands
 			}
 
 
-			static bool isBackSlashInString (string str)
-			{
-				auto it = find(str.begin(), str.end(), '\\');
-				bool result = !(it == str.end());
-				return result;
-			}
-
-
 			void updateSystemVariables (Arguments args) const
 			{
 				fileName = args.fileName;
@@ -2572,6 +2568,13 @@ namespace commands
 					}
 				}
 
+
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+
+				loadTree(args);
+				reportExecution(args);
 			}
 
 
@@ -2579,9 +2582,141 @@ namespace commands
 
 		private:
 
+			struct Arguments
+			{
+				string fileName;
+				string path;
+
+				string title;
+			};
+
+
+
 			bool suggestSaveActiveTree () const
 			{
-				return true;
+				string activeTreeTitle = activePowerTree->getTitle();
+				cout << "Do you want to save the power tree \"" << activeTreeTitle << "\"?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+					return true;
+				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+					return false;
+				throw exception("Invalid answer");
+			}
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				if (tokens.empty())    return Arguments();
+
+
+				Arguments args;
+				auto handeledArg = tokens.front();
+
+				if (isBackSlashInString(handeledArg))
+					args.path = handeledArg;
+				else
+					args.fileName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())
+					return args;
+
+
+				handeledArg = tokens.front();
+
+				if (isBackSlashInString(handeledArg))
+					args.path = handeledArg;
+				else
+					args.fileName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())
+					return args;
+
+
+				throw exception("Too many arguments for this command");
+			}
+
+
+			void loadTree (Arguments & args) const
+			{
+				FileReader rstream(args.fileName, args.path);
+
+				string title = rstream.getTitle();
+				args.title = title;
+				activePowerTree = make_shared<PowerTree>(title);
+
+				while (rstream.hasUnreadNode())
+				{
+					ReadNode node;
+					rstream >> node;
+					createNode(node);
+				}
+			}
+
+
+			void createNode (ReadNode & node) const
+			{
+				auto [type, data] = node;
+				switch (type)
+				{
+					case DeviceType::INPUT:
+						createInputByParams(get<ReadInput>(data));
+						break;
+
+					case DeviceType::CONVERTER:
+						createConverterByParams(get<ReadConvertert>(data));
+						break;
+
+					case DeviceType::LOAD:
+						createLoadByParams(get<ReadLoad>(data));
+						break;
+
+
+					default:
+						throw exception("Invalid type of device");
+				}
+			}
+
+
+			void createInputByParams (ReadInput data) const
+			{
+				activePowerTree->addInput(data.name, data.cvKind, data.value);
+			}
+
+
+			void createConverterByParams (ReadConvertert data) const
+			{
+				activePowerTree->addConverter(data.name, data.parentName, data.type, data.cvKind, data.value, data.efficiency);
+			}
+
+
+			void createLoadByParams (ReadLoad data) const
+			{
+				auto type = data.type;
+
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+					case LoadType::CONSTANT_CURRENT:
+						activePowerTree->addLoad(data.name, data.parentName, data.type, data.mainParam);
+						break;
+						
+					case LoadType::DIODE:
+						activePowerTree->addLoad(data.name, data.parentName, data.type, data.mainParam, data.additionalParam);
+						break;
+
+					default:
+						throw exception("Invalid type of load");
+				}
+			}
+
+
+			void reportExecution (Arguments & args) const
+			{
+				cout << "A new power three \"" << args.title << "\" is successfully loaded" << endl << endl;
 			}
 	};
 	

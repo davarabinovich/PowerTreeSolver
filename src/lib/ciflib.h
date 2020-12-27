@@ -119,3 +119,11 @@ inline bool isBool_str (string str)
 		return true;
 	return false;
 }
+
+
+inline bool isBackSlashInString (string str)
+{
+	auto it = find(str.begin(), str.end(), '\\');
+	bool result = !(it == str.end());
+	return result;
+}

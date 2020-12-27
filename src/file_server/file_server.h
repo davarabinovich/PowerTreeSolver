@@ -3,6 +3,7 @@
 
 
 #include <fstream>
+#include <variant>
 
 
 #include "config.h"
@@ -41,6 +42,10 @@ class FileWriter
 
 
 	private:
+#pragma todo to use
+		using tag = string;
+
+
 
 #pragma todo to other file
 		static const string file_extension;
@@ -68,5 +73,69 @@ class FileWriter
 		static string getNodeTagByNestingLevel (unsigned level = 1);
 		static string getVarTagByVarKind (VarKind kind);
 		static string getConverterTypeTagByType (ConverterType type);
+
+};
+
+
+
+
+
+
+
+
+
+
+struct ReadInput
+{
+	key name;
+	VarKind cvKind;
+	double value;
+};
+
+
+struct ReadConvertert
+{
+	key name;
+	key parentName;
+
+	ConverterType type;
+	VarKind cvKind;
+	double value;
+	double efficiency;
+};
+
+
+struct ReadLoad
+{
+	key name;
+	key parentName;
+
+	LoadType type;
+	double mainParam;
+	double additionalParam;
+};
+
+
+struct ReadNode
+{
+	DeviceType type;
+	variant<ReadInput, ReadConvertert, ReadLoad> data;
+};
+
+
+
+
+class FileReader
+{
+
+	public:
+
+		FileReader (string fileName, string path);
+
+
+
+		string getTitle ();
+		bool hasUnreadNode () const;
+		FileReader & operator >> (ReadNode & node);
 
 };

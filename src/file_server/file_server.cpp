@@ -176,3 +176,36 @@ string FileWriter::getConverterTypeTagByType (ConverterType type)
 		throw exception("Invalid type of converter");
 	}
 }
+
+
+
+
+
+
+
+
+
+
+FileReader::FileReader (string fileName, string path)
+{
+
+}
+
+
+
+
+string FileReader::getTitle ()
+{
+	return string();
+}
+
+
+bool FileReader::hasUnreadNode () const
+{
+	return false;
+}
+
+FileReader & FileReader::operator >> (ReadNode & node)
+{
+	return *this;
+}
