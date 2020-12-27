@@ -42,48 +42,7 @@ using namespace electric_net;
 
 
 
-struct Results
-{
-	struct Load
-	{
-		string name;
-		LoadType type;
-		double value;
-		double power;
-		double secondaryParam;
-	};
-
-	struct Source
-	{
-		string name;
-		VarKind cvType;
-		double cvValue;
-		double avValue;
-		double power;
-
-		vector<Source> converterSinks;
-		vector<Load>   loadSinks;
-	};
-
-
-	vector<Source> inputs;
-};
-
-
-
-
-
 void Solve() {}
-Results GetResults() { return Results(); }
-
-string GetNameOfTree() { return string(); }
-
-
-
-
-
-
-
 
 
 
