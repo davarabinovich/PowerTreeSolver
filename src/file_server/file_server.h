@@ -27,6 +27,7 @@ class FileWriter
 	public:
 
 		FileWriter (string treeName, string fileName);
+		FileWriter (string treeName, string fileName, string path);
 
 
 

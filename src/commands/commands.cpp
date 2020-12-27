@@ -1440,6 +1440,7 @@ namespace commands
 		
 	};
 	
+
 	
 	
 	
@@ -2373,7 +2374,7 @@ namespace commands
 
 				Arguments args;
 				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
+				catch (exception & ex) { throw exception(ex.what()); }
 
 				recordPowerTree(args);
 				reportExecution(args);
@@ -2437,15 +2438,22 @@ namespace commands
 			void recordPowerTree (Arguments args) const
 			{
 				string treeTitle = activePowerTree->getTitle();
-				
-				string fileName = args.fileName;
+
+				auto [fileName, path] = args;
+
 				if (fileName.empty())
 				{
 					fileName = treeTitle;
 					args.fileName = treeTitle;
 				}
 
-				FileWriter fileWriter(treeTitle, fileName);
+
+				unique_ptr<FileWriter> fileWriter;
+				if (path.empty())
+					fileWriter = make_unique<FileWriter>(treeTitle, fileName);
+				else
+					fileWriter = make_unique<FileWriter>(treeTitle, fileName, path);
+
 
 
 
@@ -2489,7 +2497,8 @@ namespace commands
 					private:
 						FileWriter & wfstream;
 				};
-				WriteNode writeNode(fileWriter);
+				WriteNode writeNode(*fileWriter);
+
 
 
 

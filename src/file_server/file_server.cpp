@@ -4,6 +4,7 @@
 
 #include <cctype>
 #include <utility>
+#include <filesystem>
 
 
 #include "lib/ciflib.h"
@@ -13,6 +14,8 @@
 
 
 
+
+using namespace std::filesystem;
 
 using std::to_string;
 
@@ -42,6 +45,23 @@ const string FileWriter::load_diode_tag = "d";
 FileWriter::FileWriter (string treeName, string fileName)
 	: wstream(fileName + file_extension)
 {
+	wstream << treeName << endl << endl;
+}
+
+
+FileWriter::FileWriter (string treeName, string fileName, string path)
+{
+	create_directory(path);
+
+	size_t pathSize = path.size();
+	wchar_t lastChar = path[pathSize-1];
+	if (lastChar != '\\')
+		path += '\\';
+
+	string fileWithPath = path + fileName + file_extension;
+	wstream.open(fileWithPath);
+
+
 	wstream << treeName << endl << endl;
 }
 
@@ -147,12 +167,12 @@ string FileWriter::getConverterTypeTagByType (ConverterType type)
 {
 	switch (type)
 	{
-		case ConverterType::PULSE:
-			return converter_pulse_tag;
-		case ConverterType::LINEAR:
-			return converter_linear_tag;
-	
-		default:
-			throw exception("Invalid type of converter");
+	case ConverterType::PULSE:
+		return converter_pulse_tag;
+	case ConverterType::LINEAR:
+		return converter_linear_tag;
+
+	default:
+		throw exception("Invalid type of converter");
 	}
 }
