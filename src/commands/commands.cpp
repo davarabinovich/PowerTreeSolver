@@ -56,7 +56,7 @@ void Solve() {}
 static shared_ptr<ElectricNet_If> activePowerTree;
 
 static string fileName;
-static string relativePath;
+static string path;
 
 bool isThereSomeTree ()
 { 
@@ -2386,8 +2386,13 @@ namespace commands
 			{
 				ensureIfThereAreSomeTree();
 
-				recordPowerTree();
-				reportExecution();
+
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+
+				recordPowerTree(args);
+				reportExecution(args);
 			}
 
 
@@ -2403,10 +2408,60 @@ namespace commands
 
 
 
-			void recordPowerTree () const
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				if (tokens.empty())    return Arguments();
+
+
+				Arguments args;
+				auto handeledArg = tokens.front();
+
+				if (isBackSlashInString(handeledArg))
+					args.path = handeledArg;
+				else
+					args.fileName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())
+					return args;
+
+
+				handeledArg = tokens.front();
+
+				if (isBackSlashInString(handeledArg))
+					args.path = handeledArg;
+				else
+					args.fileName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())
+					return args;
+
+
+				throw exception("Too many arguments for this command");					
+			}
+
+
+			static bool isBackSlashInString (string str)
+			{
+				auto it = find(str.begin(), str.end(), '\\');
+				bool result = !(it == str.end());
+				return result;
+			}
+
+
+			void recordPowerTree (Arguments args) const
 			{
 				string treeTitle = activePowerTree->getTitle();
-				FileWriter fileWriter(treeTitle, treeTitle);
+				
+				string fileName = args.fileName;
+				if (fileName.empty())
+				{
+					fileName = treeTitle;
+					args.fileName = treeTitle;
+				}
+
+				FileWriter fileWriter(treeTitle, fileName);
 
 
 
@@ -2458,9 +2513,10 @@ namespace commands
 			}
 
 
-			void reportExecution () const
+			void reportExecution (Arguments args) const
 			{
-				cout << "Power tree \"" << activePowerTree->getTitle() << "\" is been saved successfully" << endl << endl;
+				cout << "Power tree \"" << activePowerTree->getTitle() 
+					 << "\" is been successfully saved to the file \"" << args.fileName << "\"" << endl << endl;
 			}
 
 
