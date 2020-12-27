@@ -38,20 +38,6 @@ using namespace electric_net;
 
 
 
-
-
-
-
-void Solve() {}
-
-
-
-
-
-
-
-
-
 // Dependencies injection is there
 static shared_ptr<ElectricNet_If> activePowerTree;
 
@@ -63,6 +49,12 @@ bool isThereSomeTree ()
 	bool result = !(activePowerTree == nullptr);
 	return result;
 }
+
+
+
+
+
+
 
 
 
@@ -82,16 +74,6 @@ namespace commands
 
 
 
-
-
-
-
-
-
-
-
-	
-
 	class Command
 	{
 	
@@ -109,6 +91,7 @@ namespace commands
 	};
 	
 	
+
 	
 	
 	class CommandCreate : public Command
@@ -351,6 +334,7 @@ namespace commands
 };
 	
 	
+
 	
 	
 	class CommandWorkingWithExsistingTree : public Command
