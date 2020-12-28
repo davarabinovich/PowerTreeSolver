@@ -40,6 +40,7 @@
     <ClInclude Include="src\electric_net\electric_net.h" />
     <ClInclude Include="src\electric_net\electric_net_if.h" />
     <ClInclude Include="src\file_server\file_server.h" />
+    <ClInclude Include="src\file_server\file_server_language_description.h" />
     <ClInclude Include="src\forest\forest.h" />
     <ClInclude Include="src\forest\forest_defs.h" />
     <ClInclude Include="src\lib\ciflib.h" />

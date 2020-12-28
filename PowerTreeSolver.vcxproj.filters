@@ -65,6 +65,9 @@
     <ClInclude Include="src\file_server\file_server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\file_server\file_server_language_description.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="todo.txt">
