@@ -2920,3 +2920,36 @@ namespace commands
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+#pragma todo there follows workarounds for testing; they should be removed
+extern void readTreeFromFile (string name, string path)
+{
+	using namespace commands;
+
+
+
+	TokensDeque tokens = { name, path };
+	CommandLoad cl;
+	cl.execute(tokens);
+}
+
+
+extern void writeTreeFromFile (string name, string path)
+{
+	using namespace commands;
+
+
+
+	TokensDeque tokens = { name, path };
+	CommandSave sv;
+	sv.execute(tokens);
+}

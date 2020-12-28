@@ -12,4 +12,6 @@ void TestForest ();
 
 void TestApiCommonFunctions ();
 
-void TestLibrary();
+void TestLibrary ();
+
+void IntegrationTests ();

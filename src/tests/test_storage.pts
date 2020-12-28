@@ -40,7 +40,7 @@ f2 l l8
 res 10
 	
 f1 con c4
-cur 2 p
+cur 2 p 95
 
 f1 l l9
 res 100

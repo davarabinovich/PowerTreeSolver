@@ -2,12 +2,14 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 
 #include "test_runner/test_runner.h"
 
 
 #include "forest/forest.h"
+#include "file_server/file_server.h"
 #include "electric_net/electric_net_if.h"
 #include "lib/ciflib.h"
 
@@ -23,6 +25,7 @@ void TestAll ()
 	tr.RunTest(TestForest);
 	tr.RunTest(TestApiCommonFunctions);
 	tr.RunTest(TestLibrary);
+	tr.RunTest(IntegrationTests);
 }
 
 
@@ -486,4 +489,55 @@ void TestLibrary ()
 {
 	TestStrToDouble();
 	TestCapitalize();
+}
+
+
+
+
+extern void readTreeFromFile(string name, string path);
+extern void writeTreeFromFile(string name, string path);
+
+
+void IntegrationTestFileServer ()
+{
+	using namespace file_server;
+
+
+
+	string fileToBeRead = "test_storage";
+	string pathToFileToBeRead = "src\\tests";
+	readTreeFromFile(fileToBeRead, pathToFileToBeRead);
+
+	string buffer = "intermediary_storage";
+	string pathToBuffer = "src\\tests";
+	writeTreeFromFile(buffer, pathToBuffer);
+
+	string fileToBeWritten = "checking_storage";
+	string pathToFileToBeWritten = "src\\tests";
+	readTreeFromFile(buffer, pathToBuffer);
+	writeTreeFromFile(fileToBeWritten, pathToFileToBeWritten);
+
+
+	ifstream rstream("src\\tests\\test_storage.pts");
+	ifstream wstream("src\\tests\\checking_storage.pts");
+	while (!rstream.eof())
+	{
+		string strFromRead;
+		string strFromWritten;
+
+		rstream >> strFromRead;
+		wstream >> strFromWritten;
+
+		string strsComparison = strFromRead + "; " + strFromWritten;
+		AssertEqual(strFromRead, strFromWritten, strsComparison);
+	}
+
+	remove("src\\tests\\intermediary_storage");
+	remove("src\\tests\\checking_storage");
+}
+
+
+void IntegrationTests ()
+{
+	IntegrationTestFileServer();
 }
