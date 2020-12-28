@@ -66,21 +66,17 @@ FileHandler::FileHandler () { ; }
 
 
 
-FileWriter::FileWriter (string treeName, string fileName)
-	: wstream(fileName + file_extension)
-{
-	wstream << treeName << endl << endl;
-}
-
-
 FileWriter::FileWriter (string treeName, string fileName, string path)
 {
-	create_directory(path);
-
 	size_t pathSize = path.size();
-	wchar_t lastChar = path[pathSize-1];
-	if (lastChar != '\\')
-		path += '\\';
+	if (pathSize != 0)
+	{
+		wchar_t lastChar = path[pathSize - 1];
+		if (lastChar != '\\')
+			path += '\\';
+
+		create_directory(path);
+	}
 
 	string fileWithPath = path + fileName + file_extension;
 	wstream.open(fileWithPath);
@@ -213,9 +209,12 @@ string FileWriter::getConverterTypeTagByType (ConverterType type)
 FileReader::FileReader (string fileName, string path)
 {
 	size_t pathSize = path.size();
-	wchar_t lastChar = path[pathSize - 1];
-	if (lastChar != '\\')
-		path += '\\';
+	if (pathSize != 0)
+	{
+		wchar_t lastChar = path[pathSize - 1];
+		if (lastChar != '\\')
+			path += '\\';
+	}
 
 	string fileWithPath = path + fileName + file_extension;
 	rstream.open(fileWithPath);

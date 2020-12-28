@@ -66,8 +66,7 @@ class FileWriter : public FileHandler
 
 	public:
 
-		FileWriter (string treeName, string fileName);
-		FileWriter (string treeName, string fileName, string path);
+		FileWriter (string treeName, string fileName, string path = "");
 
 
 

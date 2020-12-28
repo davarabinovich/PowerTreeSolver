@@ -2405,38 +2405,46 @@ namespace commands
 
 
 				Arguments args;
-				auto handeledArg = tokens.front();
 
-				if (isBackSlashInString(handeledArg))
-					args.path = handeledArg;
+				if (tokens.size() == 1)
+				{
+					auto handeledArg = tokens.front();
+
+					if (isBackSlashInString(handeledArg))
+						args.path = handeledArg;
+					else
+						args.fileName = handeledArg;
+				}
+				else if (tokens.size() == 2)
+				{
+					auto firstArg = tokens[0];
+					auto secondArg = tokens[1];
+
+					if (isBackSlashInString(secondArg))
+					{
+						args.path = secondArg;
+						args.fileName = firstArg;
+					}
+					else
+					{
+						args.path = firstArg;
+						args.fileName = secondArg;
+					}
+				}
 				else
-					args.fileName = handeledArg;
-				tokens.pop_front();
+					throw exception("Too many arguments for this command");
 
-				if (tokens.empty())
-					return args;
-
-
-				handeledArg = tokens.front();
-
-				if (isBackSlashInString(handeledArg))
-					args.path = handeledArg;
-				else
-					args.fileName = handeledArg;
-				tokens.pop_front();
-
-				if (tokens.empty())
-					return args;
-
-
-				throw exception("Too many arguments for this command");					
+				return args;
 			}
 
 
 			void updateSystemVariables (Arguments args) const
 			{
-				fileName = args.fileName;
-				path = args.path;
+				if (!args.fileName.empty())
+					fileName = args.fileName;
+
+				if (!args.path.empty())
+					path = args.path;
 			}
 
 
@@ -2449,11 +2457,10 @@ namespace commands
 				if (args.fileName.empty())
 					args.fileName = fileName;
 
-				unique_ptr<FileWriter> fileWriter;
-				if (path.empty())
-					fileWriter = make_unique<FileWriter>(treeTitle, fileName);
-				else
-					fileWriter = make_unique<FileWriter>(treeTitle, fileName, path);
+				if (args.path.empty())
+					args.path = path;
+
+				FileWriter fileWriter(treeTitle, fileName, path);
 
 
 
@@ -2498,7 +2505,7 @@ namespace commands
 					private:
 						FileWriter & wfstream;
 				};
-				WriteNode writeNode(*fileWriter);
+				WriteNode writeNode(fileWriter);
 
 
 
@@ -2574,6 +2581,9 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception& ex) { throw exception(ex.what()); }
 
+				if (args.fileName.empty())
+					args.fileName = requestFileNameAndGet();
+
 				updateSystemVariables(args);
 				loadTree(args);
 				reportExecution(args);
@@ -2614,44 +2624,59 @@ namespace commands
 
 
 				Arguments args;
-				auto handeledArg = tokens.front();
 
-				if (isBackSlashInString(handeledArg))
-					args.path = handeledArg;
+				if (tokens.size() == 1)
+				{
+					auto handeledArg = tokens.front();
+
+					if (isBackSlashInString(handeledArg))
+						args.path = handeledArg;
+					else
+						args.fileName = handeledArg;
+				}
+				else if (tokens.size() == 2)
+				{
+					auto firstArg = tokens[0];
+					auto secondArg = tokens[1];
+
+					if (isBackSlashInString(secondArg))
+					{
+						args.path = secondArg;
+						args.fileName = firstArg;
+					}
+					else
+					{
+						args.path = firstArg;
+						args.fileName = secondArg;
+					}
+				}
 				else
-					args.fileName = handeledArg;
-				tokens.pop_front();
+					throw exception("Too many arguments for this command");
 
-				if (tokens.empty())
-					return args;
-
-
-				handeledArg = tokens.front();
-
-				if (isBackSlashInString(handeledArg))
-					args.path = handeledArg;
-				else
-					args.fileName = handeledArg;
-				tokens.pop_front();
-
-				if (tokens.empty())
-					return args;
+				return args;
+			}
 
 
-				throw exception("Too many arguments for this command");
+			string requestFileNameAndGet() const
+			{
+				cout << "Please enter name of file to be loaded" << endl;
+				string newName; getline(cin, newName);
+				return newName;
 			}
 
 
 			void updateSystemVariables (Arguments args) const
 			{
 				fileName = args.fileName;
-				path = args.path;
+				
+				if (!args.path.empty())
+					path = args.path;
 			}
 
 
 			void loadTree (Arguments & args) const
 			{
-				FileReader rstream(args.fileName, args.path);
+				FileReader rstream(fileName, path);
 
 				string title = rstream.getTitle();
 				args.title = title;
@@ -2742,6 +2767,70 @@ namespace commands
 			{
 				cout << "A new power three \"" << args.title << "\" is successfully loaded" << endl << endl;
 			}
+
+	};
+
+
+
+
+
+	class CommandChangeDirectory : public Command
+	{
+
+		public:
+
+			virtual void execute (TokensDeque & tokens) const override
+			{
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+
+				setPath(args);
+				reportExecution(args);
+			}
+
+
+
+
+		private:
+
+			struct Arguments
+			{
+				string path;
+			};
+
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				if (tokens.empty())    throw exception("Title of new directory should be specified");
+
+				Arguments args;
+				args.path = tokens.front();
+				return args;
+
+				throw exception("Too many arguments for this command");
+			}
+
+
+			void setPath (Arguments args) const
+			{
+				string newPath = args.path;
+
+				size_t pathSize = newPath.size();
+				wchar_t lastChar = newPath[pathSize - 1];
+				if (lastChar != '\\')
+					newPath += '\\';
+
+				path = newPath;
+			}
+
+
+			void reportExecution (Arguments & args) const
+			{
+				cout << "Active directory has been successfully changed" << endl << endl;
+			}
+
 	};
 	
 	
@@ -2753,23 +2842,24 @@ namespace commands
 	
 	
 	
-	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()           },
-																				{ "rn", make_shared<CommandRename>()           },
-																				{ "sl", make_shared<CommandSolve>()            },
-																				{ "ss", make_shared<CommandShowStructure>()    },
+	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()          },
+																				{ "rn", make_shared<CommandRename>()          },
+																				{ "sl", make_shared<CommandSolve>()           },
+																				{ "ss", make_shared<CommandShowStructure>()   },
 	
-																				{ "ci", make_shared<CommandCreateInput>()      },
-																				{ "cc", make_shared<CommandCreateConverter>()  },
-																				{ "cl", make_shared<CommandCreateLoad>()       },
-																				{ "mi", make_shared<CommandModifyInput>()      },
-																				{ "mc", make_shared<CommandModifyConverter>()  },
-																				{ "ml", make_shared<CommandModifyLoad>()       },
-																				{ "ms", make_shared<CommandMoveSink>()         },
-																				{ "ds", make_shared<CommandDisconnectSink>()   },
-																				{ "dn", make_shared<CommandDeleteNode>()       },
+																				{ "ci", make_shared<CommandCreateInput>()     },
+																				{ "cc", make_shared<CommandCreateConverter>() },
+																				{ "cl", make_shared<CommandCreateLoad>()      },
+																				{ "mi", make_shared<CommandModifyInput>()     },
+																				{ "mc", make_shared<CommandModifyConverter>() },
+																				{ "ml", make_shared<CommandModifyLoad>()      },
+																				{ "ms", make_shared<CommandMoveSink>()        },
+																				{ "ds", make_shared<CommandDisconnectSink>()  },
+																				{ "dn", make_shared<CommandDeleteNode>()      },
 	
-																			    { "sv", make_shared<CommandSave>()             },
-																				{ "ld", make_shared<CommandLoad>()             }  };
+																			    { "sv", make_shared<CommandSave>()            },
+																				{ "ld", make_shared<CommandLoad>()            },
+																				{ "cd", make_shared<CommandChangeDirectory>() }  };
 	
 	
 	
