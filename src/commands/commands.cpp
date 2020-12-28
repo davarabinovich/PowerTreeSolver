@@ -2574,6 +2574,7 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception& ex) { throw exception(ex.what()); }
 
+				updateSystemVariables(args);
 				loadTree(args);
 				reportExecution(args);
 			}
@@ -2638,6 +2639,13 @@ namespace commands
 
 
 				throw exception("Too many arguments for this command");
+			}
+
+
+			void updateSystemVariables (Arguments args) const
+			{
+				fileName = args.fileName;
+				path = args.path;
 			}
 
 
