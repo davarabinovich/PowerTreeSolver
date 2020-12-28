@@ -127,3 +127,11 @@ inline bool isBackSlashInString (string str)
 	bool result = !(it == str.end());
 	return result;
 }
+
+
+template <class Container>
+inline void pop_back (Container & container, size_t count)
+{
+	for (count; count > 0; count--)
+		container.pop_back();
+}

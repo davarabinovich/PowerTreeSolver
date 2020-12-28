@@ -108,9 +108,15 @@ struct ReadInput
 };
 
 
-struct ReadConvertert
+struct ReadSink
 {
 	key parentName;
+};
+
+
+struct ReadConverter
+{
+	ReadSink commonSinkData;
 
 	ConverterType type;
 	VarKind cvKind;
@@ -121,7 +127,7 @@ struct ReadConvertert
 
 struct ReadLoad
 {
-	key parentName;
+	ReadSink commonSinkData;
 
 	LoadType type;
 	double mainParam;
@@ -133,7 +139,7 @@ struct ReadNode
 {
 	DeviceType type;
 	key name;
-	variant<ReadInput, ReadConvertert, ReadLoad> data;
+	variant<ReadInput, ReadConverter, ReadLoad> data;
 };
 
 
@@ -163,8 +169,6 @@ class FileReader : public FileHandler
 
 
 
-		friend istream & operator >> (istream & is, ReadInput & data);
-		friend istream & operator >> (istream & is, ReadConvertert & data);
-		friend istream & operator >> (istream & is, ReadLoad & data);
+		key updateStackAndCalcParentName (pair<key, unsigned> nameAndNestingLevel);
 	
 };

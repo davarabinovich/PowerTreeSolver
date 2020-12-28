@@ -24,7 +24,7 @@ using std::to_string;
 
 
 istream & operator >> (istream & is, ReadInput & data);
-istream & operator >> (istream & is, ReadConvertert & data);
+istream & operator >> (istream & is, ReadConverter & data);
 istream & operator >> (istream & is, ReadLoad & data);
 
 
@@ -234,7 +234,7 @@ string FileReader::getTitle ()
 
 bool FileReader::hasUnreadNode () const
 {
-	bool result = rstream.eof();
+	bool result = !(rstream.eof());
 	return result;
 }
 
@@ -267,6 +267,8 @@ FileReader & FileReader::operator >> (ReadNode & node)
 	{
 		case DeviceType::INPUT:
 		{
+			updateStackAndCalcParentName({ node.name, nestingLevel });
+
 			ReadInput data;
 			rstream >> data;
 			node.data = data;
@@ -275,8 +277,12 @@ FileReader & FileReader::operator >> (ReadNode & node)
 
 		case DeviceType::CONVERTER:
 		{
-			ReadConvertert data;
+			key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
 
+			ReadConverter data;
+			
+			if (nestingLevel > 1)
+				data.commonSinkData.parentName = parentName;
 			rstream >> data;
 			node.data = data;
 			break;
@@ -284,7 +290,12 @@ FileReader & FileReader::operator >> (ReadNode & node)
 
 		case DeviceType::LOAD:
 		{
+			key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
+			
 			ReadLoad data;
+
+			if (nestingLevel > 1)
+				data.commonSinkData.parentName = parentName;
 			rstream >> data;
 			node.data = data;
 			break;
@@ -293,6 +304,43 @@ FileReader & FileReader::operator >> (ReadNode & node)
 
 
 	return *this;
+}
+
+
+
+
+key FileReader::updateStackAndCalcParentName (pair<key, unsigned> nameAndNestingLevel)
+{
+	auto [name, nestingLevel] = nameAndNestingLevel;
+
+	size_t stackSize = hierarchyStack.size();
+	if (nestingLevel > (stackSize+1))    
+		throw exception("Invalid nesting level of subsequent node");
+
+
+	key parentName;
+	if (nestingLevel == (stackSize+1))
+	{
+		if (stackSize > 0)
+			parentName = hierarchyStack.back();
+		hierarchyStack.push_back(name);
+		return parentName;
+	}
+
+	if (nestingLevel == stackSize)
+	{
+		hierarchyStack.back() = name;
+		if (stackSize > 1)
+			parentName = hierarchyStack[stackSize-2];
+		return parentName;
+	}
+
+	size_t deletedNodes_qty = stackSize + 1 - nestingLevel;
+	pop_back(hierarchyStack, deletedNodes_qty);
+	hierarchyStack.push_back(name);
+	if (hierarchyStack.size() > 1)
+		parentName = hierarchyStack[nestingLevel - 2];
+	return parentName;
 }
 
 
@@ -318,7 +366,7 @@ istream & operator >> (istream & is, ReadInput & data)
 }
 
 
-istream & operator >> (istream & is, ReadConvertert & data)
+istream & operator >> (istream & is, ReadConverter & data)
 {
 	string cvKind_tag;
 	is >> cvKind_tag;
@@ -332,9 +380,12 @@ istream & operator >> (istream & is, ReadConvertert & data)
 	is >> type_tag;
 	data.type = parseConverterType(type_tag);
 
-	double efficiency;
-	is >> efficiency;
-	data.value = efficiency;
+	if (data.type == ConverterType::PULSE)
+	{
+		double efficiency;
+		is >> efficiency;
+		data.efficiency = efficiency;
+	}
 
 	return is;
 }

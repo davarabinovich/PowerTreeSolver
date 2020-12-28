@@ -274,7 +274,8 @@ namespace electric_net
 	inline bool isConverterTypeString (const string & str)
 	{
 		if (str != "l" && str != "L" && str != "lin" && str != "Lin" && str != "linear" && str != "Linear")
-			if (str != "p" && str != "P" && str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") return false;
+			if (str != "p" && str != "P" && str != "pul" && str != "Pul" && str != "pulse" && str != "Pulse") 
+				return false;
 		return true;
 	}
 	
@@ -284,7 +285,8 @@ namespace electric_net
 #pragma todo write exceptions message
 			throw exception();
 
-		if (str == "lin" || str == "Lin" || str == "linear" || str == "Linear") return ConverterType::LINEAR;
+		if (str == "l" || str == "L" || str == "lin" || str == "Lin" || str == "linear" || str == "Linear")
+			return ConverterType::LINEAR;
 		return ConverterType::PULSE;
 	}
 

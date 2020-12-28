@@ -704,8 +704,9 @@ namespace commands
 				auto [name, nestingLevel, cvType, value, type, efficiency] = data;
 				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
 				
-				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name
-					                  + "\" (eff. " + to_string(efficiency) + "%):";
+				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
+				if (type == ConverterType::PULSE)
+					output += " (eff. " + to_string(efficiency) + "%):";
 				cout << output << endl;
 			}
 
@@ -1607,7 +1608,7 @@ namespace commands
 	
 		void modifyConverterParams (const Arguments & args) const
 		{
-#pragma split structue to separate values;
+#pragma todo split structue to separate values;
 			if (args.cvType)
 				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
 			if (args.cvValue)
@@ -2600,7 +2601,7 @@ namespace commands
 
 				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
 					return true;
-				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+				else if (answer == "no" || answer == "No" || answer == "n" || answer == "N")
 					return false;
 				throw exception("Invalid answer");
 			}
@@ -2690,8 +2691,13 @@ namespace commands
 
 			void createConverterByParams (ReadNode & node) const
 			{
-				auto data = get<ReadConvertert>(node.data);
-				activePowerTree->addConverter(node.name, data.parentName, data.type, data.cvKind, data.value, data.efficiency);
+				auto data = get<ReadConverter>(node.data);
+
+				if (data.commonSinkData.parentName.empty())
+					activePowerTree->addConverter(node.name, data.type, data.cvKind, data.value, data.efficiency);
+				else
+					activePowerTree->addConverter(node.name, data.commonSinkData.parentName, data.type, data.cvKind, data.value, 
+					                                         data.efficiency);
 			}
 
 
@@ -2704,11 +2710,18 @@ namespace commands
 				{
 					case LoadType::RESISTIVE:
 					case LoadType::CONSTANT_CURRENT:
-						activePowerTree->addLoad(node.name, data.parentName, data.type, data.mainParam);
+						if (data.commonSinkData.parentName.empty())
+							activePowerTree->addLoad(node.name, data.type, data.mainParam);
+						else
+							activePowerTree->addLoad(node.name, data.commonSinkData.parentName, data.type, data.mainParam);
 						break;
 						
 					case LoadType::DIODE:
-						activePowerTree->addLoad(node.name, data.parentName, data.type, data.mainParam, data.additionalParam);
+						if (data.commonSinkData.parentName.empty())
+							activePowerTree->addLoad(node.name, data.type, data.mainParam);
+						else
+							activePowerTree->addLoad(node.name, data.commonSinkData.parentName, data.type, data.mainParam, 
+							                                    data.additionalParam);
 						break;
 
 					default:
