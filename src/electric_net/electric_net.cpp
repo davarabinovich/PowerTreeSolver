@@ -90,7 +90,7 @@ namespace electric_net
 
 		isStoragedResultsActual = false;
 
-		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
+		auto newLoad_ptr = make_shared<TwoParamsLoad>(type, mainParam, secondaryParam);
 		net.pushBackLeaf(name, sourceName, newLoad_ptr);
 	}
 
@@ -103,7 +103,7 @@ namespace electric_net
 
 		isStoragedResultsActual = false;
 
-		auto newLoad_ptr = make_shared<TwoParamLoad>(type, mainParam, secondaryParam);
+		auto newLoad_ptr = make_shared<TwoParamsLoad>(type, mainParam, secondaryParam);
 		net.addRoot(name, newLoad_ptr);
 	}
 
@@ -359,7 +359,7 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		auto load_ptr = dynamic_pointer_cast<TwoParamsLoad>( net[name] );
 		load_ptr->mainParam = forwardVoltage;
 	}
 
@@ -368,7 +368,7 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-		auto load_ptr = dynamic_pointer_cast<TwoParamLoad>( net[name] );
+		auto load_ptr = dynamic_pointer_cast<TwoParamsLoad>( net[name] );
 		load_ptr->secondaryParam = forwardCurrent;
 	}
 
@@ -453,7 +453,7 @@ namespace electric_net
 		DiodeLoadData data;
 
 		AUTO_CONST_REF node = net.at(loadName);
-		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
+		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamsLoad>(node);
 
 		data.name = loadName;
 		data.nestingLevel = net.getNestingLevel(loadName);
@@ -588,7 +588,7 @@ namespace electric_net
 		DiodeLoadResults results;
 
 		AUTO_CONST_REF node = net.at(loadName);
-		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamLoad>(node);
+		AUTO_CONST_REF load = dynamic_pointer_cast<TwoParamsLoad>(node);
 
 		results.name = loadName;
 		results.nestingLevel = net.getNestingLevel(loadName);
@@ -604,6 +604,28 @@ namespace electric_net
 	{
 		for (AUTO_CONST_REF node : net)
 			functor(node.first);
+	}
+
+
+	bool ElectricNet::operator != (const ElectricNet & second) const
+	{
+		const auto first_it = net.begin();
+		const auto first_end_it = net.end();
+
+		const auto second_it = second.net.begin();
+		const auto second_end_it = second.net.end();
+
+
+		while ((first_it != first_end_it) || (second_it != second_end_it))
+		{
+			if ((*first_it).first != (*second_it).first)
+				return true;
+
+			if (!isNodesEqual((*first_it).second, (*second_it).second));
+			return true;
+		}
+
+		return false;
 	}
 
 
@@ -673,7 +695,7 @@ namespace electric_net
 
 					case LoadType::DIODE:
 					{
-						double forwardVoltage = dynamic_pointer_cast<TwoParamLoad>((*firstDesc_it).second) ->mainParam;
+						double forwardVoltage = dynamic_pointer_cast<TwoParamsLoad>((*firstDesc_it).second) ->mainParam;
 						return forwardVoltage;
 					}
 
@@ -806,7 +828,7 @@ namespace electric_net
 
 			case LoadType::DIODE:
 			{
-				auto current = dynamic_pointer_cast<TwoParamLoad>((*load_it).second) ->secondaryParam;
+				auto current = dynamic_pointer_cast<TwoParamsLoad>((*load_it).second) ->secondaryParam;
 				return current;
 			}
 
@@ -823,7 +845,100 @@ namespace electric_net
 		return type;
 	}
 
+
+
+
+	bool ElectricNet::isNodesEqual (Node_ptr first_ptr, Node_ptr second_ptr)
+	{
+		const auto & first = *first_ptr;
+		const auto & second = *second_ptr;
+
+		if (first.type != second.type)
+			return false;
+
+
+		switch (first.type)
+		{
+			case DeviceType::INPUT:
+			{
+				const auto & firstInput = dynamic_cast<const Input &>(first);
+				const auto & secondInput = dynamic_cast<const Input &>(second);
+
+				if (firstInput.cvKind != secondInput.cvKind)
+					return false;
+				if (firstInput.cvValue != secondInput.cvValue)
+					return false;
+			}
+
+			case DeviceType::CONVERTER:
+			{
+				const auto & firstConverter = dynamic_cast<const Converter &>(first);
+				const auto & secondConverter = dynamic_cast<const Converter &>(second);
+
+				if (firstConverter.cvKind != secondConverter.cvKind)
+					return false;
+				if (firstConverter.cvValue != secondConverter.cvValue)
+					return false;
+				if (firstConverter.type != secondConverter.type)
+					return false;
+
+				if (firstConverter.type == ConverterType::PULSE)
+					if (firstConverter.efficiency != secondConverter.efficiency)
+						return false;
+			}
+
+			case DeviceType::LOAD:
+			{
+				const auto & firstLoad = dynamic_cast<const Load &>(first);
+				const auto & secondLoad = dynamic_cast<const Load &>(second);
+
+				if (firstLoad.type != secondLoad.type)
+					return false;
+
+				switch (firstLoad.type)
+				{
+					case LoadType::RESISTIVE: [[__fallthrough]]
+					case LoadType::CONSTANT_CURRENT:
+					{
+						const auto & firstOneParamLoad = dynamic_cast<const OneParamLoad &>(first);
+						const auto & secondOneParamLoad = dynamic_cast<const OneParamLoad &>(second);
+
+						if (firstOneParamLoad.param != secondOneParamLoad.param)
+							return false;
+					}
+
+					case LoadType::DIODE:
+					{
+						const auto & firstTwoParamsLoad = dynamic_cast<const TwoParamsLoad &>(first);
+						const auto & secondTwoParamsLoad = dynamic_cast<const TwoParamsLoad &>(second);
+
+						if (firstTwoParamsLoad.mainParam != secondTwoParamsLoad.mainParam)
+							return false;
+						if (firstTwoParamsLoad.secondaryParam != secondTwoParamsLoad.secondaryParam)
+							return false;
+					}
+						
+
+					default:
+						throw exception("Invalid type of load");
+				}
+
+				
+			}
+
+
+			default:
+				throw exception("Invalid type of device");
+		}
+
+
+		return true;
+	}
+
 	
+
+
+
 
 
 
@@ -874,7 +989,7 @@ namespace electric_net
 
 
 
-	ElectricNet::TwoParamLoad::TwoParamLoad(LoadType tp, double firstParam, double secondParam)
+	ElectricNet::TwoParamsLoad::TwoParamsLoad(LoadType tp, double firstParam, double secondParam)
 		: Load(tp), mainParam(firstParam), secondaryParam(secondParam)    
 	{
 		if (tp == LoadType::RESISTIVE)    throw exception("Resistive load can have only one parameter");

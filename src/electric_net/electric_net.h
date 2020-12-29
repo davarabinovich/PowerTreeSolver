@@ -107,6 +107,11 @@ namespace electric_net
 
 
 
+#pragma todo only debug
+			bool operator != (const ElectricNet& second) const;
+
+
+
 		private:
 
 #pragma todo there is probably doubling with the data structures of specified nodes in the interface. It needs to eliminate that.
@@ -159,9 +164,9 @@ namespace electric_net
 				double inputValue = NAN;
 			};
 			
-			struct TwoParamLoad : Load
+			struct TwoParamsLoad : Load
 			{
-				TwoParamLoad (LoadType type, double firstParam, double secondParam);
+				TwoParamsLoad (LoadType type, double firstParam, double secondParam);
 
 				double mainParam;
 				double secondaryParam;
@@ -194,6 +199,8 @@ namespace electric_net
 			double calculateLoadConsumptionDrivenByVoltageSource (Desc_it load_it, Desc_it source_it);
 
 			VarKind calcInputVarTypeByParent (key parentName) const;
+
+			static bool isNodesEqual (Node_ptr first_ptr, Node_ptr second_ptr);
 
 	};
 

@@ -344,6 +344,166 @@ inline bool Forest<key, Type>::iterator::isLastDesc () const
 
 
 
+template <typename key, typename Type>
+inline Forest<key, Type>::const_iterator::const_iterator ()
+{;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::const_iterator::const_iterator (const const_iterator & it)
+	: nodesStack(it.nodesStack), roots_ptr(it.roots_ptr) {;}
+
+
+template <typename key, typename Type>
+inline Forest<key, Type>::const_iterator::const_iterator (typename set<Node*>::const_iterator it, const set<Node *> * roots)
+	: roots_ptr(roots)
+{
+#pragma todo to understand why it is required
+	auto getParentsSetIt = [this](typename set< Node*>::const_iterator it) -> typename set<Node *>::const_iterator
+	{
+		typename set<Node *>::const_iterator result_it;
+		auto parent_ptr = (*it)->getParent();
+		const set<Node *> * setWithParent;
+#pragma todo replace all calls "->hasParent()" with the calls with signatures "isRoot"
+
+		if (!isRoot(parent_ptr))
+			setWithParent = &(parent_ptr->getParent()->getDesces());
+		else
+			setWithParent = roots_ptr;
+
+		result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
+		return result_it;
+	};
+
+
+	if (it == roots_ptr->end())    return;
+
+	nodesStack.push_front(it);
+	while ((*it)->hasParent())
+	{
+		it = getParentsSetIt(it);
+		nodesStack.push_front(it);
+	}
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::const_iterator::operator != (const const_iterator & other_it) const
+{
+	bool isEmpty = nodesStack.empty();
+	bool isOtherEmpty = other_it.nodesStack.empty();
+
+	if (isEmpty != isOtherEmpty)
+		return true;
+	else if (isEmpty)
+		return false;
+
+
+	bool result = (*nodesStack.back() == *other_it.nodesStack.back());
+	return result;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::const_iterator::operator == (const const_iterator & other_it) const
+{
+	bool result = !(*this != other_it);
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::const_iterator Forest<key, Type>::const_iterator::operator++ ()
+{
+	auto& it = nodesStack.back();
+
+	if (!(*it)->hasDesces())
+	{
+
+		if (!isLastDesc())
+		{
+			it++;
+		}
+		else
+		{
+			while (isLastDesc() && !isRoot(*nodesStack.back()))
+				nodesStack.pop_back();
+
+			if (!isLastDesc())
+				nodesStack.back()++;
+			else
+				nodesStack.clear(); // This iterator points to the end of the Forest now
+		}
+
+	}
+	else
+	{
+		AUTO_CONST_REF descesSet = (*it)->getDesces();
+		nodesStack.push_back(descesSet.begin());
+	}
+
+	return *this;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::const_iterator Forest<key, Type>::const_iterator::operator++ (int)
+{
+	auto temp_it = *this;
+	++(*this);
+	return temp_it;
+}
+
+
+template <typename key, typename Type>
+inline pair<key, Type> Forest<key, Type>::const_iterator::operator * () const
+{
+	if (nodesStack.empty())    throw end_iterator_dereferencing("dereferencing operator *");
+
+	auto node = *nodesStack.back();
+	auto content = make_pair(node->getName(), node->getToModify());
+	return content;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::const_iterator Forest<key, Type>::const_iterator::operator = (const const_iterator & other_it)
+{
+	nodesStack = other_it.nodesStack;
+	return *this;
+}
+
+
+template <typename key, typename Type>
+inline bool Forest<key, Type>::const_iterator::isLastDesc() const
+{
+	if (nodesStack.empty())    throw end_iterator_dereferencing("isLastDesc");
+
+
+	bool result;
+	auto temp_it = nodesStack.back();
+
+	if ((*temp_it)->hasParent())
+	{
+		AUTO_CONST_REF parentsDescesSet = (*temp_it)->getParent()->getDesces();
+		result = (next(temp_it) == parentsDescesSet.end());
+	}
+	else
+	{
+		result = (next(temp_it) == roots_ptr->end());
+	}
+
+	return result;
+}
+
+
+
+
+
+
+
+
+
+
 #pragma todo whether is it required?
 template <typename key, typename Type>
 inline Forest<key, Type>::desces_group_iterator::desces_group_iterator ()
@@ -890,6 +1050,21 @@ template <typename key, typename Type>
 inline typename Forest<key, Type>::iterator Forest<key, Type>::end ()
 {
 	return iterator();
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::const_iterator Forest<key, Type>::begin () const
+{
+	const_iterator it(roots.cbegin(), &roots);
+	return it;
+}
+
+
+template <typename key, typename Type>
+inline typename Forest<key, Type>::const_iterator Forest<key, Type>::end () const
+{
+	return const_iterator();
 }
 
 

@@ -152,6 +152,34 @@ class Forest
 				STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
 		};
 
+#pragma todo implement access for writing for this and the desces_group
+		class const_iterator
+		{
+#pragma todo add type of iterator
+		public:
+			const_iterator ();
+			const_iterator (const const_iterator & it);
+			const_iterator (typename set<Node *>::const_iterator it, const set<Node *> * roots);
+
+			bool operator != (const const_iterator & other_it) const;
+			bool operator == (const const_iterator & other_it) const;
+			const_iterator operator++ ();
+			const_iterator operator++ (int);
+			pair<key, Type> operator * () const;
+			const_iterator operator = (const const_iterator & other_it);
+
+		private:
+			list< typename set<Node *>::const_iterator > nodesStack;
+			const set<Node *> * roots_ptr;
+
+			bool isLastDesc () const;
+
+			CUSTOM_EXCEPTION(forest_iterator_exception, exception);
+			STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
+		};
+
+
+
 		class desces_group_iterator
 		{
 #pragma todo add type of iterator
@@ -175,6 +203,10 @@ class Forest
 
 		iterator begin ();
 		iterator end ();
+
+		const_iterator begin () const;
+		const_iterator end () const;
+
 
 		desces_group_iterator dgbegin (key parentName = "");
 		desces_group_iterator dgend (key parentName = "");

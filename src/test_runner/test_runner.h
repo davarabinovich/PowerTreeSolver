@@ -86,6 +86,19 @@ void AssertEqual(const T& t, const U& u, const string& hint = {}) {
 }
 
 
+template<class T, class U>
+void AssertEqual_not_reporting(const T& t, const U& u, const string& hint = {}) {
+	if (t != u) {
+		ostringstream os;
+		os << "Assertion failed";
+		if (!hint.empty()) {
+			os << ":  hint: " << hint;
+		}
+		throw runtime_error(os.str());
+	}
+}
+
+
 void Assert(bool b, const string& hint);
 
 

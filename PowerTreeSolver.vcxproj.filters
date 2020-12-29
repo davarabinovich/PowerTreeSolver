@@ -92,4 +92,9 @@
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\tests\test_storage.pts">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

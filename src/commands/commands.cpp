@@ -1236,7 +1236,7 @@ namespace commands
 						break;
 					}
 	
-					case (LoadType::DIODE): [[__fallthrough]]
+					case (LoadType::DIODE):
 					{
 						if (args.parentName == "")
 							activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
@@ -2930,8 +2930,9 @@ namespace commands
 
 
 
+
 #pragma todo there follows workarounds for testing; they should be removed
-extern void readTreeFromFile (string name, string path)
+extern void readTreeFromFile (string name, string path, shared_ptr<ElectricNet_If> destination)
 {
 	using namespace commands;
 
@@ -2940,15 +2941,17 @@ extern void readTreeFromFile (string name, string path)
 	TokensDeque tokens = { name, path };
 	CommandLoad cl;
 	cl.execute(tokens);
+	destination = activePowerTree;
 }
 
 
-extern void writeTreeFromFile (string name, string path)
+extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet_If> source)
 {
 	using namespace commands;
 
 
 
+	activePowerTree = source;
 	TokensDeque tokens = { name, path };
 	CommandSave sv;
 	sv.execute(tokens);

@@ -11,6 +11,7 @@
 #include "forest/forest.h"
 #include "file_server/file_server.h"
 #include "electric_net/electric_net_if.h"
+#include "electric_net/electric_net.h"
 #include "lib/ciflib.h"
 
 
@@ -494,8 +495,11 @@ void TestLibrary ()
 
 
 
-extern void readTreeFromFile(string name, string path);
-extern void writeTreeFromFile(string name, string path);
+using namespace electric_net;
+
+
+extern void readTreeFromFile (string name, string path, shared_ptr<ElectricNet_If> destination);
+extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet_If> source);
 
 
 void IntegrationTestFileServer ()
@@ -506,31 +510,21 @@ void IntegrationTestFileServer ()
 
 	string fileToBeRead = "test_storage";
 	string pathToFileToBeRead = "src\\tests";
-	readTreeFromFile(fileToBeRead, pathToFileToBeRead);
+	auto readTree = make_shared<ElectricNet>("read");
+	readTreeFromFile(fileToBeRead, pathToFileToBeRead, readTree);
 
 	string buffer = "intermediary_storage";
 	string pathToBuffer = "src\\tests";
-	writeTreeFromFile(buffer, pathToBuffer);
+	writeTreeToFile(buffer, pathToBuffer, readTree);
 
-	string fileToBeWritten = "checking_storage";
+	string fileToBeWritten = "test_storage";
 	string pathToFileToBeWritten = "src\\tests";
-	readTreeFromFile(buffer, pathToBuffer);
-	writeTreeFromFile(fileToBeWritten, pathToFileToBeWritten);
+	auto writenTree = make_shared<ElectricNet>("written");
+	readTreeFromFile(fileToBeWritten, pathToFileToBeWritten, writenTree);
 
 
-	ifstream rstream("src\\tests\\test_storage.pts");
-	ifstream wstream("src\\tests\\checking_storage.pts");
-	while (!rstream.eof())
-	{
-		string strFromRead;
-		string strFromWritten;
+	AssertEqual_not_reporting(*readTree, *writenTree);
 
-		rstream >> strFromRead;
-		wstream >> strFromWritten;
-
-		string strsComparison = strFromRead + "; " + strFromWritten;
-		AssertEqual(strFromRead, strFromWritten, strsComparison);
-	}
 
 	remove("src\\tests\\intermediary_storage");
 	remove("src\\tests\\checking_storage");

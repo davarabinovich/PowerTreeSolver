@@ -55,8 +55,7 @@ namespace file_server
 		string fileWithPath = path + fileName + file_extension;
 		wstream.open(fileWithPath);
 
-
-		wstream << treeName << endl << endl;
+		wstream << treeName;
 	}
 
 
@@ -64,13 +63,15 @@ namespace file_server
 
 	FileWriter & FileWriter::operator << (InputData & data)
 	{
+		wstream << endl << endl;
+
+
 		auto [name, cvKind, value] = data;
 
 		wstream << getNodeTagByNestingLevel(1) << " ";
 
 		wstream << node_input_tag << " " << name << endl;
-		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value) << endl;
-		wstream << endl;
+		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value);
 
 		return *this;
 	}
@@ -78,6 +79,9 @@ namespace file_server
 
 	FileWriter & FileWriter::operator << (ConverterData & data)
 	{
+		wstream << endl << endl;
+
+
 		auto [name, nestingLevel, cvKind, value, type, efficiency] = data;
 
 		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
@@ -86,9 +90,6 @@ namespace file_server
 		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value) << " " << getConverterTypeTagByType(type);
 		if (type == ConverterType::PULSE)
 			wstream << " " << to_string(efficiency);
-		wstream << endl;
-
-		wstream << endl;
 
 		return *this;
 	}
@@ -96,13 +97,15 @@ namespace file_server
 
 	FileWriter & FileWriter::operator << (ResistiveLoadData & data)
 	{
+		wstream << endl << endl;
+
+
 		auto [name, nestingLevel, resistance] = data;
 
 		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
 		wstream << node_load_tag << " " << name << endl;
-		wstream << load_resistance_tag << " " << to_string(resistance) << endl;
-		wstream << endl;
+		wstream << load_resistance_tag << " " << to_string(resistance);
 
 		return *this;
 	}
@@ -110,13 +113,15 @@ namespace file_server
 
 	FileWriter & FileWriter::operator << (ConstantCurrentLoadData & data)
 	{
+		wstream << endl << endl;
+
+
 		auto [name, nestingLevel, current] = data;
 
 		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
 		wstream << node_load_tag << " " << name << endl;
-		wstream << load_constant_current_tag << " " << to_string(current) << endl;
-		wstream << endl;
+		wstream << load_constant_current_tag << " " << to_string(current);
 
 		return *this;
 	}
@@ -124,13 +129,15 @@ namespace file_server
 
 	FileWriter & FileWriter::operator << (DiodeLoadData & data)
 	{
+		wstream << endl << endl;
+
+
 		auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
 
 		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
 		wstream << node_load_tag << " " << name << endl;
-		wstream << load_diode_tag << " " << to_string(forwardVoltage) << " " << to_string(forwardCurrent) << endl;
-		wstream << endl;
+		wstream << load_diode_tag << " " << to_string(forwardVoltage) << " " << to_string(forwardCurrent);
 
 		return *this;
 	}
