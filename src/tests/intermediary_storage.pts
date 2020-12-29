@@ -1,31 +1,12 @@
 tree_title
 
-f1 in in2
-vol 24.000000
-
-f1 in l8
-res 10.000000
-
 f1 in in1
 vol 24.000000
 
-f1 con c3
-cur 0.500000 p 95.000000
-
-f1 in l6
-res 2.000000 0.300000
-f1 in l7
-res 2.000000 0.200000
-f1 con c1
+f2 con c1
 vol 5.000000 p 98.000000
 
-f1 in l4
-res 200.000000
-
-f1 in l5
-res 0.300000
-
-f2 con c2
+f3 con c2
 vol 3.300000 l
 f1 in l2
 res 0.050000
@@ -33,12 +14,31 @@ res 0.050000
 f1 in l1
 res 0.100000
 
+f1 in l4
+res 200.000000
+
 f1 in l3
 res 100.000000
 
-f0 con c4
-cur 2.000000 p 95.000000
+f1 in l5
+res 0.300000
+
+f2 con c3
+cur 0.500000 p 95.000000
+
+f1 in l6
+res 2.000000 0.300000
+f1 in l7
+res 2.000000 0.200000
+f1 in in2
+vol 24.000000
+
+f1 in l8
+res 10.000000
 
 f1 in l9
 res 100.000000
+
+f1 con c4
+cur 2.000000 p 95.000000
 

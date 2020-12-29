@@ -113,7 +113,7 @@ class Forest
 				
 				key name;
 				typename Type * content;
-				unsigned nestingLevel = 0;
+				unsigned nestingLevel = 1;
 
 				Node * parent_ptr;
 				set<Node *> * desces_ptr;
