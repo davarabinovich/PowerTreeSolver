@@ -5,6 +5,7 @@
 #include <cctype>
 #include <utility>
 #include <filesystem>
+#include <sstream>
 
 
 #include "lib/ciflib.h"
@@ -84,7 +85,8 @@ namespace file_server
 		wstream << node_converter_tag << " " << name << endl;
 		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value) << " " << getConverterTypeTagByType(type);
 		if (type == ConverterType::PULSE)
-			wstream << " " << to_string(efficiency) << endl;
+			wstream << " " << to_string(efficiency);
+		wstream << endl;
 
 		wstream << endl;
 
@@ -96,9 +98,9 @@ namespace file_server
 	{
 		auto [name, nestingLevel, resistance] = data;
 
-		wstream << getNodeTagByNestingLevel(1) << " ";
+		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
-		wstream << node_input_tag << " " << name << endl;
+		wstream << node_load_tag << " " << name << endl;
 		wstream << load_resistance_tag << " " << to_string(resistance) << endl;
 		wstream << endl;
 
@@ -110,10 +112,10 @@ namespace file_server
 	{
 		auto [name, nestingLevel, current] = data;
 
-		wstream << getNodeTagByNestingLevel(1) << " ";
+		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
-		wstream << node_input_tag << " " << name << endl;
-		wstream << load_resistance_tag << " " << to_string(current) << endl;
+		wstream << node_load_tag << " " << name << endl;
+		wstream << load_constant_current_tag << " " << to_string(current) << endl;
 		wstream << endl;
 
 		return *this;
@@ -124,10 +126,11 @@ namespace file_server
 	{
 		auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
 
-		wstream << getNodeTagByNestingLevel(1) << " ";
+		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
-		wstream << node_input_tag << " " << name << endl;
-		wstream << load_resistance_tag << " " << to_string(forwardVoltage) << " " << to_string(forwardCurrent) << endl;
+		wstream << node_load_tag << " " << name << endl;
+		wstream << load_diode_tag << " " << to_string(forwardVoltage) << " " << to_string(forwardCurrent) << endl;
+		wstream << endl;
 
 		return *this;
 	}
