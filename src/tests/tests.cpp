@@ -508,23 +508,42 @@ void IntegrationTestFileServer ()
 
 
 
-	string fileToBeRead = "test_storage";
-	string pathToFileToBeRead = "src\\tests";
-	auto readTree = make_shared<ElectricNet>("read");
-	readTreeFromFile(fileToBeRead, pathToFileToBeRead, readTree);
+	const auto cinBufStorage = cin.rdbuf();
+	stringstream answers;
+	answers << "n";
+	cin.rdbuf(answers.rdbuf());
 
-	string buffer = "intermediary_storage";
-	string pathToBuffer = "src\\tests";
-	writeTreeToFile(buffer, pathToBuffer, readTree);
-
-	string fileToBeWritten = "test_storage";
-	string pathToFileToBeWritten = "src\\tests";
-	auto writenTree = make_shared<ElectricNet>("written");
-	readTreeFromFile(fileToBeWritten, pathToFileToBeWritten, writenTree);
+	const auto coutBufStorage = cout.rdbuf();
+	stringstream retargetOuts;
+	cout.rdbuf(retargetOuts.rdbuf());
 
 
-	AssertEqual_not_reporting(*readTree, *writenTree);
 
+	try
+	{
+		string fileToBeRead = "test_storage";
+		string pathToFileToBeRead = "src\\tests";
+		auto readTree = make_shared<ElectricNet>("read");
+		readTreeFromFile(fileToBeRead, pathToFileToBeRead, readTree);
+
+		string buffer = "intermediary_storage";
+		string pathToBuffer = "src\\tests";
+		writeTreeToFile(buffer, pathToBuffer, readTree);
+
+		string fileToBeWritten = "test_storage";
+		string pathToFileToBeWritten = "src\\tests";
+		auto writenTree = make_shared<ElectricNet>("written");
+		readTreeFromFile(fileToBeWritten, pathToFileToBeWritten, writenTree);
+
+
+		AssertEqual_not_reporting(*readTree, *writenTree);
+	}
+	catch (exception & ex) { cerr << ex.what(); }
+
+
+
+	cin.rdbuf(cinBufStorage);
+	cout.rdbuf(coutBufStorage);
 
 	remove("src\\tests\\intermediary_storage");
 	remove("src\\tests\\checking_storage");
