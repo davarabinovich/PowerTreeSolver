@@ -67,6 +67,7 @@ static string path;
 namespace commands
 {
 
+#todo add type token
 	using TokensDeque = deque<string>;
 
 
@@ -2833,6 +2834,118 @@ namespace commands
 			}
 
 	};
+
+
+
+
+
+	class CommandCopyNode : public CommandWorkingWithExsistingTree
+	{
+
+		public:
+
+			virtual void execute (TokensDeque & tokens) const
+			{
+				ensureIfThereAreSomeTree();
+
+
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+
+				if (args.exampleName == "")
+					args.exampleName = requestExampleNameAndGet();
+				if (args.newNodeName == "")
+					args.newNodeName = requestNewNodeNameAndGet();
+
+				if (args.parentName == "")
+					args.parentName = suggestSpecifieParentAndGet();
+
+				copyNode(args);
+
+				reportExecution(args);
+			}
+
+
+
+
+		private:
+
+			struct Arguments
+			{
+				string exampleName = "";
+				string newNodeName = "";
+				string parentName = "";
+			};
+
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+				string handeledArg;
+				
+				if (tokens.empty())    return args;
+				auto handeledArg = tokens.front();
+				args.exampleName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+				args.newNodeName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+				args.parentName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				throw exception("Too many arguments for this command");
+			}
+
+			string requestExampleNameAndGet () const
+			{
+				cout << "Please enter name of example to been copied" << endl;
+				string name; getline(cin, name);
+				return name;
+			}
+
+			string requestNewNodeNameAndGet () const
+			{
+				cout << "Please enter name of new node" << endl;
+				string name; getline(cin, name);
+				return name;
+			}
+
+			string suggestSpecifieParentAndGet () const
+			{
+				string parentName = "";
+				cout << "Do you want to leave the new node unconnected?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+				{
+					cout << "Enter the name of parent source" << endl;
+					getline(cin, parentName);
+				}
+				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+					throw exception("Invalid answer");
+
+				return parentName;
+			}
+
+			void copyNode (const Arguments & args) const
+			{
+
+			}
+
+			void reportExecution (const Arguments & args) const
+			{
+
+			}
+
+	};
 	
 	
 	
@@ -2857,6 +2970,7 @@ namespace commands
 																				{ "ms", make_shared<CommandMoveSink>()        },
 																				{ "ds", make_shared<CommandDisconnectSink>()  },
 																				{ "dn", make_shared<CommandDeleteNode>()      },
+																				{ "cn", make_shared<CommandCopyNode>()        },
 	
 																			    { "sv", make_shared<CommandSave>()            },
 																				{ "ld", make_shared<CommandLoad>()            },
