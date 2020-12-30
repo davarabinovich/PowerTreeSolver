@@ -498,8 +498,8 @@ void TestLibrary ()
 using namespace electric_net;
 
 
-extern void readTreeFromFile (string name, string path, shared_ptr<ElectricNet_If> destination);
-extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet_If> source);
+extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path);
+extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> source);
 
 
 void IntegrationTestFileServer ()
@@ -523,19 +523,15 @@ void IntegrationTestFileServer ()
 	{
 		string fileToBeRead = "test_storage";
 		string pathToFileToBeRead = "src\\tests";
-		auto readTree = make_shared<ElectricNet>("read");
-		readTreeFromFile(fileToBeRead, pathToFileToBeRead, readTree);
+		auto readTree = readTreeFromFile(fileToBeRead, pathToFileToBeRead);
 
-		string buffer = "intermediary_storage";
+		string buffer = "checking_storage";
 		string pathToBuffer = "src\\tests";
 		writeTreeToFile(buffer, pathToBuffer, readTree);
 
-		string fileToBeWritten = "test_storage";
-		string pathToFileToBeWritten = "src\\tests";
-		auto writenTree = make_shared<ElectricNet>("written");
-		readTreeFromFile(fileToBeWritten, pathToFileToBeWritten, writenTree);
-
-
+		auto writenTree = readTreeFromFile(buffer, pathToBuffer);
+	
+		
 		AssertEqual_not_reporting(*readTree, *writenTree);
 	}
 	catch (exception & ex) { cerr << ex.what(); }

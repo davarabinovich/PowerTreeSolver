@@ -108,7 +108,7 @@ namespace electric_net
 
 
 #pragma todo only debug
-			bool operator != (const ElectricNet& second) const;
+			bool operator != (const ElectricNet & other) const;
 
 
 

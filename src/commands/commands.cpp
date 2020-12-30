@@ -2932,7 +2932,7 @@ namespace commands
 
 
 #pragma todo there follows workarounds for testing; they should be removed
-extern void readTreeFromFile (string name, string path, shared_ptr<ElectricNet_If> destination)
+extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 {
 	using namespace commands;
 
@@ -2941,11 +2941,12 @@ extern void readTreeFromFile (string name, string path, shared_ptr<ElectricNet_I
 	TokensDeque tokens = { name, path };
 	CommandLoad cl;
 	cl.execute(tokens);
-	destination = activePowerTree;
+	shared_ptr<ElectricNet> destination = dynamic_pointer_cast<ElectricNet>(activePowerTree);
+	return destination;
 }
 
 
-extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet_If> source)
+extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> source)
 {
 	using namespace commands;
 

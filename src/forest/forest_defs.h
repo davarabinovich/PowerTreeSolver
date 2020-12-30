@@ -408,13 +408,14 @@ template <typename key, typename Type>
 inline bool Forest<key, Type>::const_iterator::operator == (const const_iterator & other_it) const
 {
 	bool result = !(*this != other_it);
+	return result;
 }
 
 
 template <typename key, typename Type>
 inline typename Forest<key, Type>::const_iterator Forest<key, Type>::const_iterator::operator++ ()
 {
-	auto& it = nodesStack.back();
+	auto & it = nodesStack.back();
 
 	if (!(*it)->hasDesces())
 	{

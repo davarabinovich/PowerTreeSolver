@@ -17,7 +17,7 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-#pragma all checking
+#pragma todo all checking
 		auto newInput_ptr = make_shared<Input>(type, cvValue);
 		net.addRoot(name, newInput_ptr);
 	}
@@ -607,22 +607,25 @@ namespace electric_net
 	}
 
 
-	bool ElectricNet::operator != (const ElectricNet & second) const
+	bool ElectricNet::operator != (const ElectricNet & other) const
 	{
-		const auto first_it = net.begin();
-		const auto first_end_it = net.end();
-
-		const auto second_it = second.net.begin();
-		const auto second_end_it = second.net.end();
-
-
-		while ((first_it != first_end_it) || (second_it != second_end_it))
+		for (auto it = net.begin(); it != net.end(); it++)
 		{
-			if ((*first_it).first != (*second_it).first)
-				return true;
 
-			if (!isNodesEqual((*first_it).second, (*second_it).second));
-			return true;
+			auto isNodeEqualTo = [it](pair<key, Node_ptr> otherPair) -> bool
+			{
+				if ((*it).first != otherPair.first)
+					return false;
+				if (!isNodesEqual((*it).second, otherPair.second))
+					return false;
+
+				return true;
+			};
+
+
+
+			if (find_if(other.net.begin(), other.net.end(), isNodeEqualTo) == other.net.end())
+				return true;
 		}
 
 		return false;
@@ -856,7 +859,6 @@ namespace electric_net
 		if (first.type != second.type)
 			return false;
 
-
 		switch (first.type)
 		{
 			case DeviceType::INPUT:
@@ -868,6 +870,8 @@ namespace electric_net
 					return false;
 				if (firstInput.cvValue != secondInput.cvValue)
 					return false;
+
+				break;
 			}
 
 			case DeviceType::CONVERTER:
@@ -885,6 +889,9 @@ namespace electric_net
 				if (firstConverter.type == ConverterType::PULSE)
 					if (firstConverter.efficiency != secondConverter.efficiency)
 						return false;
+
+
+				break;
 			}
 
 			case DeviceType::LOAD:
@@ -905,6 +912,9 @@ namespace electric_net
 
 						if (firstOneParamLoad.param != secondOneParamLoad.param)
 							return false;
+
+
+						break;
 					}
 
 					case LoadType::DIODE:
@@ -916,6 +926,9 @@ namespace electric_net
 							return false;
 						if (firstTwoParamsLoad.secondaryParam != secondTwoParamsLoad.secondaryParam)
 							return false;
+
+
+						break;
 					}
 						
 
@@ -924,13 +937,13 @@ namespace electric_net
 				}
 
 				
+				break;
 			}
 
 
 			default:
 				throw exception("Invalid type of device");
 		}
-
 
 		return true;
 	}
