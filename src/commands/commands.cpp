@@ -67,7 +67,7 @@ static string path;
 namespace commands
 {
 
-#todo add type token
+#pragma todo add type token
 	using TokensDeque = deque<string>;
 
 
@@ -704,7 +704,7 @@ namespace commands
 			static void displayConverter (ConverterData data)
 			{
 				auto [name, nestingLevel, cvType, value, type, efficiency] = data;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = string((nestingLevel-1) * spaces_per_level_shift, ' ');
 				
 				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
 				if (type == ConverterType::PULSE)
@@ -748,7 +748,7 @@ namespace commands
 			static void displayResistiveLoad (ResistiveLoadData data)
 			{
 				auto [name, nestingLevel, resistance] = data;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
 				
 				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE);
 				cout << output << endl;
@@ -758,7 +758,7 @@ namespace commands
 			static void displayConstantCurrentLoad (ConstantCurrentLoadData data)
 			{
 				auto [name, nestingLevel, current] = data;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
 				
 				string output = shift + "Load \"" + name + "\" " + to_string(current) + getMainUnitDesignatorStr(LoadType::CONSTANT_CURRENT);
 				cout << output << endl;
@@ -768,7 +768,7 @@ namespace commands
 			static void displayDiodeLoad (DiodeLoadData data)
 			{
 				auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
-				auto shift = string(nestingLevel*spaces_per_level_shift, ' ');
+				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
 				
 				string output = shift + "Load \"" + name + "\" " + to_string(forwardVoltage) + getMainUnitDesignatorStr(LoadType::DIODE)
 					                  + " (forw. cur. " + to_string(forwardCurrent) + getAddUnitDesignatorStr(LoadType::DIODE) + ")";
@@ -2839,7 +2839,16 @@ namespace commands
 
 
 
-	class CommandCopyNode : public CommandWorkingWithExsistingTree
+	class CopyingCommand : public CommandWorkingWithExsistingTree
+	{
+
+	};
+
+
+
+
+
+	class CommandCopyNode : public CopyingCommand
 	{
 
 		public:
@@ -2859,7 +2868,7 @@ namespace commands
 					args.newNodeName = requestNewNodeNameAndGet();
 
 				if (args.parentName == "")
-					args.parentName = suggestSpecifieParentAndGet();
+					args.parentName = suggestSpecifyParentAndGet();
 
 				copyNode(args);
 
@@ -2886,7 +2895,7 @@ namespace commands
 				string handeledArg;
 				
 				if (tokens.empty())    return args;
-				auto handeledArg = tokens.front();
+				handeledArg = tokens.front();
 				args.exampleName = handeledArg;
 				tokens.pop_front();
 
@@ -2918,7 +2927,7 @@ namespace commands
 				return name;
 			}
 
-			string suggestSpecifieParentAndGet () const
+			string suggestSpecifyParentAndGet () const
 			{
 				string parentName = "";
 				cout << "Do you want to leave the new node unconnected?" << endl;
@@ -2937,6 +2946,199 @@ namespace commands
 
 			void copyNode (const Arguments & args) const
 			{
+				auto type = activePowerTree->getNodeType(args.exampleName);
+
+				switch (type)
+				{
+					case DeviceType::INPUT:
+					{
+						auto params = activePowerTree->getInputData(args.exampleName);
+						activePowerTree->addInput(args.newNodeName, params.cvKind, params.value);
+						break; 
+					}
+
+					case DeviceType::CONVERTER:
+					{
+						auto params = activePowerTree->getConverterData(args.exampleName);
+						if (args.parentName.empty())
+							activePowerTree->addConverter(args.newNodeName, params.type, params.cvKind, params.value, params.efficiency);
+						else
+							activePowerTree->addConverter(args.newNodeName, args.parentName, params.type, params.cvKind, params.value, params.efficiency);
+						break;
+					}
+
+					case DeviceType::LOAD:
+					{
+						auto loadType = activePowerTree->getLoadType(args.exampleName);
+
+						switch (loadType)
+						{
+							case LoadType::RESISTIVE:
+							{
+								auto params = activePowerTree->getResistiveLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::RESISTIVE, params.resistance);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::RESISTIVE, params.resistance);
+
+								break;
+							}
+
+							case LoadType::CONSTANT_CURRENT:
+							{
+								auto params = activePowerTree->getConstantCurrentLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::CONSTANT_CURRENT, params.current);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::CONSTANT_CURRENT, params.current);
+
+								break;
+							}
+
+							case LoadType::DIODE:
+							{
+								auto params = activePowerTree->getDiodeLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
+
+								break;
+							}
+
+							default:
+								throw exception("Invalid type of load");
+						}
+
+						break;
+					}
+
+					default:
+						throw exception("Invalid type of device");
+				}
+			}
+
+			void reportExecution (const Arguments & args) const
+			{
+				auto type = activePowerTree->getNodeType(args.exampleName);
+				cout << "The " << type << " \"" << args.newNodeName << "\" is copied from the one \"" << args.exampleName << "\"";
+
+				if (type != DeviceType::INPUT)
+				{
+					cout << " and";
+
+					if (args.parentName.empty())
+						cout << "has been left free";
+					else
+						cout << " connected to the " << activePowerTree->getNodeType(args.parentName) << " \"" << args.parentName << "\"" 
+						     << endl << endl;
+				}
+			}
+
+	};
+
+
+
+
+
+	class CommandCopySubnet : CopyingCommand
+	{
+
+		public:
+
+			virtual void execute (TokensDeque & tokens) const
+			{
+				ensureIfThereAreSomeTree();
+
+
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+
+				if (args.exampleName == "")
+					args.exampleName = requestExampleNameAndGet();
+				if (args.newSubnetNamePostfix == "")
+					args.newSubnetNamePostfix = requestNewNodeNameAndGet();
+
+				if (args.parentName == "")
+					args.parentName = suggestSpecifyParentAndGet();
+
+				copySubnet(args);
+
+				reportExecution(args);
+			}
+
+
+
+
+		private:
+
+			struct Arguments
+			{
+				string exampleName = "";
+				string newSubnetNamePostfix = "";
+				string parentName = "";
+			};
+
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+				string handeledArg;
+
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+				args.exampleName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+				args.newSubnetNamePostfix = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				handeledArg = tokens.front();
+				args.parentName = handeledArg;
+				tokens.pop_front();
+
+				if (tokens.empty())    return args;
+				throw exception("Too many arguments for this command");
+			}
+
+			string requestExampleNameAndGet () const
+			{
+				cout << "Please enter name of example to been copied" << endl;
+				string name; getline(cin, name);
+				return name;
+			}
+
+			string requestNewNodeNameAndGet () const
+			{
+				cout << "Please enter name of new node" << endl;
+				string name; getline(cin, name);
+				return name;
+			}
+
+			string suggestSpecifyParentAndGet () const
+			{
+				string parentName = "";
+				cout << "Do you want to leave the new node unconnected?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
+				{
+					cout << "Enter the name of parent source" << endl;
+					getline(cin, parentName);
+				}
+				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
+					throw exception("Invalid answer");
+
+				return parentName;
+			}
+
+			void copySubnet (const Arguments & args) const
+			{
 
 			}
 
@@ -2944,9 +3146,7 @@ namespace commands
 			{
 
 			}
-
 	};
-	
 	
 	
 	
@@ -3070,4 +3270,12 @@ extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> s
 	TokensDeque tokens = { name, path };
 	CommandSave sv;
 	sv.execute(tokens);
+}
+
+
+extern void resetTree ()
+{
+	activePowerTree.reset();
+	fileName = "";
+	path = "";
 }

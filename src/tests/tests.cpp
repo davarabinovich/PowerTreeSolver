@@ -500,6 +500,7 @@ using namespace electric_net;
 
 extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path);
 extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> source);
+extern void resetTree ();
 
 
 void IntegrationTestFileServer ()
@@ -537,6 +538,8 @@ void IntegrationTestFileServer ()
 	catch (exception & ex) { cerr << ex.what(); }
 
 
+
+	resetTree();
 
 	cin.rdbuf(cinBufStorage);
 	cout.rdbuf(coutBufStorage);

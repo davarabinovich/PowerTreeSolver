@@ -660,8 +660,8 @@ inline void Forest<key, Type>::insertDesc (key name, key parentName, key descNam
 template <typename key, typename Type>
 inline void Forest<key, Type>::pushBackLeaf (key name, key parentName, const Type & content)
 {
-	if (name == "")    throw empty_name("insertDesc; name");
-	if (nodes.count(name) == 1)    throw busy_name("insertDesc; name");
+	if (name == "")    throw empty_name("pushBackLeaf; name");
+	if (nodes.count(name) == 1)    throw busy_name("pushBackLeaf; name");
 
 	if (nodes.count(parentName) == 0)    throw non_excistent_node("pushBackLeaf; parentName");
 
