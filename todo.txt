@@ -1,3 +1,4 @@
+- Add functions for copying subnets and full sets of descendants
 - Make commands as functors
 - Make all cataloges normally, remove a workaround with absolute path
 - Use a fast method of structures returning

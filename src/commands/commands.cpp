@@ -2841,8 +2841,9 @@ namespace commands
 
 	class CopyingCommand : public CommandWorkingWithExsistingTree
 	{
-
+		virtual void execute (TokensDeque & tokens) const = 0;
 	};
+
 
 
 
@@ -3035,117 +3036,6 @@ namespace commands
 				}
 			}
 
-	};
-
-
-
-
-
-	class CommandCopySubnet : CopyingCommand
-	{
-
-		public:
-
-			virtual void execute (TokensDeque & tokens) const
-			{
-				ensureIfThereAreSomeTree();
-
-
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
-
-				if (args.exampleName == "")
-					args.exampleName = requestExampleNameAndGet();
-				if (args.newSubnetNamePostfix == "")
-					args.newSubnetNamePostfix = requestNewNodeNameAndGet();
-
-				if (args.parentName == "")
-					args.parentName = suggestSpecifyParentAndGet();
-
-				copySubnet(args);
-
-				reportExecution(args);
-			}
-
-
-
-
-		private:
-
-			struct Arguments
-			{
-				string exampleName = "";
-				string newSubnetNamePostfix = "";
-				string parentName = "";
-			};
-
-
-
-			Arguments parseArguments (TokensDeque & tokens) const
-			{
-				Arguments args;
-				string handeledArg;
-
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-				args.exampleName = handeledArg;
-				tokens.pop_front();
-
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-				args.newSubnetNamePostfix = handeledArg;
-				tokens.pop_front();
-
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-				args.parentName = handeledArg;
-				tokens.pop_front();
-
-				if (tokens.empty())    return args;
-				throw exception("Too many arguments for this command");
-			}
-
-			string requestExampleNameAndGet () const
-			{
-				cout << "Please enter name of example to been copied" << endl;
-				string name; getline(cin, name);
-				return name;
-			}
-
-			string requestNewNodeNameAndGet () const
-			{
-				cout << "Please enter name of new node" << endl;
-				string name; getline(cin, name);
-				return name;
-			}
-
-			string suggestSpecifyParentAndGet () const
-			{
-				string parentName = "";
-				cout << "Do you want to leave the new node unconnected?" << endl;
-				string answer; getline(cin, answer);
-
-				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
-				{
-					cout << "Enter the name of parent source" << endl;
-					getline(cin, parentName);
-				}
-				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
-					throw exception("Invalid answer");
-
-				return parentName;
-			}
-
-			void copySubnet (const Arguments & args) const
-			{
-
-			}
-
-			void reportExecution (const Arguments & args) const
-			{
-
-			}
 	};
 	
 	
