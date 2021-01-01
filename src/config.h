@@ -19,4 +19,4 @@ using std::exception;
 
 
 
-const string version_str = "0.0.0";
+const string version_str = "1.0.0";
