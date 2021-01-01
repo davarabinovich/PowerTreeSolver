@@ -91,6 +91,9 @@
     <Text Include="global_todo.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="high-level_design\refactoring ideas.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\tests\test_storage.pts">

@@ -77,7 +77,7 @@ class Forest
 
 
 	private:
-#pragma todo make as a structure
+
 		class Node
 		{
 			public:
