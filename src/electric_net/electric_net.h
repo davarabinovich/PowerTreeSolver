@@ -83,16 +83,16 @@ namespace electric_net
 			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) override;
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) override;
 
-			virtual DeviceType getNodeType (key name) override;
-			virtual InputData getInputData (key inputName) override;
-			virtual ConverterData getConverterData (key converterName) override;
-			virtual ResistiveLoadData getResistiveLoadData (key loadName) override;
-			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) override;
-			virtual DiodeLoadData getDiodeLoadData (key loadName) override;
-			virtual bool isLoadExsist (key name) override;
-			virtual LoadType getLoadType (key name) override;
+			virtual DeviceType getNodeType (key name) const override;
+			virtual InputData getInputData (key inputName) const override;
+			virtual ConverterData getConverterData (key converterName) const override;
+			virtual ResistiveLoadData getResistiveLoadData (key loadName) const override;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) const override;
+			virtual DiodeLoadData getDiodeLoadData (key loadName) const override;
+			virtual bool isLoadExsist (key name) const override;
+			virtual LoadType getLoadType (key name) const override;
 
-			virtual string getTitle () override;
+			virtual string getTitle () const override;
 			virtual void rename (string newTitle) override;
 
 			virtual void calculte () override;
@@ -107,8 +107,9 @@ namespace electric_net
 
 
 
-#pragma todo only debug
+#ifdef DEBUG
 			bool operator != (const ElectricNet & other) const;
+#endif
 
 
 
@@ -200,7 +201,9 @@ namespace electric_net
 
 			VarKind calcInputVarTypeByParent (key parentName) const;
 
-			static bool isNodesEqual (Node_ptr first_ptr, Node_ptr second_ptr);
+#ifdef DEBUG
+			static bool isNodesEqualByContent (Node_ptr first_ptr, Node_ptr second_ptr);
+#endif
 
 	};
 

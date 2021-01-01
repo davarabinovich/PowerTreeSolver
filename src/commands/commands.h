@@ -10,6 +10,11 @@
 namespace commands
 {
 
+	using command_mnemonic = const string;
+
+
+
+
 	enum class MotionMode { FREE_DESCES, WITH_DESCES, RECONNECT_DESCES };
 
 	inline bool isMotionModeString (const string & str)
@@ -30,14 +35,9 @@ namespace commands
 		return MotionMode::RECONNECT_DESCES;
 	}
 
-
-
-	using command_mnemonic = const string;
 	
 	
 	
-	
-	bool isCommandToQuit (string );
 	void executeCommand (string );
 
 }

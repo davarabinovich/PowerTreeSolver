@@ -67,8 +67,8 @@ static string path;
 namespace commands
 {
 
-#pragma todo add type token
-	using TokensDeque = deque<string>;
+	using Token = string;
+	using TokensDeque = deque<Token>;
 
 
 
@@ -105,7 +105,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const 
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				Arguments args;			
 				try { args = parseArguments(tokens); }
@@ -135,28 +135,6 @@ namespace commands
 				string inputName = "";
 				VarKind inputCvType = VarKind::VOLTAGE;
 				double inputCvValue = NAN;
-
-				bool operator == (const Arguments & partner)
-				{
-					if (name         != partner.name)         return false;
-					if (inputName    != partner.inputName)    return false;
-					if (inputCvType  != partner.inputCvType)  return false;
-					
-					if (isnan(inputCvValue))
-						if (isnan(partner.inputCvValue))
-							return true;
-						else
-							return false;
-					if (inputCvValue != partner.inputCvValue) return false;
-					
-					return true;
-				}
-
-				bool operator != (const Arguments & partner)
-				{
-					bool result = !(*this == partner);
-					return result;
-				}
 			}; 
 			
 			
@@ -167,8 +145,8 @@ namespace commands
 
 				if (tokens.empty()) return args;
 
-				string handeledArg = tokens.front(); tokens.pop_front();
-				if (!isCvTypeString(handeledArg))
+				Token handeledArg = tokens.front(); tokens.pop_front();
+				if (!isVarKindString(handeledArg))
 					if (!isFloatNumberString(handeledArg))
 						args.name = handeledArg;
 					else
@@ -176,7 +154,7 @@ namespace commands
 						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
 							#pragma todo write exceptions message
-							throw exception();
+							throw exception("CommandCreate: parseArguments");
 						return args;
 					}
 				else
@@ -188,13 +166,13 @@ namespace commands
 						handeledArg = tokens.front(); tokens.pop_front();
 						if (!isFloatNumberString(handeledArg))
 							#pragma todo write exceptions message
-							throw exception();
+							throw exception("CommandCreate: parseArguments");
 						else
 						{
 							args.inputCvValue = strToDouble(handeledArg);
 							if (tokens.size() != 0)
 								#pragma todo write exceptions message
-								throw exception();
+								throw exception("CommandCreate: parseArguments");
 						}
 					}
 
@@ -205,15 +183,14 @@ namespace commands
 				if (tokens.size() == 0)    return args;
 			
 				handeledArg = tokens.front(); tokens.pop_front();
-				if (!isCvTypeString(handeledArg))
+				if (!isVarKindString(handeledArg))
 					if (!isFloatNumberString(handeledArg))
 						args.inputName = handeledArg;
 					else
 					{
 						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
-#pragma todo write exceptions message
-							throw exception();
+							throw exception("CommandCreate: parseArguments");
 						return args;
 					}
 				else
@@ -224,14 +201,12 @@ namespace commands
 					{
 						handeledArg = tokens.front(); tokens.pop_front();
 						if (!isFloatNumberString(handeledArg))
-#pragma todo write exceptions message
-							throw exception();
+							throw exception("CommandCreate: parseArguments");
 						else
 						{
 							args.inputCvValue = strToDouble(handeledArg);
 							if (tokens.size() != 0)
-#pragma todo write exceptions message
-								throw exception();
+								throw exception("CommandCreate: parseArguments");
 						}
 					}
 
@@ -243,41 +218,36 @@ namespace commands
 				if (tokens.size() == 0)    return args;
 					
 				handeledArg = tokens.front(); tokens.pop_front();
-				if (!isCvTypeString(handeledArg))
+				if (!isVarKindString(handeledArg))
 					if (!isFloatNumberString(handeledArg))
-#pragma todo write exceptions message
-						throw exception();
+						throw exception("CommandCreate: parseArguments");
 					else
 					{
 						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
-#pragma todo write exceptions message
-							throw exception();
+							throw exception("CommandCreate: parseArguments");
 						return args;
 					}
 				else
-			{
-				args.inputCvType = parseVarKind(handeledArg);
-
-				if (tokens.size() != 0)
 				{
-					handeledArg = tokens.front(); tokens.pop_front();
-					if (!isFloatNumberString(handeledArg))
-#pragma todo write exceptions message
-						throw exception();
-					else
+					args.inputCvType = parseVarKind(handeledArg);
+
+					if (tokens.size() != 0)
 					{
-						args.inputCvValue = strToDouble(handeledArg);
-						if (tokens.size() != 0)
-#pragma todo write exceptions message
-							throw exception();
+						handeledArg = tokens.front(); tokens.pop_front();
+						if (!isFloatNumberString(handeledArg))
+							throw exception("CommandCreate: parseArguments");
+						else
+						{
+							args.inputCvValue = strToDouble(handeledArg);
+							if (tokens.size() != 0)
+								throw exception("CommandCreate: parseArguments");
+						}
 					}
+
+					return args;
 				}
-
-				return args;
-			}
 			}	
-
 
 			string suggestEnterNameAndGet () const
 			{
@@ -369,14 +339,14 @@ namespace commands
 	
 		public:
 		
-			virtual void execute (TokensDeque& tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
 				if (tokens.size() > 1)    throw exception("Too many arguments for this command");
 	
 				string newName;
-				if (tokens.size() == 0)
+				if (tokens.empty())
 					newName = requestAndGetNewName();
 				else
 					newName = tokens.front();
@@ -397,28 +367,14 @@ namespace commands
 			{
 				string newName = "";
 				string oldName = "";
-		
-				bool operator == (const Arguments & partner)
-				{
-					if (newName != partner.newName)    return false;
-					if (newName != partner.oldName)    return false;
-					return true;
-				}
-		
-				bool operator != (const Arguments & partner)
-				{
-					bool result = !(*this == partner);
-					return result;
-				}
 			};
-	
 	
 	
 	
 			string requestAndGetNewName () const
 			{
 				cout << "Enter a new name for this power tree: ";
-				string newName;
+				Token newName;
 				getline(cin, newName);
 				return newName;
 			}
@@ -449,6 +405,10 @@ namespace commands
 				string treeTitle = activePowerTree->getTitle();
 				cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
 			}
+
+
+
+			virtual ~CommandWithShowingStrucute() {;}
 
 	};
 
@@ -520,30 +480,27 @@ namespace commands
 				cout << endl;
 			}
 
-
 			static void displayInputResults (InputResults results)
 			{
-				auto [name, type, value, avValue] = results;
+				auto [name, cvKind, value, avValue] = results;
 
-				string output = to_string(value) + getCvUnitDesignatorStr(type) + " source \"" + name + "\":\n";
-				output += ("   gives " + to_string(avValue) + getAvUnitDesignatorStr(type));
+				string output = to_string(value) + getVarKindDesignatorStr(cvKind) + " source \"" + name + "\":\n";
+				output += ("   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind));
 
 				cout << output << endl << endl;
 			}
 
-
 			static void displayConverterResults (ConverterResults results)
 			{
-				auto [name, nestingLevel, cvType, value, type, avValue, inputValue] = results;
+				auto [name, nestingLevel, cvKind, value, type, avValue, inputValue] = results;
 				auto shift = generateShift(nestingLevel);
 
-				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
-				output += (shift + "   gives " + to_string(avValue) + getAvUnitDesignatorStr(cvType) + "\n");
+				string output = shift + to_string(value) + getVarKindDesignatorStr(cvKind) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
+				output += (shift + "   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind) + "\n");
 				output += (shift + "   consumes " + to_string(inputValue) + "A");
 
 				cout << output << endl << endl;
 			}
-
 
 			static void displayLoadResults (key loadName)
 			{
@@ -576,24 +533,22 @@ namespace commands
 				}
 			}
 
-
 			static void displayResistiveLoadResults (ResistiveLoadResults results)
 			{
-				auto [name, nestingLevel, resistance, inputValue, inputVarType] = results;
+				auto [name, nestingLevel, resistance, inputValue, inputVarKind] = results;
 				auto shift = generateShift(nestingLevel);
 				
 				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:" + "\n";
 				
 				output += shift;
-				if (inputVarType == VarKind::VOLTAGE)
+				if (inputVarKind == VarKind::VOLTAGE)
 					output += "   consumes ";
 				else
 					output += "   works by ";
-				output += (to_string(inputValue) + getAvUnitDesignatorStr(inputVarType));
+				output += (to_string(inputValue) + getVarKindDesignatorStr(!inputVarKind));
 
 				cout << output << endl << endl;
 			}
-
 
 			static void displayConstantCurrentLoadResults (ConstantCurrentLoadResults results)
 			{
@@ -605,7 +560,6 @@ namespace commands
 				cout << output << endl << endl;
 			}
 
-
 			static void displayDiodeLoadResults (DiodeLoadResults metadata)
 			{
 				auto [name, nestingLevel, voltage, current] = metadata;
@@ -615,7 +569,6 @@ namespace commands
 
 				cout << output << endl << endl;
 			}
-
 
 			static string generateShift (unsigned shifts_qty)
 			{
@@ -634,7 +587,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -692,26 +645,23 @@ namespace commands
 				cout << endl;
 			}
 
-
 			static void displayInput (InputData data)
 			{
 				auto [name, type, value] = data;
-				string output = to_string(value) + getCvUnitDesignatorStr(type) + " source \"" + name + "\":   ";
+				string output = to_string(value) + getVarKindDesignatorStr(type) + " source \"" + name + "\":   ";
 				cout << output << endl;
 			}
-
 
 			static void displayConverter (ConverterData data)
 			{
 				auto [name, nestingLevel, cvType, value, type, efficiency] = data;
 				auto shift = string((nestingLevel-1) * spaces_per_level_shift, ' ');
 				
-				string output = shift + to_string(value) + getCvUnitDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
+				string output = shift + to_string(value) + getVarKindDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
 				if (type == ConverterType::PULSE)
 					output += " (eff. " + to_string(efficiency) + "%):";
 				cout << output << endl;
 			}
-
 
 			static void displayLoad (key loadName)
 			{
@@ -744,7 +694,6 @@ namespace commands
 				}
 			}
 
-
 			static void displayResistiveLoad (ResistiveLoadData data)
 			{
 				auto [name, nestingLevel, resistance] = data;
@@ -754,7 +703,6 @@ namespace commands
 				cout << output << endl;
 			}
 
-
 			static void displayConstantCurrentLoad (ConstantCurrentLoadData data)
 			{
 				auto [name, nestingLevel, current] = data;
@@ -763,7 +711,6 @@ namespace commands
 				string output = shift + "Load \"" + name + "\" " + to_string(current) + getMainUnitDesignatorStr(LoadType::CONSTANT_CURRENT);
 				cout << output << endl;
 			}
-
 
 			static void displayDiodeLoad (DiodeLoadData data)
 			{
@@ -782,122 +729,120 @@ namespace commands
 
 
 	class CommandCreateInput : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception & ex) { throw exception(ex.what()); }
-	
-
-#pragma todo not only NAN is invalid
-			if (isnan(args.cvValue))
-				args.cvValue = requestCvValue(args.cvType);
-	
-			createInputByArgs(args);
-	
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string name = "";
-			VarKind cvType = VarKind::VOLTAGE;
-			double cvValue = NAN;
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-
-			if (tokens.empty())    return args;
-
-
-			auto handeledArg = tokens.front();
-			
-			if ( !isCvTypeString(handeledArg) && !isFloatNumberString(handeledArg) )
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const override
 			{
-				args.name = handeledArg;
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+		
+				if (isnan(args.cvValue))
+					args.cvValue = requestCvValue(args.cvType);
+		
+				createInputByArgs(args);
+		
+				reportExecution(args);
 			}
-
-			if (isCvTypeString(handeledArg))
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
 			{
-				args.cvType = parseVarKind(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-				handeledArg = tokens.front();
-			}
-			
-			if (isFloatNumberString(handeledArg))
+				string name = "";
+				VarKind cvType = VarKind::VOLTAGE;
+				double cvValue = NAN;
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
 			{
-				args.cvValue = strToDouble(handeledArg);
-
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-			}
-
-			throw exception("There is at least one invalid argument");
-		}
-
-
+				Arguments args;
 	
-
-		double requestCvValue (const VarKind type) const
-		{
-			cout << "Plase enter a value of " << type << endl;
-			string enteredValue; getline(cin, enteredValue);
-			auto value = strToDouble(enteredValue);
-			return value;
-		}
-
-		void createInputByArgs (Arguments & args) const
-		{
-			activePowerTree->addInput(args.name, args.cvType, args.cvValue);
-		}
+				if (tokens.empty())    return args;
 	
-		void reportExecution (const Arguments & args) const
-		{
-			string name = "\"" + args.name + "\" ";
-
-			string cvType = "voltage";
-			if (args.cvType == VarKind::CURRENT)
-				cvType = "current";
-
-			bool isCvValuePresent = false;
-			string cvUnit = "V";
-			if (!isnan(args.cvValue))
+	
+				auto handeledArg = tokens.front();
+				
+				if ( !isVarKindString(handeledArg) && !isFloatNumberString(handeledArg) )
+				{
+					args.name = handeledArg;
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+	
+				if (isVarKindString(handeledArg))
+				{
+					args.cvType = parseVarKind(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+					handeledArg = tokens.front();
+				}
+				
+				if (isFloatNumberString(handeledArg))
+				{
+					args.cvValue = strToDouble(handeledArg);
+	
+					tokens.pop_front();
+					if (tokens.empty())    return args;
+				}
+	
+				throw exception("There is at least one invalid argument");
+			}
+	
+	
+		
+	
+			double requestCvValue (const VarKind type) const
 			{
-				isCvValuePresent = true;
+				cout << "Plase enter a value of " << type << endl;
+				string enteredValue; getline(cin, enteredValue);
+				auto value = strToDouble(enteredValue);
+				return value;
+			}
+	
+			void createInputByArgs (Arguments & args) const
+			{
+				activePowerTree->addInput(args.name, args.cvType, args.cvValue);
+			}
+		
+			void reportExecution (const Arguments & args) const
+			{
+				string name = "\"" + args.name + "\" ";
+	
+				string cvType = "voltage";
 				if (args.cvType == VarKind::CURRENT)
-					cvUnit = "A";
-			}
-
-
-			cout << "A new " << cvType << " input " << name;
-			if (isCvValuePresent)	
-				cout << args.cvValue << " " << cvUnit;
-			cout << " is created" << endl << endl;
-		}
+					cvType = "current";
 	
-};
+				bool isCvValuePresent = false;
+				string cvUnit = "V";
+				if (!isnan(args.cvValue))
+				{
+					isCvValuePresent = true;
+					if (args.cvType == VarKind::CURRENT)
+						cvUnit = "A";
+				}
+	
+	
+				cout << "A new " << cvType << " input " << name;
+				if (isCvValuePresent)	
+					cout << args.cvValue << " " << cvUnit;
+				cout << " is created" << endl << endl;
+			}
+		
+	};
 	
 
 	
@@ -908,14 +853,14 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
 	
 				Arguments args;
 				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
+				catch (exception & ex) { throw exception(ex.what()); }
 	
 				if (isnan(args.cvValue))
 					args.cvValue = requestCvValue(args.cvType);
@@ -955,7 +900,7 @@ namespace commands
 	
 				auto handeledArg = tokens.front();
 	
-				if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+				if (!isVarKindString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 				{
 					args.name = handeledArg;
 	
@@ -964,7 +909,7 @@ namespace commands
 					handeledArg = tokens.front();
 				}
 	
-				if (isCvTypeString(handeledArg))
+				if (isVarKindString(handeledArg))
 				{
 					args.cvType = parseVarKind(handeledArg);
 	
@@ -1000,7 +945,7 @@ namespace commands
 					handeledArg = tokens.front();
 				}
 	
-				if (!isCvTypeString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
+				if (!isVarKindString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
 				{
 					args.parentName = handeledArg;
 	
@@ -1010,7 +955,6 @@ namespace commands
 	
 				throw exception("There is at least one invalid argument");
 			}
-	
 	
 			double requestCvValue (const VarKind type) const
 			{
@@ -1078,7 +1022,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1284,14 +1228,14 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
 	
 				Arguments args;
 				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
+				catch (exception & ex) { throw exception(ex.what()); }
 	
 				modifyInputParams(args);
 				reportExecution(args);
@@ -1353,7 +1297,7 @@ namespace commands
 					}
 					else
 					{
-						if (isCvTypeString(token))
+						if (isVarKindString(token))
 						{
 							if (args.cvType)
 							{
@@ -1452,211 +1396,210 @@ namespace commands
 	
 	
 	class CommandModifyConverter : public CommandWorkingWithExsistingTree
-{
-	
-	public:
-	
-		virtual void execute (TokensDeque & tokens) const
-		{
-			ensureIfThereAreSomeTree();
-
-
-			Arguments args;
-			try { args = parseArguments(tokens); }
-			catch (exception& ex) { throw exception(ex.what()); }
-	
-
-			modifyConverterParams(args);
-			
-			reportExecution(args);
-		}
-	
-	
-	
-	
-	private:
-	
-		struct Arguments
-		{
-			string currentName;
-	
-			optional<string> newName; 
-			optional<VarKind> cvType;
-			optional<double> cvValue; 
-
-			optional<ConverterType> type;
-			optional<double> efficiency;
-		};
-	
-	
-	
-		Arguments parseArguments (TokensDeque & tokens) const
-		{
-			Arguments args;
-			if (tokens.empty())    return args;
-	
-			args.currentName = tokens.front();
-			if (tokens.empty())    return args;
-	
-			tokens.pop_front();
-			for (const auto& token : tokens)
+	{
+		
+		public:
+		
+			virtual void execute (TokensDeque & tokens) const override
 			{
-				if (isParamWithKey(token))
+				ensureIfThereAreSomeTree();
+	
+	
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception & ex) { throw exception(ex.what()); }
+		
+	
+				modifyConverterParams(args);
+				
+				reportExecution(args);
+			}
+		
+		
+		
+		
+		private:
+		
+			struct Arguments
+			{
+				string currentName;
+		
+				optional<string> newName; 
+				optional<VarKind> cvType;
+				optional<double> cvValue; 
+	
+				optional<ConverterType> type;
+				optional<double> efficiency;
+			};
+		
+		
+		
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				Arguments args;
+				if (tokens.empty())    return args;
+		
+				args.currentName = tokens.front();
+				if (tokens.empty())    return args;
+		
+				tokens.pop_front();
+				for (const auto & token : tokens)
 				{
-					string key = extractKeyFromToken(token);
-					if (key == "n")
+					if (isParamWithKey(token))
 					{
-						if (args.newName)    continue;
+						Token key = extractKeyFromToken(token);
+						if (key == "n")
+						{
+							if (args.newName)    continue;
+		
+							args.newName = extractParamFromToken(token);
+						}
+						else if (key == "u")
+						{
+							if (args.cvType)    continue;
+		
+							args.cvType = parseVarKind(extractParamFromToken(token));
+						}
+						else if (key == "v")
+						{
+							if (args.cvValue)    continue;
+		
+							args.cvValue = strToDouble(extractParamFromToken(token));
+						}
+						else if (key == "t")
+						{
+							if (args.type)    continue;
 	
-						args.newName = extractParamFromToken(token);
-					}
-					else if (key == "u")
-					{
-						if (args.cvType)    continue;
+							args.type = parseConverterType(extractParamFromToken(token));
+						}
+						else if (key == "e")
+						{
+							if (args.efficiency)    continue;
 	
-						args.cvType = parseVarKind(extractParamFromToken(token));
-					}
-					else if (key == "v")
-					{
-						if (args.cvValue)    continue;
-	
-						args.cvValue = strToDouble(extractParamFromToken(token));
-					}
-					else if (key == "t")
-					{
-						if (args.type)    continue;
-
-						args.type = parseConverterType(extractParamFromToken(token));
-					}
-					else if (key == "e")
-					{
-						if (args.efficiency)    continue;
-
-						args.efficiency = strToDouble(extractParamFromToken(token));
+							args.efficiency = strToDouble(extractParamFromToken(token));
+						}
+						else
+							throw exception(string("Unrecognized parameter \"" + key).c_str());
 					}
 					else
-						throw exception(string("Unrecognized parameter \"" + key).c_str());
+					{
+						if (isVarKindString(token))
+						{
+							if (args.cvType)
+							{
+								args.cvType = parseVarKind(token);
+								continue;
+							}
+						}
+	
+						if (isConverterTypeString(token))
+						{
+							if (args.type)
+							{
+								args.type = parseConverterType(token);
+								continue;
+							}
+						}
+		
+						if (isFloatNumberString(token))
+						{
+							if (args.cvValue)
+							{
+								args.cvValue = strToDouble(token);
+								continue;
+							}
+							if (args.efficiency)
+							{
+								args.efficiency = strToDouble(token);
+								continue;
+							}
+						}
+		
+						if (args.newName)    continue;
+		
+						args.newName = token;
+					}
 				}
-				else
+		
+				return args;
+			}
+		
+			bool isParamWithKey (const string & token) const
+			{
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				if (charEqual_it != token.end())    return true;
+				return false;
+			}
+		
+			string extractKeyFromToken (const string & token) const
+			{
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+		
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(token.begin(), charEqual_it);
+				return result;
+			}
+		
+			string extractParamFromToken (const string & token) const
+			{
+				if (!isParamWithKey(token))
+					throw exception("This is not a parameter with a key");
+		
+				const auto charEqual_it = find(token.begin(), token.end(), '=');
+				string result = string(charEqual_it + 1, token.end());
+				return result;
+			}
+		
+		
+			void modifyConverterParams (const Arguments & args) const
+			{
+				if (args.cvType)
+					activePowerTree->setSourceCvType(args.currentName, *args.cvType);
+				if (args.cvValue)
+					activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
+				if (args.type)
+					activePowerTree->setConverterType(args.currentName, *args.type);
+				if (args.efficiency)
+					activePowerTree->setConverterEfficiency(args.currentName, *args.efficiency);
+	
+				if (args.newName)
+					activePowerTree->renameNode(args.currentName, *args.newName);
+			}
+		
+			void reportExecution (const Arguments & args) const
+			{
+				cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
+		
+				if (args.newName)
+					cout << endl << "    Name - \"" << *args.newName << "\"";
+				if (args.type)
+					cout << endl << "    Type - " << *args.type;
+				if (args.cvType)
+					cout << endl << "    Type of controlled variable - " << *args.cvType;
+				if (args.cvValue)
 				{
-					if (isCvTypeString(token))
-					{
-						if (args.cvType)
-						{
-							args.cvType = parseVarKind(token);
-							continue;
-						}
-					}
-
-					if (isConverterTypeString(token))
-					{
-						if (args.type)
-						{
-							args.type = parseConverterType(token);
-							continue;
-						}
-					}
-	
-					if (isFloatNumberString(token))
-					{
-						if (args.cvValue)
-						{
-							args.cvValue = strToDouble(token);
-							continue;
-						}
-						if (args.efficiency)
-						{
-							args.efficiency = strToDouble(token);
-							continue;
-						}
-					}
-	
-					if (args.newName)    continue;
-	
-					args.newName = token;
+					cout << endl << "    Controlled variable - " << *args.cvValue;
+		
+					string cvUnit = "V";
+					if (*args.cvType == VarKind::CURRENT)
+						cvUnit = "A";
+					cout << " " << cvUnit;
 				}
+				if (args.efficiency)
+				{
+					cout << endl << "    Efficiency - " << *args.efficiency << " %";
+				}
+		
+				cout << endl;
 			}
-	
-			return args;
-		}
-	
-		bool isParamWithKey (const string & token) const
-		{
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			if (charEqual_it != token.end())    return true;
-			return false;
-		}
-	
-		string extractKeyFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-	
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(token.begin(), charEqual_it);
-			return result;
-		}
-	
-		string extractParamFromToken (const string & token) const
-		{
-			if (!isParamWithKey(token))
-				throw exception("This is not a parameter with a key");
-	
-			const auto charEqual_it = find(token.begin(), token.end(), '=');
-			string result = string(charEqual_it + 1, token.end());
-			return result;
-		}
-	
-	
-		void modifyConverterParams (const Arguments & args) const
-		{
-#pragma todo split structue to separate values;
-			if (args.cvType)
-				activePowerTree->setSourceCvType(args.currentName, *args.cvType);
-			if (args.cvValue)
-				activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
-			if (args.type)
-				activePowerTree->setConverterType(args.currentName, *args.type);
-			if (args.efficiency)
-				activePowerTree->setConverterEfficiency(args.currentName, *args.efficiency);
-
-			if (args.newName)
-				activePowerTree->renameNode(args.currentName, *args.newName);
-		}
-	
-		void reportExecution (const Arguments & args) const
-		{
-			cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
-	
-			if (args.newName)
-				cout << endl << "    Name - \"" << *args.newName << "\"";
-			if (args.type)
-				cout << endl << "    Type - " << *args.type;
-			if (args.cvType)
-				cout << endl << "    Type of controlled variable - " << *args.cvType;
-			if (args.cvValue)
+		
+			void reportNonexsistentConverter (const string & name) const
 			{
-				cout << endl << "    Controlled variable - " << *args.cvValue;
-	
-				string cvUnit = "V";
-				if (*args.cvType == VarKind::CURRENT)
-					cvUnit = "A";
-				cout << " " << cvUnit;
+				cout << "An converter \"" << name << "\" doesn't exsist." << endl;
 			}
-			if (args.efficiency)
-			{
-				cout << endl << "    Efficiency - " << *args.efficiency << " %";
-			}
-	
-			cout << endl;
-		}
-	
-		void reportNonexsistentConverter (const string & name) const
-		{
-			cout << "An converter \"" << name << "\" doesn't exsist." << endl;
-		}
-	
-};
+		
+	};
 	
 	
 
@@ -1667,7 +1610,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1711,7 +1654,7 @@ namespace commands
 				{
 					if (isParamWithKey(token))
 					{
-						string key = extractKeyFromToken(token);
+						Token key = extractKeyFromToken(token);
 						if (key == "n")
 						{
 							if (args.newName)    continue;
@@ -1896,7 +1839,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2007,7 +1950,7 @@ namespace commands
 
 
 						default:
-							;
+							throw exception("Invalid mode of deleting a source");
 					}
 				}
 			}
@@ -2055,7 +1998,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2180,7 +2123,7 @@ namespace commands
 
 
 						default:
-							;
+							throw exception("Invalid mode of deleting a source");
 					}
 				}
 			}
@@ -2229,7 +2172,7 @@ namespace commands
 	
 	public:
 	
-		virtual void execute (TokensDeque & tokens) const
+		virtual void execute (TokensDeque & tokens) const override
 		{
 			ensureIfThereAreSomeTree();
 
@@ -2359,7 +2302,7 @@ namespace commands
 
 
 				default:
-					;
+					throw exception("Invalid mode of deleting a source");
 			}
 		}
 	
@@ -2581,7 +2524,7 @@ namespace commands
 
 				Arguments args;
 				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
+				catch (exception & ex) { throw exception(ex.what()); }
 
 				if (args.fileName.empty())
 					args.fileName = requestFileNameAndGet();
@@ -2618,7 +2561,6 @@ namespace commands
 					return false;
 				throw exception("Invalid answer");
 			}
-
 
 			Arguments parseArguments (TokensDeque & tokens) const
 			{
@@ -2658,14 +2600,12 @@ namespace commands
 				return args;
 			}
 
-
 			string requestFileNameAndGet() const
 			{
 				cout << "Please enter name of file to be loaded" << endl;
 				string newName; getline(cin, newName);
 				return newName;
 			}
-
 
 			void updateSystemVariables (Arguments args) const
 			{
@@ -2674,7 +2614,6 @@ namespace commands
 				if (!args.path.empty())
 					path = args.path;
 			}
-
 
 			void loadTree (Arguments & args) const
 			{
@@ -2691,7 +2630,6 @@ namespace commands
 					createNode(node);
 				}
 			}
-
 
 			void createNode (ReadNode & node) const
 			{
@@ -2716,13 +2654,11 @@ namespace commands
 				}
 			}
 
-
 			void createInputByParams (ReadNode & node) const
 			{
 				auto data = get<ReadInput>(node.data);
 				activePowerTree->addInput(node.name, data.cvKind, data.value);
 			}
-
 
 			void createConverterByParams (ReadNode & node) const
 			{
@@ -2734,7 +2670,6 @@ namespace commands
 					activePowerTree->addConverter(node.name, data.commonSinkData.parentName, data.type, data.cvKind, data.value, 
 					                                         data.efficiency);
 			}
-
 
 			void createLoadByParams (ReadNode & node) const
 			{
@@ -2764,7 +2699,6 @@ namespace commands
 				}
 			}
 
-
 			void reportExecution (Arguments & args) const
 			{
 				cout << "A new power three \"" << args.title << "\" is successfully loaded" << endl << endl;
@@ -2785,7 +2719,7 @@ namespace commands
 			{
 				Arguments args;
 				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
+				catch (exception & ex) { throw exception(ex.what()); }
 
 				setPath(args);
 				reportExecution(args);
@@ -2814,7 +2748,6 @@ namespace commands
 				throw exception("Too many arguments for this command");
 			}
 
-
 			void setPath (Arguments args) const
 			{
 				string newPath = args.path;
@@ -2826,7 +2759,6 @@ namespace commands
 
 				path = newPath;
 			}
-
 
 			void reportExecution (Arguments & args) const
 			{
@@ -2841,9 +2773,98 @@ namespace commands
 
 	class CopyingCommand : public CommandWorkingWithExsistingTree
 	{
-		virtual void execute (TokensDeque & tokens) const = 0;
-	};
+		
+		protected:
+		
+			struct Arguments
+			{
+				string exampleName = "";
+				string newNodeName = "";
+				string parentName = "";
+			};
+		
+		
+		
+			void copyNode(const Arguments& args) const
+			{
+				auto type = activePowerTree->getNodeType(args.exampleName);
+		
+				switch (type)
+				{
+					case DeviceType::INPUT:
+					{
+						auto params = activePowerTree->getInputData(args.exampleName);
+						activePowerTree->addInput(args.newNodeName, params.cvKind, params.value);
+						break;
+					}
+		
+					case DeviceType::CONVERTER:
+					{
+						auto params = activePowerTree->getConverterData(args.exampleName);
+						if (args.parentName.empty())
+							activePowerTree->addConverter(args.newNodeName, params.type, params.cvKind, params.value, params.efficiency);
+						else
+							activePowerTree->addConverter(args.newNodeName, args.parentName, params.type, params.cvKind, params.value, params.efficiency);
+						break;
+					}
+		
+					case DeviceType::LOAD:
+					{
+						auto loadType = activePowerTree->getLoadType(args.exampleName);
+		
+						switch (loadType)
+						{
+							case LoadType::RESISTIVE:
+							{
+								auto params = activePowerTree->getResistiveLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::RESISTIVE, params.resistance);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::RESISTIVE, params.resistance);
+		
+								break;
+							}
+		
+							case LoadType::CONSTANT_CURRENT:
+							{
+								auto params = activePowerTree->getConstantCurrentLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::CONSTANT_CURRENT, params.current);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::CONSTANT_CURRENT, params.current);
+		
+								break;
+							}
+		
+							case LoadType::DIODE:
+							{
+								auto params = activePowerTree->getDiodeLoadData(args.exampleName);
+								if (args.parentName.empty())
+									activePowerTree->addLoad(args.newNodeName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
+								else
+									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
+		
+								break;
+							}
+		
+							default:
+								throw exception("Invalid type of load");
+						}
+		
+						break;
+					}
+		
+					default:
+						throw exception("Invalid type of device");
+				}
+		
+			}
 
+
+
+			virtual ~CopyingCommand () {;}
+		
+	};
 
 
 
@@ -2854,7 +2875,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const
+			virtual void execute (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2881,19 +2902,10 @@ namespace commands
 
 		private:
 
-			struct Arguments
-			{
-				string exampleName = "";
-				string newNodeName = "";
-				string parentName = "";
-			};
-
-
-
 			Arguments parseArguments (TokensDeque & tokens) const
 			{
 				Arguments args;
-				string handeledArg;
+				Token handeledArg;
 				
 				if (tokens.empty())    return args;
 				handeledArg = tokens.front();
@@ -2945,80 +2957,6 @@ namespace commands
 				return parentName;
 			}
 
-			void copyNode (const Arguments & args) const
-			{
-				auto type = activePowerTree->getNodeType(args.exampleName);
-
-				switch (type)
-				{
-					case DeviceType::INPUT:
-					{
-						auto params = activePowerTree->getInputData(args.exampleName);
-						activePowerTree->addInput(args.newNodeName, params.cvKind, params.value);
-						break; 
-					}
-
-					case DeviceType::CONVERTER:
-					{
-						auto params = activePowerTree->getConverterData(args.exampleName);
-						if (args.parentName.empty())
-							activePowerTree->addConverter(args.newNodeName, params.type, params.cvKind, params.value, params.efficiency);
-						else
-							activePowerTree->addConverter(args.newNodeName, args.parentName, params.type, params.cvKind, params.value, params.efficiency);
-						break;
-					}
-
-					case DeviceType::LOAD:
-					{
-						auto loadType = activePowerTree->getLoadType(args.exampleName);
-
-						switch (loadType)
-						{
-							case LoadType::RESISTIVE:
-							{
-								auto params = activePowerTree->getResistiveLoadData(args.exampleName);
-								if (args.parentName.empty())
-									activePowerTree->addLoad(args.newNodeName, LoadType::RESISTIVE, params.resistance);
-								else
-									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::RESISTIVE, params.resistance);
-
-								break;
-							}
-
-							case LoadType::CONSTANT_CURRENT:
-							{
-								auto params = activePowerTree->getConstantCurrentLoadData(args.exampleName);
-								if (args.parentName.empty())
-									activePowerTree->addLoad(args.newNodeName, LoadType::CONSTANT_CURRENT, params.current);
-								else
-									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::CONSTANT_CURRENT, params.current);
-
-								break;
-							}
-
-							case LoadType::DIODE:
-							{
-								auto params = activePowerTree->getDiodeLoadData(args.exampleName);
-								if (args.parentName.empty())
-									activePowerTree->addLoad(args.newNodeName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
-								else
-									activePowerTree->addLoad(args.newNodeName, args.parentName, LoadType::DIODE, params.forwardVoltage, params.forwardCurrent);
-
-								break;
-							}
-
-							default:
-								throw exception("Invalid type of load");
-						}
-
-						break;
-					}
-
-					default:
-						throw exception("Invalid type of device");
-				}
-			}
-
 			void reportExecution (const Arguments & args) const
 			{
 				auto type = activePowerTree->getNodeType(args.exampleName);
@@ -3046,6 +2984,7 @@ namespace commands
 	
 	
 	
+
 	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()          },
 																				{ "rn", make_shared<CommandRename>()          },
 																				{ "sl", make_shared<CommandSolve>()           },
@@ -3117,11 +3056,6 @@ namespace commands
 	
 		currentCommand->execute(tokens);
 	}
-	
-	command_mnemonic extractCommandMnemonicFrom (string commandWithParameters)
-	{
-		return command_mnemonic();
-	}
 
 }
 
@@ -3135,6 +3069,7 @@ namespace commands
 
 
 
+#ifdef DEBUG
 #pragma todo there follows workarounds for testing; they should be removed
 extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 {
@@ -3169,3 +3104,4 @@ extern void resetTree ()
 	fileName = "";
 	path = "";
 }
+#endif

@@ -25,15 +25,16 @@ void handleCommandError (string errorMessage);
 
 int main (int argc, char * argv [], char * envp [])
 {
+#ifdef DEBUG
+	TestAll();
+#endif
+
 
 	using namespace commands;
 
 
 
 
-	TestAll();
-	// Переменное количество аргументов команд
-	// Валидацию данных делать в процессоре команд и вынести в отдельный файл
 	cout.setf(std::ios::fixed);
 	cout << std::setprecision(3);
 

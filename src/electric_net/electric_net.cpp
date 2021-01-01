@@ -17,7 +17,6 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-#pragma todo all checking
 		auto newInput_ptr = make_shared<Input>(type, cvValue);
 		net.addRoot(name, newInput_ptr);
 	}
@@ -373,7 +372,7 @@ namespace electric_net
 	}
 
 
-	DeviceType ElectricNet::getNodeType (key name)
+	DeviceType ElectricNet::getNodeType (key name) const
 	{
 		auto node_ptr = net.at(name);
 		auto type = node_ptr->type;
@@ -381,7 +380,7 @@ namespace electric_net
 	}
 
 
-	InputData ElectricNet::getInputData (key inputName)
+	InputData ElectricNet::getInputData (key inputName) const
 	{
 		InputData data;
 
@@ -397,7 +396,7 @@ namespace electric_net
 	}
 
 
-	ConverterData ElectricNet::getConverterData (key converterName)
+	ConverterData ElectricNet::getConverterData (key converterName) const
 	{
 		ConverterData data;
 
@@ -416,7 +415,7 @@ namespace electric_net
 	}
 
 
-	ResistiveLoadData ElectricNet::getResistiveLoadData (key loadName)
+	ResistiveLoadData ElectricNet::getResistiveLoadData (key loadName) const
 	{
 		ResistiveLoadData data;
 
@@ -432,7 +431,7 @@ namespace electric_net
 	}
 
 
-	ConstantCurrentLoadData ElectricNet::getConstantCurrentLoadData (key loadName)
+	ConstantCurrentLoadData ElectricNet::getConstantCurrentLoadData (key loadName) const
 	{
 		ConstantCurrentLoadData data;
 
@@ -448,7 +447,7 @@ namespace electric_net
 	}
 
 
-	DiodeLoadData ElectricNet::getDiodeLoadData (key loadName)
+	DiodeLoadData ElectricNet::getDiodeLoadData (key loadName) const
 	{
 		DiodeLoadData data;
 
@@ -465,7 +464,7 @@ namespace electric_net
 	}
 
 
-	bool ElectricNet::isLoadExsist (key name)
+	bool ElectricNet::isLoadExsist (key name) const
 	{
 		if (net.isExsist(name))
 		{
@@ -477,15 +476,15 @@ namespace electric_net
 	}
 
 
-	LoadType ElectricNet::getLoadType (key name)
+	LoadType ElectricNet::getLoadType (key name) const
 	{
-		auto load_ptr = dynamic_pointer_cast<Load>( net[name] );
+		auto load_ptr = dynamic_pointer_cast<Load>( net.at(name) );
 		auto type = load_ptr->type;
 		return type;
 	}
 
 
-	string ElectricNet::getTitle ()
+	string ElectricNet::getTitle () const
 	{
 		return title;
 	}
@@ -607,6 +606,7 @@ namespace electric_net
 	}
 
 
+#ifdef DEBUG
 	bool ElectricNet::operator != (const ElectricNet & other) const
 	{
 		for (auto it = net.begin(); it != net.end(); it++)
@@ -616,7 +616,7 @@ namespace electric_net
 			{
 				if ((*it).first != otherPair.first)
 					return false;
-				if (!isNodesEqual((*it).second, otherPair.second))
+				if (!isNodesEqualByContent((*it).second, otherPair.second))
 					return false;
 
 				return true;
@@ -630,6 +630,7 @@ namespace electric_net
 
 		return false;
 	}
+#endif
 
 
 
@@ -851,7 +852,8 @@ namespace electric_net
 
 
 
-	bool ElectricNet::isNodesEqual (Node_ptr first_ptr, Node_ptr second_ptr)
+#ifdef DEBUG
+	bool ElectricNet::isNodesEqualByContent (Node_ptr first_ptr, Node_ptr second_ptr)
 	{
 		const auto & first = *first_ptr;
 		const auto & second = *second_ptr;
@@ -947,6 +949,7 @@ namespace electric_net
 
 		return true;
 	}
+#endif
 
 	
 

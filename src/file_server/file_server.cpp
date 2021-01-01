@@ -240,8 +240,8 @@ namespace file_server
 			node.type = DeviceType::CONVERTER;
 		else if (nodeType_tag == node_load_tag)
 			node.type = DeviceType::LOAD;
-
-		else    throw exception("Invalid type of electric node");
+		else
+			throw exception("Invalid type of electric node");
 
 
 		rstream >> node.name;

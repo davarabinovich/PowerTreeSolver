@@ -45,7 +45,6 @@ namespace electric_net
 
 
 
-#pragma todo rename to VarType and add inversion
 	enum class VarKind { VOLTAGE, CURRENT };
 	
 	inline ostream & operator << (ostream & os, const VarKind & type)
@@ -76,7 +75,14 @@ namespace electric_net
 		return (str + "current");
 	}
 
-	inline bool isCvTypeString (const string & str)
+	inline VarKind operator ! (const VarKind & kind)
+	{
+		if (kind == VarKind::VOLTAGE)
+			return VarKind::CURRENT;
+		return VarKind::VOLTAGE;
+	}
+
+	inline bool isVarKindString (const string & str)
 	{
 		if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
 		if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
@@ -86,15 +92,13 @@ namespace electric_net
 	
 	inline VarKind parseVarKind (const string & str)
 	{
-		if (!isCvTypeString(str))
-#pragma todo write exceptions message
-			throw exception();
+		if (!isVarKindString(str))    throw exception("parseVarKind: String doesn't represent a variable kind");
 
 		if (str == "cur" || str == "Cur" || str == "current" || str == "Current") return VarKind::CURRENT;
 		return VarKind::VOLTAGE;
 	}
 
-	inline string getCvUnitDesignatorStr (const VarKind type)
+	inline string getVarKindDesignatorStr (const VarKind type)
 	{
 		switch (type)
 		{
@@ -102,20 +106,6 @@ namespace electric_net
 				return "V";
 			case VarKind::CURRENT:
 				return "A";
-	
-			default:
-				throw exception("Invalid kind of controlled variable");
-		}
-	}
-
-	inline string getAvUnitDesignatorStr (const VarKind type)
-	{
-		switch (type)
-		{
-			case VarKind::VOLTAGE:
-				return "A";
-			case VarKind::CURRENT:
-				return "V";
 	
 			default:
 				throw exception("Invalid kind of controlled variable");
@@ -171,8 +161,7 @@ namespace electric_net
 	
 	inline LoadType parseLoadType (const string & str)
 	{
-		if (!isLoadTypeString(str))
-			throw exception("Invalid type of load");
+		if (!isLoadTypeString(str))    throw exception("parseLoadType: String doesn't represent a type of load");
 
 		if (str == "r" || str == "R" || str == "res" || str == "Res" || str == "resistive" || str == "Resistive") 
 			return LoadType::RESISTIVE;
@@ -281,9 +270,7 @@ namespace electric_net
 	
 	inline ConverterType parseConverterType (const string & str)
 	{
-		if (!isConverterTypeString(str))
-#pragma todo write exceptions message
-			throw exception();
+		if (!isConverterTypeString(str))    throw exception("parseConverterType: String doesn't represent a type of converter");
 
 		if (str == "l" || str == "L" || str == "lin" || str == "Lin" || str == "linear" || str == "Linear")
 			return ConverterType::LINEAR;
@@ -303,6 +290,13 @@ namespace electric_net
 			throw exception("Invalid type of converter");
 		}
 	}
+
+
+
+
+
+
+
 
 
 
@@ -418,7 +412,6 @@ namespace electric_net
 		
 		public:
 
-#pragma todo add const qualificators
 			virtual void addInput (key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) = 0;
 			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							   double cvValue = 0.0, double efficiency = 100.0) = 0;
@@ -467,16 +460,16 @@ namespace electric_net
 			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) = 0;
 			virtual void setLoadForwardCurrent (key name, double forwardCurrent) = 0;
 			
-			virtual DeviceType getNodeType (key name) = 0;
-			virtual InputData getInputData (key inputName) = 0;
-			virtual ConverterData getConverterData (key converterName) = 0;
-			virtual ResistiveLoadData getResistiveLoadData (key loadName) = 0;
-			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) = 0;
-			virtual DiodeLoadData getDiodeLoadData (key loadName) = 0;
-			virtual bool isLoadExsist (key name) = 0;
-			virtual LoadType getLoadType (key name) = 0;
+			virtual DeviceType getNodeType (key name) const = 0;
+			virtual InputData getInputData (key inputName) const = 0;
+			virtual ConverterData getConverterData (key converterName) const = 0;
+			virtual ResistiveLoadData getResistiveLoadData (key loadName) const = 0;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) const = 0;
+			virtual DiodeLoadData getDiodeLoadData (key loadName) const = 0;
+			virtual bool isLoadExsist (key name) const = 0;
+			virtual LoadType getLoadType (key name) const = 0;
 
-			virtual string getTitle () = 0;
+			virtual string getTitle () const = 0;
 			virtual void rename (string newTitle) = 0;
 
 #pragma todo make calculate const again

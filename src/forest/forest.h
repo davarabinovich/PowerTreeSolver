@@ -32,7 +32,7 @@ class Forest
 		Forest () {};
 
 
-#pragma todo all chekcing
+
 		void addRoot (key name, const Type & content = 0);
 		void pushFrontRoot (key name, key oldRootName, const Type & content = 0);
 		void insertDesc (key name, key parentName, const Type & content = 0);
