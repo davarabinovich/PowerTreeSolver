@@ -18,6 +18,15 @@ using namespace std;
 #define AUTO_CONST_PTR auto const *
 
 
+#define FUNCTOR(name, outType, args)  class name                         \
+                                      {                                  \
+                                          public:                        \
+                                              outType operator () (args) \
+                                              { 
+
+#define FUNCTOR_END_BODY }
+#define END_FUNCTOR };
+
 
 #define CUSTOM_EXCEPTION(ex, baseEx)    class ex : public baseEx                                      \
 									    {                                                             \

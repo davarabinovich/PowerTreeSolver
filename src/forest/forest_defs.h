@@ -196,8 +196,8 @@ inline Forest<Key, Type>::iterator::iterator (nodes_set_it it, set<Node *> * roo
 	nodesStack.push_front(it);
 	while ((*it)->hasParent())
 	{
-		it = getParentsSetIt(it);
-		nodesStack.push_front(it);
+		auto parent_it = getParentsSetIt(it);
+		nodesStack.push_front(parent_it);
 	}
 }
 
@@ -355,8 +355,8 @@ inline Forest<Key, Type>::const_iterator::const_iterator (const_nodes_set_it it,
 	nodesStack.push_front(it);
 	while ((*it)->hasParent())
 	{
-		it = getParentsSetIt(it);
-		nodesStack.push_front(it);
+		auto parent_it = getParentsSetIt(it);
+		nodesStack.push_front(parent_it);
 	}
 }
 

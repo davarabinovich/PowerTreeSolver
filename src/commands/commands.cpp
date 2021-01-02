@@ -432,50 +432,43 @@ namespace commands
 		
 		private:
 
-			#pragma todo decide what kind of functional object is the best
-			class DisplayResultsForElectricNode
-			{
-				public:
-					void operator () (Key nodeName)
-					{
-						auto nodeType = activePowerTree->getNodeType(nodeName);
-						switch (nodeType)
-						{
-							case DeviceType::INPUT:
-							{
-								auto inputResults = activePowerTree->getInputResults(nodeName);
-								displayInputResults(inputResults);
-								break;
-							}
-
-							case DeviceType::CONVERTER:
-							{
-								auto converterResults = activePowerTree->getConverterResults(nodeName);
-								displayConverterResults(converterResults);
-								break;
-							}
-
-							case DeviceType::LOAD:
-							{
-								displayLoadResults(nodeName);
-								break;
-							}
-
-							default:
-								throw exception("Invalid type of device");
-
-						}
-					}
-			};
-			const DisplayResultsForElectricNode displayResultsForElectricNode;
-
-
-
 			void displayResults () const
 			{
 				displayHeader();
 				activePowerTree->iterateAndExecuteForEach(displayResultsForElectricNode);
 				cout << endl;
+			}
+
+			static void displayResultsForElectricNode (Key nodeName)
+			{
+				auto nodeType = activePowerTree->getNodeType(nodeName);
+				switch (nodeType)
+				{
+					case DeviceType::INPUT:
+					{
+						auto inputResults = activePowerTree->getInputResults(nodeName);
+						displayInputResults(inputResults);
+						break;
+					}
+
+					case DeviceType::CONVERTER:
+					{
+						auto converterResults = activePowerTree->getConverterResults(nodeName);
+						displayConverterResults(converterResults);
+						break;
+					}
+
+					case DeviceType::LOAD:
+					{
+						displayLoadResults(nodeName);
+						break;
+					}
+
+
+					default:
+						throw exception("Invalid type of device");
+
+				}
 			}
 
 			static void displayInputResults (InputResults results)
@@ -597,50 +590,43 @@ namespace commands
 		
 		private:
 
-			#pragma todo decide what kind of functional object is the best
-			class DisplayElectricNode
-			{
-				public:
-					void operator () (Key nodeName)
-					{
-						auto nodeType = activePowerTree->getNodeType(nodeName);
-						switch (nodeType)
-						{
-							case DeviceType::INPUT:
-							{
-								auto inputData = activePowerTree->getInputData(nodeName);
-								displayInput(inputData);
-								break;
-							}
-
-							case DeviceType::CONVERTER:
-							{
-								auto converterData = activePowerTree->getConverterData(nodeName);
-								displayConverter(converterData);
-								break;
-							}
-
-							case DeviceType::LOAD:
-							{
-								displayLoad(nodeName);
-								break;
-							}
-
-							default:
-								throw exception("Invalid type of device");
-
-						}
-					}
-			};
-			const DisplayElectricNode displayElectricNode;
-
-
-
 			void displayTreeStructure () const
 			{
 				displayHeader();
 				activePowerTree->iterateAndExecuteForEach(displayElectricNode);
 				cout << endl;
+			}
+
+			static void displayElectricNode (Key nodeName)
+			{
+				auto nodeType = activePowerTree->getNodeType(nodeName);
+				switch (nodeType)
+				{
+					case DeviceType::INPUT:
+					{
+						auto inputData = activePowerTree->getInputData(nodeName);
+						displayInput(inputData);
+						break;
+					}
+
+					case DeviceType::CONVERTER:
+					{
+						auto converterData = activePowerTree->getConverterData(nodeName);
+						displayConverter(converterData);
+						break;
+					}
+
+					case DeviceType::LOAD:
+					{
+						displayLoad(nodeName);
+						break;
+					}
+
+
+					default:
+						throw exception("Invalid type of device");
+
+				}
 			}
 
 			static void displayInput (InputData data)
@@ -2404,58 +2390,46 @@ namespace commands
 					args.path = path;
 
 				FileWriter fileWriter(treeTitle, fileName, path);
-
-
-
-
-				class WriteNode
-				{
-					public:
-						WriteNode (FileWriter & genWfstream)
-							: wfstream(genWfstream) {;}
-
-						void operator () (Key nodeName) 
-						{
-							auto nodeType = activePowerTree->getNodeType(nodeName);
-							switch (nodeType)
-							{
-								case DeviceType::INPUT:
-								{
-									auto inputData = activePowerTree->getInputData(nodeName);
-									wfstream << inputData; 
-									break;
-								}
-
-								case DeviceType::CONVERTER:
-								{
-									auto converterData = activePowerTree->getConverterData(nodeName);
-									wfstream << converterData; 
-									break;
-								}
-
-								case DeviceType::LOAD:
-								{
-									writeLoad(nodeName, wfstream);
-									break;
-								}
-
-								default:
-									throw exception("Invalid type of device");
-
-							}
-						}
-
-					private:
-						FileWriter & wfstream;
-				};
 				WriteNode writeNode(fileWriter);
-
-
-
 
 				activePowerTree->iterateAndExecuteForEach(writeNode);
 			}
 
+			FUNCTOR (WriteNode, void, Key nodeName)
+				auto nodeType = activePowerTree->getNodeType(nodeName);
+				switch (nodeType)
+				{
+					case DeviceType::INPUT:
+					{
+						auto inputData = activePowerTree->getInputData(nodeName);
+						wfstream << inputData;
+						break;
+					}
+
+					case DeviceType::CONVERTER:
+					{
+						auto converterData = activePowerTree->getConverterData(nodeName);
+						wfstream << converterData;
+						break;
+					}
+
+					case DeviceType::LOAD:
+					{
+						writeLoad(nodeName, wfstream);
+						break;
+					}
+
+					default:
+						throw exception("Invalid type of device");
+
+				}
+			FUNCTOR_END_BODY
+				WriteNode(FileWriter & genWfstream)
+					: wfstream(genWfstream) {;}
+
+				private:
+					FileWriter & wfstream;
+			END_FUNCTOR
 
 			void reportExecution (Arguments args) const
 			{
