@@ -10,6 +10,7 @@
 
 
 #include "electric_net/electric_net_if.h"
+#include "file_server/file_server_language_description.h"
 
 
 
@@ -35,11 +36,11 @@ namespace file_server
 	
 	
 	
-			FileWriter& operator << (InputData & data);
-			FileWriter& operator << (ConverterData & data);
-			FileWriter& operator << (ResistiveLoadData & data);
-			FileWriter& operator << (ConstantCurrentLoadData & data);
-			FileWriter& operator << (DiodeLoadData & data);
+			FileWriter & operator << (InputData & data);
+			FileWriter & operator << (ConverterData & data);
+			FileWriter & operator << (ResistiveLoadData & data);
+			FileWriter & operator << (ConstantCurrentLoadData & data);
+			FileWriter & operator << (DiodeLoadData & data);
 	
 	
 	
@@ -50,9 +51,9 @@ namespace file_server
 	
 	
 	
-			static string getNodeTagByNestingLevel (unsigned level = 1);
-			static string getVarTagByVarKind (VarKind kind);
-			static string getConverterTypeTagByType (ConverterType type);
+			static Tag getNodeTagByNestingLevel (unsigned level = 1);
+			static Tag getVarTagByVarKind (VarKind kind);
+			static Tag getConverterTypeTagByType (ConverterType type);
 	
 	};
 

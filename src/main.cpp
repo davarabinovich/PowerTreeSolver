@@ -66,7 +66,7 @@ void printInitialMessage ()
 	cout << endl << endl << "The Power trees' solver is here." << endl << "Version: " << version_str 
 		 << endl << endl;
 	cout << "Please, enter you commands" << endl;
-	#pragma todo options of commands
+	cout << "You can create a new power tree using a command \"cr\" or load an existing power tree using a command \"ld\"" << endl;
 }
 
 

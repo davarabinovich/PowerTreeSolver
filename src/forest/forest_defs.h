@@ -204,9 +204,8 @@ inline Forest<key, Type>::iterator::iterator (typename set<Node *>::iterator it,
 		typename set<Node *>::iterator result_it;
 		auto parent_ptr = (*it)->getParent();
 		const set<Node *> * setWithParent;
-	#pragma todo replace all calls "->hasParent()" with the calls with signatures "isRoot"
 	
-		if (!isRoot(parent_ptr))
+		if (!parent_ptr->hasDesces())
 			setWithParent = &(parent_ptr->getParent()->getDesces());
 		else
 			setWithParent = roots_ptr;
@@ -265,7 +264,7 @@ inline typename Forest<key, Type>::iterator Forest<key, Type>::iterator::operato
 		}
 		else
 		{
-			while (isLastDesc() && !isRoot(*nodesStack.back()))
+			while (isLastDesc()  &&  ( (*nodesStack.back()) ->hasParent() ))
 				nodesStack.pop_back();
 
 			if (!isLastDesc())
@@ -364,9 +363,8 @@ inline Forest<key, Type>::const_iterator::const_iterator (typename set<Node*>::c
 		typename set<Node *>::const_iterator result_it;
 		auto parent_ptr = (*it)->getParent();
 		const set<Node *> * setWithParent;
-#pragma todo replace all calls "->hasParent()" with the calls with signatures "isRoot"
 
-		if (!isRoot(parent_ptr))
+		if (parent_ptr->hasParent())
 			setWithParent = &(parent_ptr->getParent()->getDesces());
 		else
 			setWithParent = roots_ptr;
@@ -426,7 +424,7 @@ inline typename Forest<key, Type>::const_iterator Forest<key, Type>::const_itera
 		}
 		else
 		{
-			while (isLastDesc() && !isRoot(*nodesStack.back()))
+			while (isLastDesc() && ((*nodesStack.back())->hasParent()))
 				nodesStack.pop_back();
 
 			if (!isLastDesc())

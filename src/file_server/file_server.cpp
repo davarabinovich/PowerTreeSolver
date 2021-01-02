@@ -12,7 +12,6 @@
 
 
 #include "file_server/file_server.h"
-#include "file_server/file_server_language_description.h"
 
 
 
@@ -145,15 +144,15 @@ namespace file_server
 
 
 
-	string FileWriter::getNodeTagByNestingLevel (unsigned level)
+	Tag FileWriter::getNodeTagByNestingLevel (unsigned level)
 	{
-		string tag(node_tag_template);
+		Tag tag(node_tag_prefix);
 		tag += to_string(level);
 		return tag;
 	}
 
 
-	string FileWriter::getVarTagByVarKind (VarKind kind)
+	Tag FileWriter::getVarTagByVarKind (VarKind kind)
 	{
 		switch (kind)
 		{
@@ -168,7 +167,7 @@ namespace file_server
 	}
 
 
-	string FileWriter::getConverterTypeTagByType (ConverterType type)
+	Tag FileWriter::getConverterTypeTagByType (ConverterType type)
 	{
 		switch (type)
 		{
@@ -225,13 +224,13 @@ namespace file_server
 
 	FileReader & FileReader::operator >> (ReadNode & node)
 	{
-		tag nestingLevel_tag;
+		Tag nestingLevel_tag;
 		rstream >> nestingLevel_tag;
 		nestingLevel_tag.erase(0, 1);
 		unsigned nestingLevel = stoi(nestingLevel_tag);
 
 
-		tag nodeType_tag;
+		Tag nodeType_tag;
 		rstream >> nodeType_tag;
 
 		if (nodeType_tag == node_input_tag)
@@ -338,7 +337,7 @@ namespace file_server
 
 	istream & operator >> (istream & is, ReadInput & data)
 	{
-		string cvKind_tag;
+		Tag cvKind_tag;
 		is >> cvKind_tag;
 		data.cvKind = parseVarKind(cvKind_tag);
 
@@ -352,7 +351,7 @@ namespace file_server
 
 	istream & operator >> (istream & is, ReadConverter & data)
 	{
-		string cvKind_tag;
+		Tag cvKind_tag;
 		is >> cvKind_tag;
 		data.cvKind = parseVarKind(cvKind_tag);
 
@@ -360,7 +359,7 @@ namespace file_server
 		is >> value;
 		data.value = value;
 
-		string type_tag;
+		Tag type_tag;
 		is >> type_tag;
 		data.type = parseConverterType(type_tag);
 
@@ -377,7 +376,7 @@ namespace file_server
 
 	istream & operator >> (istream & is, ReadLoad & data)
 	{
-		string type_tag;
+		Tag type_tag;
 		is >> type_tag;
 		data.type = parseLoadType(type_tag);
 
