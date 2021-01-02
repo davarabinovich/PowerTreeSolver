@@ -35,74 +35,74 @@ namespace electric_net
 
 
 
-			virtual void addInput (key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) override;
-			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
+			virtual void addInput (Key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) override;
+			virtual void addConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							          double cvValue = 0.0, double efficiency = 100.0) override;
-			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
+			virtual void addConverter (Key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
 							           double efficiency = 100.0) override;
-			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
+			virtual void insertConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							              double cvValue = 0.0, double efficiency = 100.0) override;
-			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
+			virtual void insertConverter (Key name, Key sourceName, Key sinkName, ConverterType type = ConverterType::PULSE, 
 								          VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) override;
-			virtual void addLoad (key name, key sourceName, LoadType type, double param) override;
-			virtual void addLoad (key name, LoadType type, double param) override;
-			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) override;
-			virtual void addLoad (key name, LoadType type, double mainParam, double secondaryParam) override;
+			virtual void addLoad (Key name, Key sourceName, LoadType type, double param) override;
+			virtual void addLoad (Key name, LoadType type, double param) override;
+			virtual void addLoad (Key name, Key sourceName, LoadType type, double mainParam, double secondaryParam) override;
+			virtual void addLoad (Key name, LoadType type, double mainParam, double secondaryParam) override;
 
-			virtual void deleteInput (key name, key newSourceName) override;
-			virtual void deleteInput (key name) override;
-			virtual void deleteConverter (key name, key newSourceName) override;
-			virtual void deleteConverter (key name) override;
-			virtual void deleteLoad (key name) override;
-			virtual void deleteNode (key name, key newSourceName) override;
-			virtual void deleteNode (key name) override;
-			virtual void deleteSubnet (key headerName) override;
-			virtual void deleteAllSinks (key sourceName) override;
+			virtual void deleteInput (Key name, Key newSourceName) override;
+			virtual void deleteInput (Key name) override;
+			virtual void deleteConverter (Key name, Key newSourceName) override;
+			virtual void deleteConverter (Key name) override;
+			virtual void deleteLoad (Key name) override;
+			virtual void deleteNode (Key name, Key newSourceName) override;
+			virtual void deleteNode (Key name) override;
+			virtual void deleteSubnet (Key headerName) override;
+			virtual void deleteAllSinks (Key sourceName) override;
 
-			virtual void moveConverter (key name, key newSourceName) override;
-			virtual void moveConverter (key name, key newSourceName, key newSinksSourceName) override;
-			virtual void freeConverter (key name) override;
-			virtual void freeConverter (key name, key newSinksSourceName) override;
-			virtual void moveLoad (key name, key newSourceName) override;
-			virtual void freeLoad (key name) override;
-			virtual void moveSubnet (key headerName, key newSourceName) override;
-			virtual void freeSubnet (key headerName) override;
-			virtual void moveNode (key name, key newSourceName) override;
-			virtual void moveNode (key name, key newSourceName, key newSinksSourceName) override;
-			virtual void freeNode (key name) override;
-			virtual void freeNode (key name, key newSinksSourceName) override;
+			virtual void moveConverter (Key name, Key newSourceName) override;
+			virtual void moveConverter (Key name, Key newSourceName, Key newSinksSourceName) override;
+			virtual void freeConverter (Key name) override;
+			virtual void freeConverter (Key name, Key newSinksSourceName) override;
+			virtual void moveLoad (Key name, Key newSourceName) override;
+			virtual void freeLoad (Key name) override;
+			virtual void moveSubnet (Key headerName, Key newSourceName) override;
+			virtual void freeSubnet (Key headerName) override;
+			virtual void moveNode (Key name, Key newSourceName) override;
+			virtual void moveNode (Key name, Key newSourceName, Key newSinksSourceName) override;
+			virtual void freeNode (Key name) override;
+			virtual void freeNode (Key name, Key newSinksSourceName) override;
 
-			virtual void renameNode (key name, key newName) override;
-			virtual void setSourceCvType (key name, VarKind newType) override;
-			virtual void setSourceCvValue (key name, double value) override;
-			virtual void setConverterType (key name, ConverterType type) override;
-			virtual void setConverterEfficiency (key name, double efficiency) override;
-			virtual void setLoadType (key name, LoadType type) override;
-			virtual void setLoadResistance (key name, double resistance) override;
-			virtual void setLoadCurrent (key name, double current) override;
-			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) override;
-			virtual void setLoadForwardCurrent (key name, double forwardCurrent) override;
+			virtual void renameNode (Key name, Key newName) override;
+			virtual void setSourceCvType (Key name, VarKind newType) override;
+			virtual void setSourceCvValue (Key name, double value) override;
+			virtual void setConverterType (Key name, ConverterType type) override;
+			virtual void setConverterEfficiency (Key name, double efficiency) override;
+			virtual void setLoadType (Key name, LoadType type) override;
+			virtual void setLoadResistance (Key name, double resistance) override;
+			virtual void setLoadCurrent (Key name, double current) override;
+			virtual void setLoadForawrdVoltage (Key name, double forwardVoltage) override;
+			virtual void setLoadForwardCurrent (Key name, double forwardCurrent) override;
 
-			virtual DeviceType getNodeType (key name) const override;
-			virtual InputData getInputData (key inputName) const override;
-			virtual ConverterData getConverterData (key converterName) const override;
-			virtual ResistiveLoadData getResistiveLoadData (key loadName) const override;
-			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) const override;
-			virtual DiodeLoadData getDiodeLoadData (key loadName) const override;
-			virtual bool isLoadExsist (key name) const override;
-			virtual LoadType getLoadType (key name) const override;
+			virtual DeviceType getNodeType (Key name) const override;
+			virtual InputData getInputData (Key inputName) const override;
+			virtual ConverterData getConverterData (Key converterName) const override;
+			virtual ResistiveLoadData getResistiveLoadData (Key loadName) const override;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (Key loadName) const override;
+			virtual DiodeLoadData getDiodeLoadData (Key loadName) const override;
+			virtual bool isLoadExsist (Key name) const override;
+			virtual LoadType getLoadType (Key name) const override;
 
 			virtual string getTitle () const override;
 			virtual void rename (string newTitle) override;
 
-			virtual void calculte () override;
-			virtual InputResults getInputResults (key inputName) const override;
-			virtual ConverterResults getConverterResults (key convertertName) const override;
-			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const override;
-			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const override;
-			virtual DiodeLoadResults getDiodeLoadResults (key loadName) const override;
+			virtual void calculte () const override;
+			virtual InputResults getInputResults (Key inputName) const override;
+			virtual ConverterResults getConverterResults (Key convertertName) const override;
+			virtual ResistiveLoadResults getResistiveLoadResults (Key loadName) const override;
+			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (Key loadName) const override;
+			virtual DiodeLoadResults getDiodeLoadResults (Key loadName) const override;
 
-			virtual void iterateAndExecuteForEach (function<void (key)> functor) override;
+			virtual void iterateAndExecuteForEach (function<void (Key)> functor) override;
 
 
 
@@ -176,7 +176,7 @@ namespace electric_net
 
 			using Node_ptr = shared_ptr<ElectricNode>;
 			using ElectricForest = Forest< string, Node_ptr >;
-			using Desc_it = ElectricForest::desces_group_iterator;
+			using ConstDesc_it = ElectricForest::const_desces_group_iterator;
 
 
 			
@@ -185,21 +185,21 @@ namespace electric_net
 			Forest< string, Node_ptr > net;
 
 
-			bool isStoragedResultsActual = false;
+			mutable bool isStoragedResultsActual = false;
 
 
 
 			#pragma todo make const
-			void updateCalculations ();
-			double calculateAndUpdateGivenParams (Desc_it source_it);
-			void writeAvValueToSource (double newAvValue, key sourceName);
-			void writeInputValueToConverter (double newInputValue, key converterName);
-			void writeInputValueToResistiveLoad (double newInputValue, key loadName);
-			double calculateConsumption (Desc_it sink_it, Desc_it source_it);
-			double reduceOutputToInput (Desc_it sink_it, Desc_it source_it);
-			double calculateLoadConsumptionDrivenByVoltageSource (Desc_it load_it, Desc_it source_it);
+			void updateCalculations () const;
+			double calculateAndUpdateGivenParams (ConstDesc_it source_it) const;
+			void writeAvValueToSource (double newAvValue, Key sourceName) const;
+			void writeInputValueToConverter (double newInputValue, Key converterName) const;
+			void writeInputValueToResistiveLoad (double newInputValue, Key loadName) const;
+			double calculateConsumption (ConstDesc_it sink_it, ConstDesc_it source_it) const;
+			double reduceOutputToInput (ConstDesc_it sink_it, ConstDesc_it source_it) const;
+			double calculateLoadConsumptionDrivenByVoltageSource (ConstDesc_it load_it, ConstDesc_it source_it) const;
 
-			VarKind calcInputVarTypeByParent (key parentName) const;
+			VarKind calcInputVarTypeByParent (Key parentName) const;
 
 #ifdef DEBUG
 			static bool isNodesEqualByContent (Node_ptr first_ptr, Node_ptr second_ptr);

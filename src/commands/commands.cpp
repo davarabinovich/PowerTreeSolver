@@ -438,7 +438,7 @@ namespace commands
 			class DisplayResultsForElectricNode
 			{
 				public:
-					void operator () (key nodeName)
+					void operator () (Key nodeName)
 					{
 						auto nodeType = activePowerTree->getNodeType(nodeName);
 						switch (nodeType)
@@ -502,7 +502,7 @@ namespace commands
 				cout << output << endl << endl;
 			}
 
-			static void displayLoadResults (key loadName)
+			static void displayLoadResults (Key loadName)
 			{
 				auto type = activePowerTree->getLoadType(loadName);
 				switch (type)
@@ -603,7 +603,7 @@ namespace commands
 			class DisplayElectricNode
 			{
 				public:
-					void operator () (key nodeName)
+					void operator () (Key nodeName)
 					{
 						auto nodeType = activePowerTree->getNodeType(nodeName);
 						switch (nodeType)
@@ -663,7 +663,7 @@ namespace commands
 				cout << output << endl;
 			}
 
-			static void displayLoad (key loadName)
+			static void displayLoad (Key loadName)
 			{
 				auto type = activePowerTree->getLoadType(loadName);
 				switch (type)
@@ -1270,22 +1270,22 @@ namespace commands
 				{
 					if (isParamWithKey(token))
 					{
-						string key = extractKeyFromToken(token);
-						if (key == "n")
+						string Key = extractKeyFromToken(token);
+						if (Key == "n")
 						{
 							if (args.newName)    
 								continue;
 	
 							args.newName = extractParamFromToken(token);
 						}
-						else if (key == "u")
+						else if (Key == "u")
 						{
 							if (args.cvType)    
 								continue;
 	
 							args.cvType = parseVarKind(extractParamFromToken(token));
 						}
-						else if (key == "v")
+						else if (Key == "v")
 						{
 							if (args.cvValue)    
 								continue;
@@ -1293,7 +1293,7 @@ namespace commands
 							args.cvValue = strToDouble(extractParamFromToken(token));
 						}
 						else
-							throw exception(  string("Unrecognized parameter \"" + key).c_str()  );
+							throw exception(  string("Unrecognized parameter \"" + Key).c_str()  );
 					}
 					else
 					{
@@ -1335,7 +1335,7 @@ namespace commands
 			string extractKeyFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 	
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(token.begin(), charEqual_it);
@@ -1345,7 +1345,7 @@ namespace commands
 			string extractParamFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 	
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(charEqual_it+1, token.end());
@@ -1447,39 +1447,39 @@ namespace commands
 				{
 					if (isParamWithKey(token))
 					{
-						Token key = extractKeyFromToken(token);
-						if (key == "n")
+						Token Key = extractKeyFromToken(token);
+						if (Key == "n")
 						{
 							if (args.newName)    continue;
 		
 							args.newName = extractParamFromToken(token);
 						}
-						else if (key == "u")
+						else if (Key == "u")
 						{
 							if (args.cvType)    continue;
 		
 							args.cvType = parseVarKind(extractParamFromToken(token));
 						}
-						else if (key == "v")
+						else if (Key == "v")
 						{
 							if (args.cvValue)    continue;
 		
 							args.cvValue = strToDouble(extractParamFromToken(token));
 						}
-						else if (key == "t")
+						else if (Key == "t")
 						{
 							if (args.type)    continue;
 	
 							args.type = parseConverterType(extractParamFromToken(token));
 						}
-						else if (key == "e")
+						else if (Key == "e")
 						{
 							if (args.efficiency)    continue;
 	
 							args.efficiency = strToDouble(extractParamFromToken(token));
 						}
 						else
-							throw exception(string("Unrecognized parameter \"" + key).c_str());
+							throw exception(string("Unrecognized parameter \"" + Key).c_str());
 					}
 					else
 					{
@@ -1534,7 +1534,7 @@ namespace commands
 			string extractKeyFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 		
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(token.begin(), charEqual_it);
@@ -1544,7 +1544,7 @@ namespace commands
 			string extractParamFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 		
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(charEqual_it + 1, token.end());
@@ -1654,33 +1654,33 @@ namespace commands
 				{
 					if (isParamWithKey(token))
 					{
-						Token key = extractKeyFromToken(token);
-						if (key == "n")
+						Token Key = extractKeyFromToken(token);
+						if (Key == "n")
 						{
 							if (args.newName)    continue;
 	
 							args.newName = extractParamFromToken(token);
 						}
-						else if (key == "t")
+						else if (Key == "t")
 						{
 							if (args.type)    continue;
 	
 							args.type = parseLoadType(extractParamFromToken(token));
 						}
-						else if (key == "v")
+						else if (Key == "v")
 						{
 							if (args.value)    continue;
 	
 							args.value = strToDouble(extractParamFromToken(token));
 						}
-						else if (key == "a")
+						else if (Key == "a")
 						{
 							if (args.addValue)    continue;
 	
 							args.addValue = strToDouble(extractParamFromToken(token));
 						}
 						else
-							throw exception(string("Unrecognized parameter \"" + key).c_str());
+							throw exception(string("Unrecognized parameter \"" + Key).c_str());
 					}
 					else
 					{
@@ -1727,7 +1727,7 @@ namespace commands
 			string extractKeyFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 		
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(token.begin(), charEqual_it);
@@ -1737,7 +1737,7 @@ namespace commands
 			string extractParamFromToken (const string & token) const
 			{
 				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a key");
+					throw exception("This is not a parameter with a Key");
 		
 				const auto charEqual_it = find(token.begin(), token.end(), '=');
 				string result = string(charEqual_it + 1, token.end());
@@ -2416,7 +2416,7 @@ namespace commands
 						WriteNode (FileWriter & genWfstream)
 							: wfstream(genWfstream) {;}
 
-						void operator () (key nodeName) 
+						void operator () (Key nodeName) 
 						{
 							auto nodeType = activePowerTree->getNodeType(nodeName);
 							switch (nodeType)
@@ -2466,7 +2466,7 @@ namespace commands
 			}
 
 
-			static void writeLoad (key loadName, FileWriter & wfstream)
+			static void writeLoad (Key loadName, FileWriter & wfstream)
 			{
 				auto type = activePowerTree->getLoadType(loadName);
 				switch (type)

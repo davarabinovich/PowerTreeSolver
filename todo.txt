@@ -1,3 +1,5 @@
+- Use not only name but content during iterating at tree
+- Replace Node_ptr with the Node
 - Add functions for copying subnets and full sets of descendants
 - Make commands as functors
 - Make all cataloges normally, remove a workaround with absolute path

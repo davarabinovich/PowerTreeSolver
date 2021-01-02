@@ -75,7 +75,7 @@ namespace file_server
 
 	struct ReadSink
 	{
-		key parentName;
+		Key parentName;
 	};
 
 
@@ -103,7 +103,7 @@ namespace file_server
 	struct ReadNode
 	{
 		DeviceType type;
-		key name;
+		Key name;
 		variant<ReadInput, ReadConverter, ReadLoad> data;
 	};
 
@@ -130,11 +130,11 @@ namespace file_server
 
 			ifstream rstream;
 
-			vector<key> hierarchyStack;
+			vector<Key> hierarchyStack;
 
 
 
-			key updateStackAndCalcParentName (pair<key, unsigned> nameAndNestingLevel);
+			Key updateStackAndCalcParentName (pair<Key, unsigned> nameAndNestingLevel);
 
 	};
 

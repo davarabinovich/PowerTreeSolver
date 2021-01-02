@@ -23,7 +23,7 @@ using std::swap;
 
 
 
-template <typename key, typename Type>
+template <typename Key, typename Type>
 class Forest
 {
 
@@ -33,41 +33,41 @@ class Forest
 
 
 
-		void addRoot (key name, const Type & content = 0);
-		void pushFrontRoot (key name, key oldRootName, const Type & content = 0);
-		void insertDesc (key name, key parentName, const Type & content = 0);
-		void insertDesc (key name, key parentName, key descName, const Type & content = 0);
-		void pushBackLeaf (key name, key parentName, const Type & content = 0);
+		void addRoot (Key name, const Type & content = 0);
+		void pushFrontRoot (Key name, Key oldRootName, const Type & content = 0);
+		void insertDesc (Key name, Key parentName, const Type & content = 0);
+		void insertDesc (Key name, Key parentName, Key descName, const Type & content = 0);
+		void pushBackLeaf (Key name, Key parentName, const Type & content = 0);
 
-		void popFrontRoot (key name);
-		void eraseDesc (key name);
-		void eraseDesc (key name, key newDescesParentName);
-		void popBackSubtree (key headerName);
-		void popBackLeaf (key name);
-		void eraseAllDesces (key parentName);
+		void popFrontRoot (Key name);
+		void eraseDesc (Key name);
+		void eraseDesc (Key name, Key newDescesParentName);
+		void popBackSubtree (Key headerName);
+		void popBackLeaf (Key name);
+		void eraseAllDesces (Key parentName);
 
-		void moveSubtree (key headerName, key newParentName);
-		void freeSubtree (key headerName);
-		void moveAllDesces (key parentName, key newParentName);
-		void freeAllDesces (key parentName);
-		void moveNode (key name, key newParentName);
-		void moveNode (key name, key newParentName, key newDescesParentName);
-		void freeNode (key name);
-		void freeNode (key name, key newDescesParentName);
-		void moveLeaf (key name, key newParentName);
-		void freeLeaf (key name);
+		void moveSubtree (Key headerName, Key newParentName);
+		void freeSubtree (Key headerName);
+		void moveAllDesces (Key parentName, Key newParentName);
+		void freeAllDesces (Key parentName);
+		void moveNode (Key name, Key newParentName);
+		void moveNode (Key name, Key newParentName, Key newDescesParentName);
+		void freeNode (Key name);
+		void freeNode (Key name, Key newDescesParentName);
+		void moveLeaf (Key name, Key newParentName);
+		void freeLeaf (Key name);
 
-		void renameNode (key oldName, key newName);
+		void renameNode (Key oldName, Key newName);
 
-		Type & operator [] (key name);
-		const Type & at (key name) const;
-		unsigned getNestingLevel (key name) const;
+		Type & operator [] (Key name);
+		const Type & at (Key name) const;
+		unsigned getNestingLevel (Key name) const;
 
-		const Type & getParent (key name) const;
+		const Type & getParent (Key name) const;
 
-		bool isExsist (key name) const;
-		bool isRoot (key name) const;
-		bool isParent (key name) const;
+		bool isExsist (Key name) const;
+		bool isRoot (Key name) const;
+		bool isParent (Key name) const;
 		
 
 
@@ -81,20 +81,19 @@ class Forest
 		class Node
 		{
 			public:
-				Node (key name, Node * parent = nullptr);
-				Node (key name, typename const Type & content, Node * parent = nullptr);
-				Node (Node && otherNode);
+				Node (Key genName, Node * genParent_ptr = nullptr);
+				Node (Key genName, typename const Type & genContent, Node * genParent_ptr = nullptr);
 
 				const Type & get () const;
 				Type & getToModify ();
-				key getName () const;
+				Key getName () const;
 				unsigned getNestingLevel () const;
 				bool hasParent () const;
 				Node * getParent () const;
 				bool hasDesces () const;
 				const set<Node *> & getDesces () const;
 				set<Node *> * getDescesSet () const;
-				void rename (key newName);
+				void rename (Key newName);
 				void record (const Type & origin);
 				void setParent (Node * parent);
 				void disconnectFromParent ();
@@ -111,7 +110,7 @@ class Forest
 
 				void updateNestingLevel ();
 				
-				key name;
+				Key name;
 				typename Type * content;
 				unsigned nestingLevel = 1;
 
@@ -125,21 +124,23 @@ class Forest
 	public:
 
 		using nodes_set_it = typename set<Node *>::iterator;
+		using const_nodes_set_it = typename set<Node *>::const_iterator;
 
 #pragma todo implement access for writing for this and the desces_group
 		class iterator
 		{
-#pragma todo add type of iterator
 			public:
+				using iterator_category = std::forward_iterator_tag;
+
 				iterator ();
 				iterator (const iterator & it);
-				iterator (typename set<Node *>::iterator it, set<Node *> * roots);
+				iterator (nodes_set_it it, set<Node *> * roots);
 
 				bool operator != (const iterator & other_it) const;
                 bool operator == (const iterator & other_it) const;
                 iterator operator++ ();   
                 iterator operator++ (int);
-                pair<key, Type> operator * () const;    
+                pair<Key, Type &> operator * () const;  
 				iterator operator = (const iterator & other_it);
 
 			private:
@@ -155,36 +156,38 @@ class Forest
 #pragma todo implement access for writing for this and the desces_group
 		class const_iterator
 		{
-#pragma todo add type of iterator
-		public:
-			const_iterator ();
-			const_iterator (const const_iterator & it);
-			const_iterator (typename set<Node *>::const_iterator it, const set<Node *> * roots);
+			public:
+				using iterator_category = std::forward_iterator_tag;
 
-			bool operator != (const const_iterator & other_it) const;
-			bool operator == (const const_iterator & other_it) const;
-			const_iterator operator++ ();
-			const_iterator operator++ (int);
-			pair<key, Type> operator * () const;
-			const_iterator operator = (const const_iterator & other_it);
+				const_iterator ();
+				const_iterator (const const_iterator & it);
+				const_iterator (const_nodes_set_it it, const set<Node *> * roots);
 
-		private:
-			list< typename set<Node *>::const_iterator > nodesStack;
-			const set<Node *> * roots_ptr;
+				bool operator != (const const_iterator & other_it) const;
+				bool operator == (const const_iterator & other_it) const;
+				const_iterator operator++ ();
+				const_iterator operator++ (int);
+				pair<Key, Type> operator * () const;
+				const_iterator operator = (const const_iterator & other_it);
 
-			bool isLastDesc () const;
+			private:
+				list< typename set<Node *>::const_iterator > nodesStack;
+				const set<Node *> * roots_ptr;
 
-			CUSTOM_EXCEPTION(forest_iterator_exception, exception);
-			STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
+				bool isLastDesc () const;
+
+				CUSTOM_EXCEPTION(forest_iterator_exception, exception);
+				STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
 		};
 
 
 
 		class desces_group_iterator
 		{
-#pragma todo add type of iterator
 			public:
-				desces_group_iterator ();
+				using iterator_category = std::forward_iterator_tag;
+
+				desces_group_iterator () = delete;
 				desces_group_iterator (const desces_group_iterator & gen_it);
 				desces_group_iterator (typename nodes_set_it gen_it);
 
@@ -192,31 +195,54 @@ class Forest
                 bool operator == (const desces_group_iterator & other_it) const;
                 desces_group_iterator operator++ ();   
                 desces_group_iterator operator++ (int);
-                pair<key, Type> operator * () const;    
+                pair<Key, Type &> operator * () const;    
 				desces_group_iterator operator = (const desces_group_iterator & other_it);
 
 			private:
 				nodes_set_it it;
 		};
 
+		class const_desces_group_iterator
+		{
+			public:
+				using iterator_category = std::forward_iterator_tag;
+
+				const_desces_group_iterator () = delete;
+				const_desces_group_iterator (const const_desces_group_iterator & gen_it);
+				const_desces_group_iterator (typename const_nodes_set_it gen_it);
+	
+				bool operator != (const const_desces_group_iterator & other_it) const;
+				bool operator == (const const_desces_group_iterator & other_it) const;
+				const_desces_group_iterator operator++ ();
+				const_desces_group_iterator operator++ (int);
+				pair<Key, Type> operator * () const;
+				const_desces_group_iterator operator = (const const_desces_group_iterator & other_it);
+	
+			private:
+				const_nodes_set_it it;
+		};
+
+
 
 
 		iterator begin ();
 		iterator end ();
 
-		const_iterator begin () const;
-		const_iterator end () const;
+		const_iterator cbegin () const;
+		const_iterator cend () const;
 
+		desces_group_iterator dgbegin (Key parentName = "");
+		desces_group_iterator dgend (Key parentName = "");
 
-		desces_group_iterator dgbegin (key parentName = "");
-		desces_group_iterator dgend (key parentName = "");
+		const_desces_group_iterator cdgbegin (Key parentName = "") const;
+		const_desces_group_iterator cdgend (Key parentName = "") const;
 
 
 
 
 	private:
 
-		map<key, Node *> nodes;
+		map<Key, Node *> nodes;
 		set<Node *> roots;
 
 
@@ -229,19 +255,19 @@ class Forest
 
 
 
-		Node * createFreeNode (key name, const Type & content = 0);
-		Node * createRoot (key name, const Type & content = 0);
+		Node * createFreeNode (Key name, const Type & content = 0);
+		Node * createRoot (Key name, const Type & content = 0);
 
-		void deleteNode (key name);
-		void deleteLeaf (key name);
+		void deleteNode (Key name);
+		void deleteLeaf (Key name);
 		void deleteAllDescesSubtrees (Node * parent_ptr);
 
 		void convertDescesToRoots (Node * node_ptr);
-		void moveAllDescesTo (Node * node_ptr, key newParentName);
+		void moveAllDescesTo (Node * node_ptr, Key newParentName);
 		void cutLinkBetween (Node * parent_ptr, Node * desc_ptr);
 		void connectNodes (Node * parent_ptr, Node * desc_ptr);
 
-		bool isFirstInSubtreeOfSecond (key name, key headerName) const;
+		bool isFirstInSubtreeOfSecond (Key name, Key headerName) const;
 
 
 

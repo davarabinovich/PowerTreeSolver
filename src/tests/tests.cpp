@@ -34,6 +34,7 @@ void TestIterating ()
 {
 	struct TestStr
 	{
+		TestStr() {;}
 		TestStr (int gen_a, int gen_b) : a(gen_a), b(gen_b) {;}
 
 		int a;

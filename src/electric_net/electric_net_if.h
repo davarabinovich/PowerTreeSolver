@@ -300,13 +300,13 @@ namespace electric_net
 
 
 
-	using key = string;
+	using Key = string;
 
 
 
 	struct InputData
 	{
-		key name;
+		Key name;
 
 		VarKind cvKind;
 		double value;
@@ -314,7 +314,7 @@ namespace electric_net
 
 	struct ConverterData
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		VarKind cvKind;
@@ -325,7 +325,7 @@ namespace electric_net
 
 	struct ResistiveLoadData
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double resistance;
@@ -333,7 +333,7 @@ namespace electric_net
 
 	struct ConstantCurrentLoadData
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double current;
@@ -341,7 +341,7 @@ namespace electric_net
 
 	struct DiodeLoadData
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double forwardVoltage;
@@ -352,7 +352,7 @@ namespace electric_net
 
 	struct InputResults
 	{
-		key name;
+		Key name;
 
 		VarKind type;
 		double value;
@@ -362,7 +362,7 @@ namespace electric_net
 
 	struct ConverterResults
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		VarKind cvType;
@@ -375,7 +375,7 @@ namespace electric_net
 
 	struct ResistiveLoadResults
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double resistance;
@@ -386,7 +386,7 @@ namespace electric_net
 
 	struct ConstantCurrentLoadResults
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double current;
@@ -396,7 +396,7 @@ namespace electric_net
 
 	struct DiodeLoadResults
 	{
-		key name;
+		Key name;
 		unsigned nestingLevel;
 
 		double forwardVoltage;
@@ -412,76 +412,75 @@ namespace electric_net
 		
 		public:
 
-			virtual void addInput (key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) = 0;
-			virtual void addConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
+			virtual void addInput (Key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) = 0;
+			virtual void addConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							   double cvValue = 0.0, double efficiency = 100.0) = 0;
-			virtual void addConverter (key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
+			virtual void addConverter (Key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
 							   double efficiency = 100.0) = 0;
-			virtual void insertConverter (key name, key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
+			virtual void insertConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							      double cvValue = 0.0, double efficiency = 100.0) = 0;
-			virtual void insertConverter (key name, key sourceName, key sinkName, ConverterType type = ConverterType::PULSE, 
+			virtual void insertConverter (Key name, Key sourceName, Key sinkName, ConverterType type = ConverterType::PULSE, 
 								  VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
-			virtual void addLoad (key name, key sourceName, LoadType type, double param) = 0;
-			virtual void addLoad (key name, LoadType type, double param) = 0;
-			virtual void addLoad (key name, key sourceName, LoadType type, double mainParam, double secondaryParam) = 0;
-			virtual void addLoad (key name, LoadType type, double mainParam, double secondaryParam) = 0;
+			virtual void addLoad (Key name, Key sourceName, LoadType type, double param) = 0;
+			virtual void addLoad (Key name, LoadType type, double param) = 0;
+			virtual void addLoad (Key name, Key sourceName, LoadType type, double mainParam, double secondaryParam) = 0;
+			virtual void addLoad (Key name, LoadType type, double mainParam, double secondaryParam) = 0;
 
-			virtual void deleteInput (key name, key newSourceName) = 0;
-			virtual void deleteInput (key name) = 0;
-			virtual void deleteConverter (key name, key newSourceName) = 0;
-			virtual void deleteConverter (key name) = 0;
-			virtual void deleteLoad (key name) = 0;
-			virtual void deleteNode (key name, key newSourceName) = 0;
-			virtual void deleteNode (key name) = 0;
-			virtual void deleteSubnet (key headerName) = 0;
-			virtual void deleteAllSinks (key sourceName) = 0;
+			virtual void deleteInput (Key name, Key newSourceName) = 0;
+			virtual void deleteInput (Key name) = 0;
+			virtual void deleteConverter (Key name, Key newSourceName) = 0;
+			virtual void deleteConverter (Key name) = 0;
+			virtual void deleteLoad (Key name) = 0;
+			virtual void deleteNode (Key name, Key newSourceName) = 0;
+			virtual void deleteNode (Key name) = 0;
+			virtual void deleteSubnet (Key headerName) = 0;
+			virtual void deleteAllSinks (Key sourceName) = 0;
 
-			virtual void moveConverter (key name, key newSourceName) = 0;
-			virtual void moveConverter (key name, key newSourceName, key newSinksSourceName) = 0;
-			virtual void freeConverter (key name) = 0;
-			virtual void freeConverter (key name, key newSinksSourceName) = 0;
-			virtual void moveLoad (key name, key newSourceName) = 0;
-			virtual void freeLoad (key name) = 0;
-			virtual void moveSubnet (key headerName, key newSourceName) = 0;
-			virtual void freeSubnet (key headerName) = 0;
-			virtual void moveNode (key name, key newSourceName) = 0;
-			virtual void moveNode (key name, key newSourceName, key newSinksSourceName) = 0;
-			virtual void freeNode (key name) = 0;
-			virtual void freeNode (key name, key newSinksSourceName) = 0;
+			virtual void moveConverter (Key name, Key newSourceName) = 0;
+			virtual void moveConverter (Key name, Key newSourceName, Key newSinksSourceName) = 0;
+			virtual void freeConverter (Key name) = 0;
+			virtual void freeConverter (Key name, Key newSinksSourceName) = 0;
+			virtual void moveLoad (Key name, Key newSourceName) = 0;
+			virtual void freeLoad (Key name) = 0;
+			virtual void moveSubnet (Key headerName, Key newSourceName) = 0;
+			virtual void freeSubnet (Key headerName) = 0;
+			virtual void moveNode (Key name, Key newSourceName) = 0;
+			virtual void moveNode (Key name, Key newSourceName, Key newSinksSourceName) = 0;
+			virtual void freeNode (Key name) = 0;
+			virtual void freeNode (Key name, Key newSinksSourceName) = 0;
 
-			virtual void renameNode (key name, key newName) = 0;
-			virtual void setSourceCvType (key name, VarKind newType) = 0;
-			virtual void setSourceCvValue (key name, double value) = 0;
-			virtual void setConverterType (key name, ConverterType type) = 0;
-			virtual void setConverterEfficiency (key name, double efficiency) = 0;
-			virtual void setLoadType (key name, LoadType type) = 0;
-			virtual void setLoadResistance (key name, double resistance) = 0;
-			virtual void setLoadCurrent (key name, double current) = 0;
-			virtual void setLoadForawrdVoltage (key name, double forwardVoltage) = 0;
-			virtual void setLoadForwardCurrent (key name, double forwardCurrent) = 0;
+			virtual void renameNode (Key name, Key newName) = 0;
+			virtual void setSourceCvType (Key name, VarKind newType) = 0;
+			virtual void setSourceCvValue (Key name, double value) = 0;
+			virtual void setConverterType (Key name, ConverterType type) = 0;
+			virtual void setConverterEfficiency (Key name, double efficiency) = 0;
+			virtual void setLoadType (Key name, LoadType type) = 0;
+			virtual void setLoadResistance (Key name, double resistance) = 0;
+			virtual void setLoadCurrent (Key name, double current) = 0;
+			virtual void setLoadForawrdVoltage (Key name, double forwardVoltage) = 0;
+			virtual void setLoadForwardCurrent (Key name, double forwardCurrent) = 0;
 			
-			virtual DeviceType getNodeType (key name) const = 0;
-			virtual InputData getInputData (key inputName) const = 0;
-			virtual ConverterData getConverterData (key converterName) const = 0;
-			virtual ResistiveLoadData getResistiveLoadData (key loadName) const = 0;
-			virtual ConstantCurrentLoadData getConstantCurrentLoadData (key loadName) const = 0;
-			virtual DiodeLoadData getDiodeLoadData (key loadName) const = 0;
-			virtual bool isLoadExsist (key name) const = 0;
-			virtual LoadType getLoadType (key name) const = 0;
+			virtual DeviceType getNodeType (Key name) const = 0;
+			virtual InputData getInputData (Key inputName) const = 0;
+			virtual ConverterData getConverterData (Key converterName) const = 0;
+			virtual ResistiveLoadData getResistiveLoadData (Key loadName) const = 0;
+			virtual ConstantCurrentLoadData getConstantCurrentLoadData (Key loadName) const = 0;
+			virtual DiodeLoadData getDiodeLoadData (Key loadName) const = 0;
+			virtual bool isLoadExsist (Key name) const = 0;
+			virtual LoadType getLoadType (Key name) const = 0;
 
 			virtual string getTitle () const = 0;
 			virtual void rename (string newTitle) = 0;
 
-#pragma todo make calculate const again
-			virtual void calculte () = 0;
-			virtual InputResults getInputResults (key inputName) const = 0;
-			virtual ConverterResults getConverterResults (key convertertName) const = 0;
-			virtual ResistiveLoadResults getResistiveLoadResults (key loadName) const = 0;
-			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (key loadName) const = 0;
-			virtual DiodeLoadResults getDiodeLoadResults (key loadName) const = 0;
+			virtual void calculte () const = 0;
+			virtual InputResults getInputResults (Key inputName) const = 0;
+			virtual ConverterResults getConverterResults (Key convertertName) const = 0;
+			virtual ResistiveLoadResults getResistiveLoadResults (Key loadName) const = 0;
+			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (Key loadName) const = 0;
+			virtual DiodeLoadResults getDiodeLoadResults (Key loadName) const = 0;
 
 #pragma todo make this const
-			virtual void iterateAndExecuteForEach (function<void (key)> functor) = 0;
+			virtual void iterateAndExecuteForEach (function<void (Key)> functor) = 0;
 			
 
 

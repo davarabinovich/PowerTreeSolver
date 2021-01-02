@@ -260,7 +260,7 @@ namespace file_server
 
 		case DeviceType::CONVERTER:
 		{
-			key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
+			Key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
 
 			ReadConverter data;
 
@@ -273,7 +273,7 @@ namespace file_server
 
 		case DeviceType::LOAD:
 		{
-			key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
+			Key parentName = updateStackAndCalcParentName({ node.name, nestingLevel });
 
 			ReadLoad data;
 
@@ -292,7 +292,7 @@ namespace file_server
 
 
 
-	key FileReader::updateStackAndCalcParentName (pair<key, unsigned> nameAndNestingLevel)
+	Key FileReader::updateStackAndCalcParentName (pair<Key, unsigned> nameAndNestingLevel)
 	{
 		auto [name, nestingLevel] = nameAndNestingLevel;
 
@@ -301,7 +301,7 @@ namespace file_server
 			throw exception("Invalid nesting level of subsequent node");
 
 
-		key parentName;
+		Key parentName;
 		if (nestingLevel == (stackSize + 1))
 		{
 			if (stackSize > 0)
