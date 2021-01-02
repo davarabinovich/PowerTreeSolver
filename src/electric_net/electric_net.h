@@ -113,9 +113,9 @@ namespace electric_net
 
 
 
+
 		private:
 
-#pragma todo there is probably doubling with the data structures of specified nodes in the interface. It needs to eliminate that.
 			struct ElectricNode
 			{
 				ElectricNode (DeviceType type);

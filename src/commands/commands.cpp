@@ -3041,7 +3041,6 @@ namespace commands
 
 
 #ifdef DEBUG
-#pragma todo there follows workarounds for testing; they should be removed
 extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 {
 	using namespace commands;
