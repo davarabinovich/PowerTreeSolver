@@ -599,9 +599,9 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::iterateAndExecuteForEach (function<void (Key)> functor)
+	void ElectricNet::iterateAndExecuteForEach (function<void (Key)> functor) const
 	{
-		for (AUTO_CONST_REF node : net)
+		for (AUTO_CONST_REF node : const_cast<ElectricForest &>(net))
 			functor(node.first);
 	}
 

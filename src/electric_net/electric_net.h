@@ -102,7 +102,7 @@ namespace electric_net
 			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (Key loadName) const override;
 			virtual DiodeLoadResults getDiodeLoadResults (Key loadName) const override;
 
-			virtual void iterateAndExecuteForEach (function<void (Key)> functor) override;
+			virtual void iterateAndExecuteForEach (function<void (Key)> functor) const override;
 
 
 

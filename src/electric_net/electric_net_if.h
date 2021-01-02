@@ -479,8 +479,7 @@ namespace electric_net
 			virtual ConstantCurrentLoadResults getConstantCurrentLoadResults (Key loadName) const = 0;
 			virtual DiodeLoadResults getDiodeLoadResults (Key loadName) const = 0;
 
-#pragma todo make this const
-			virtual void iterateAndExecuteForEach (function<void (Key)> functor) = 0;
+			virtual void iterateAndExecuteForEach (function<void (Key)> functor) const = 0;
 			
 
 
