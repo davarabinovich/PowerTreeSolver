@@ -189,7 +189,6 @@ namespace electric_net
 
 
 
-			#pragma todo make const
 			void updateCalculations () const;
 			double calculateAndUpdateGivenParams (ConstDesc_it source_it) const;
 			void writeAvValueToSource (double newAvValue, Key sourceName) const;

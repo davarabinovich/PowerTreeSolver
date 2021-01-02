@@ -191,23 +191,6 @@ template <typename Key, typename Type>
 inline Forest<Key, Type>::iterator::iterator (nodes_set_it it, set<Node *> * roots)
 	: roots_ptr(roots)
 {
-#pragma todo to understand why it is required
-	auto getParentsSetIt = [this] (typename set< Node *>::iterator it) -> nodes_set_it
-	{
-		nodes_set_it result_it;
-		auto parent_ptr = (*it)->getParent();
-		const set<Node *> * setWithParent;
-	
-		if (!parent_ptr->hasDesces())
-			setWithParent = &(parent_ptr->getParent()->getDesces());
-		else
-			setWithParent = roots_ptr;
-	
-		result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
-		return result_it;
-	};
-
-
 	if (it == roots_ptr->end())    return;
 
 	nodesStack.push_front(it);
@@ -306,6 +289,23 @@ inline typename Forest<Key, Type>::iterator Forest<Key, Type>::iterator::operato
 
 
 template <typename Key, typename Type>
+typename Forest<Key, Type>::nodes_set_it Forest<Key, Type>::iterator::getParentsSetIt (typename set<Node *>::iterator it)
+{
+	nodes_set_it result_it;
+	auto parent_ptr = (*it)->getParent();
+	const set<Node *> * setWithParent;
+
+	if (!parent_ptr->hasDesces())
+		setWithParent = &(parent_ptr->getParent()->getDesces());
+	else
+		setWithParent = roots_ptr;
+
+	result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
+	return result_it;
+}
+
+
+template <typename Key, typename Type>
 inline bool Forest<Key, Type>::iterator::isLastDesc () const
 {
 	if (nodesStack.empty())    throw end_iterator_dereferencing("isLastDesc");
@@ -350,24 +350,7 @@ template <typename Key, typename Type>
 inline Forest<Key, Type>::const_iterator::const_iterator (const_nodes_set_it it, const set<Node *> * roots)
 	: roots_ptr(roots)
 {
-#pragma todo to understand why it is required
-	auto getParentsSetIt = [this](typename set< Node*>::const_iterator it) -> const_nodes_set_it
-	{
-		const_nodes_set_it result_it;
-		auto parent_ptr = (*it)->getParent();
-		const set<Node *> * setWithParent;
-
-		if (parent_ptr->hasParent())
-			setWithParent = &(parent_ptr->getParent()->getDesces());
-		else
-			setWithParent = roots_ptr;
-
-		result_it = find(setWithParent->begin(), setWithParent->end(), parent_ptr);
-		return result_it;
-	};
-
-
-	if (it == roots_ptr->end())    return;
+	if (it == roots_ptr->cend())    return;
 
 	nodesStack.push_front(it);
 	while ((*it)->hasParent())
@@ -462,6 +445,23 @@ inline typename Forest<Key, Type>::const_iterator Forest<Key, Type>::const_itera
 {
 	nodesStack = other_it.nodesStack;
 	return *this;
+}
+
+
+template <typename Key, typename Type>
+typename Forest<Key, Type>::const_nodes_set_it Forest<Key, Type>::const_iterator::getParentsSetIt (typename set<Node *>::const_iterator it)
+{
+	const_nodes_set_it result_it;
+	auto parent_ptr = (*it)->getParent();
+	const set<Node *> * setWithParent;
+
+	if (!parent_ptr->hasDesces())
+		setWithParent = &(parent_ptr->getParent()->getDesces());
+	else
+		setWithParent = roots_ptr;
+
+	result_it = find(setWithParent->cbegin(), setWithParent->cend(), parent_ptr);
+	return result_it;
 }
 
 
@@ -633,7 +633,6 @@ inline typename Forest<Key, Type>::const_desces_group_iterator Forest<Key, Type>
 
 
 
-#pragma todo refactor auxiliary functions
 template <typename Key, typename Type>
 inline void Forest<Key, Type>::addRoot (Key name, const Type & content)
 {

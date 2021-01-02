@@ -153,7 +153,6 @@ namespace commands
 					{
 						args.inputCvValue = strToDouble(handeledArg);
 						if (tokens.size() != 0)
-							#pragma todo write exceptions message
 							throw exception("CommandCreate: parseArguments");
 						return args;
 					}
@@ -165,13 +164,12 @@ namespace commands
 					{
 						handeledArg = tokens.front(); tokens.pop_front();
 						if (!isFloatNumberString(handeledArg))
-							#pragma todo write exceptions message
+					
 							throw exception("CommandCreate: parseArguments");
 						else
 						{
 							args.inputCvValue = strToDouble(handeledArg);
 							if (tokens.size() != 0)
-								#pragma todo write exceptions message
 								throw exception("CommandCreate: parseArguments");
 						}
 					}
@@ -3045,7 +3043,6 @@ namespace commands
 	
 	void executeCommand (string enteredCommand)
 	{
-	#pragma todo whether replace deque with a vector?
 		auto tokens = tokenize(enteredCommand);
 		string commandMnemonic = tokens.front();
 		tokens.pop_front();

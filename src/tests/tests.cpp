@@ -40,6 +40,21 @@ void TestIterating ()
 		int a;
 		int b;
 	};
+
+	using TestForest = Forest<string, TestStr>;
+
+	TestStr a(1, 2);
+	TestStr b(1, 3);
+	TestStr c(1, 4);
+	TestForest forest;
+	forest.addRoot("a", a);
+	forest.addRoot("b", b);
+	forest.addRoot("c", c);
+
+	TestForest::desces_group_iterator it = forest.dgbegin();
+	it++; it++;
+	auto & ref = (*it).second;
+	ref.a = 33;
 }
 
 

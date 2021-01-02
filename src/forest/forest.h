@@ -126,7 +126,6 @@ class Forest
 		using nodes_set_it = typename set<Node *>::iterator;
 		using const_nodes_set_it = typename set<Node *>::const_iterator;
 
-#pragma todo implement access for writing for this and the desces_group
 		class iterator
 		{
 			public:
@@ -147,13 +146,13 @@ class Forest
 				list< typename set<Node *>::iterator > nodesStack;
 				set<Node *> * roots_ptr;
 
+				typename nodes_set_it getParentsSetIt (typename set<Node *>::iterator it);
 				bool isLastDesc () const;
 
 				CUSTOM_EXCEPTION(forest_iterator_exception, exception);
 				STRING_MESSAGE_EXCEPTION(end_iterator_dereferencing, forest_iterator_exception);
 		};
 
-#pragma todo implement access for writing for this and the desces_group
 		class const_iterator
 		{
 			public:
@@ -174,6 +173,7 @@ class Forest
 				list< typename set<Node *>::const_iterator > nodesStack;
 				const set<Node *> * roots_ptr;
 
+				typename const_nodes_set_it getParentsSetIt (typename set<Node*>::const_iterator it);
 				bool isLastDesc () const;
 
 				CUSTOM_EXCEPTION(forest_iterator_exception, exception);
