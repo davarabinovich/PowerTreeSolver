@@ -14,11 +14,6 @@
 
 
 
-using namespace command_processor;
-
-
-
-
 const string command_quit_mnemonic	 = "qt";
 const string command_quit_large_form = "quit";
 

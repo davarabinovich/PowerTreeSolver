@@ -25,6 +25,8 @@ Small fixing:
 - Implement a possibility to exit "require..." functions discarding corresponding command execution
 - Implement qt as a native command with the API function isQuitCommand
 - Needs to distinguish cases, when command's parameter has been typed and not typed. Needs to understand how to detect for cin, that a user is continuously pressing Enter
+- Try to implement MotionMode as class
+- Whether format commands as functors?
 
 
 

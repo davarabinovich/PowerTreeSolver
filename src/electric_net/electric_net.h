@@ -28,7 +28,7 @@ namespace electric_net
 
 	class ElectricNet : public ElectricNet_If
 	{
-	
+		
 		public:
 			
 			ElectricNet (string name);
