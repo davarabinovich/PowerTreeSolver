@@ -1,10 +1,8 @@
-- Use not only name but content during iterating at tree
 - Replace Node_ptr with the Node
 - Add functions for copying subnets and full sets of descendants
 - Make commands as functors
 - Make all cataloges normally, remove a workaround with absolute path
 - Use a fast method of structures returning
-- It's forbidden to use shared pointers for static objects
 - Package ciflib on .lib or .dll
 - Unifie behavior with an undefined name of command object
 - Use functions "capitalize" wherever it's required
@@ -23,8 +21,6 @@
 - Сделать параметры однородными сущностями.
 - Подумать, не избавиться ли от переменных "name" в command.cpp
 - Добавить команду изменениия типа (преобразователя или нагрузки)
-- Источникам добавить CV мощность
-- Добавить генераторы с линейной нагрузочной характеристикой
 - Генерировать инкременты номеров в дефолтных именах
 - Добавить поддержку пробелов в именах
 - Подумать, как можно что-нибудь сломать, создавая новые экземпляры уже существующих команд. Подумать о синглтоне.
@@ -58,8 +54,6 @@
 - Попробовать скомпилить без варнингов с уровнем AllWarnings
 - Где можно, использовать isYes и isNo
 - Расставить nodiscardы
-- В solve если задать needsToShowResults = false, прога всё равно спросит, нужно ли показывать. Полечить это с помощью самописной структуры 
-  struct<T>  {	bool isExsist; 	T value;  }
 - Реализовать возможность выхода их з функций "require..." с отменой выполнения команды
 - Тестовый фреймворк в отдельную либу
 - Подумать, как организовать тесты

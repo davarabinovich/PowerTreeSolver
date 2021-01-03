@@ -85,7 +85,7 @@ namespace commands
 	
 		public:
 	
-			virtual void execute (TokensDeque & tokens) const = 0;
+			virtual void operator () (TokensDeque & tokens) const = 0;
 	
 	
 	
@@ -105,7 +105,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				Arguments args;			
 				try { args = parseArguments(tokens); }
@@ -337,7 +337,7 @@ namespace commands
 	
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -419,7 +419,7 @@ namespace commands
 	
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -578,7 +578,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -717,7 +717,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -837,7 +837,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1006,7 +1006,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1212,7 +1212,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1384,7 +1384,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1594,7 +1594,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1823,7 +1823,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -1982,7 +1982,7 @@ namespace commands
 		
 		public:
 		
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2156,7 +2156,7 @@ namespace commands
 	
 	public:
 	
-		virtual void execute (TokensDeque & tokens) const override
+		virtual void operator () (TokensDeque & tokens) const override
 		{
 			ensureIfThereAreSomeTree();
 
@@ -2301,7 +2301,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2480,7 +2480,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				if (isThereSomeTree())
 				{
@@ -2489,7 +2489,7 @@ namespace commands
 					{
 						CommandSave commandSave;
 						TokensDeque savingTokens;
-						commandSave.execute(savingTokens);
+						commandSave(savingTokens);
 					}
 				}
 
@@ -2687,7 +2687,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				Arguments args;
 				try { args = parseArguments(tokens); }
@@ -2847,7 +2847,7 @@ namespace commands
 
 		public:
 
-			virtual void execute (TokensDeque & tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -3025,7 +3025,7 @@ namespace commands
 		try { currentCommand = commandDictionary.at(commandMnemonic); }
 		catch (out_of_range) { throw exception("Unrecognized command"); }
 	
-		currentCommand->execute(tokens);
+		(*currentCommand)(tokens);
 	}
 
 }
@@ -3049,7 +3049,7 @@ extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 
 	TokensDeque tokens = { name, path };
 	CommandLoad cl;
-	cl.execute(tokens);
+	cl(tokens);
 	shared_ptr<ElectricNet> destination = dynamic_pointer_cast<ElectricNet>(activePowerTree);
 	return destination;
 }
@@ -3064,7 +3064,7 @@ extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> s
 	activePowerTree = source;
 	TokensDeque tokens = { name, path };
 	CommandSave sv;
-	sv.execute(tokens);
+	sv(tokens);
 }
 
 
