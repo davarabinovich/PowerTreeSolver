@@ -7,7 +7,7 @@
 
 
 
-namespace commands
+namespace command_processor
 {
 
 	using command_mnemonic = const string;

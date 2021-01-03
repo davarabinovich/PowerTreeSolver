@@ -39,33 +39,32 @@ using namespace file_server;
 
 
 
-// Dependencies injection is there
-using PowerTree = ElectricNet;
-static shared_ptr<ElectricNet_If> activePowerTree;
-
-bool isThereSomeTree ()
-{ 
-	bool result = !(activePowerTree == nullptr);
-	return result;
-}
-
-
-
-
-static string fileName;
-static string path;
-
-
-
-
-
-
-
-
-
-
-namespace commands
+namespace command_processor
 {
+	// Dependencies injection is there
+	using PowerTree = ElectricNet;
+	static shared_ptr<ElectricNet_If> activePowerTree;
+	
+	bool isThereSomeTree ()
+	{ 
+		bool result = !(activePowerTree == nullptr);
+		return result;
+	}
+	
+	
+	
+	
+	static string fileName;
+	static string path;
+	
+	
+	
+	
+	
+
+
+
+
 
 	using Token = string;
 	using TokensDeque = deque<Token>;
@@ -3116,11 +3115,10 @@ namespace commands
 
 
 
-
 #ifdef DEBUG
 extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 {
-	using namespace commands;
+	using namespace command_processor;
 
 
 
@@ -3134,7 +3132,7 @@ extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 
 extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> source)
 {
-	using namespace commands;
+	using namespace command_processor;
 
 
 
@@ -3147,6 +3145,10 @@ extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> s
 
 extern void resetTree ()
 {
+	using namespace command_processor;
+
+
+
 	activePowerTree.reset();
 	fileName = "";
 	path = "";

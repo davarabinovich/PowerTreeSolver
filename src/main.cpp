@@ -14,6 +14,11 @@
 
 
 
+using namespace command_processor;
+
+
+
+
 const string command_quit_mnemonic	 = "qt";
 const string command_quit_large_form = "quit";
 
@@ -31,9 +36,6 @@ int main (int argc, char * argv [], char * envp [])
 #ifdef DEBUG
 	TestAll();
 #endif
-
-
-	using namespace commands;
 
 
 
