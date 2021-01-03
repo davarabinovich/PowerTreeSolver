@@ -606,6 +606,39 @@ namespace electric_net
 	}
 
 
+	Key ElectricNet::getDefaultNodeName (DeviceType type) const
+	{
+		string name;
+		switch (type)
+		{
+			case DeviceType::INPUT:
+			{
+				name = default_input_name_body + to_string(actualDefaultInputNumber);
+				actualDefaultInputNumber++;
+				return name;
+			}
+
+			case DeviceType::CONVERTER:
+			{
+				name = default_converter_name_body + to_string(actualDefaultConverterNumber);
+				actualDefaultConverterNumber++;
+				return name; 
+			}
+
+			case DeviceType::LOAD:
+			{
+				name = default_load_name_body + to_string(actualDefaultLoadNumber);
+				actualDefaultLoadNumber++;
+				return name;
+			}
+
+
+			default:
+				throw exception("Invalid type of device");
+		}
+	}
+
+
 #ifdef DEBUG
 	bool ElectricNet::operator != (const ElectricNet & other) const
 	{

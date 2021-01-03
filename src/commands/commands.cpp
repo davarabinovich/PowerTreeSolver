@@ -70,14 +70,8 @@ namespace commands
 	using Token = string;
 	using TokensDeque = deque<Token>;
 
-
-
-
-	const string defaultTreeName = "New power tree";
-	const string defaultInputName = "Input 1";
 	
 	
-
 
 
 	class Command
@@ -111,15 +105,19 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
 
+
 				if (args.name == "")
 					args.name = suggestEnterNameAndGet();
-				if (args.inputName == "")
-					args.inputName = "Input1";
 
 				createTreeByArgs(args);
 				fileName = args.name;
 
+
+				if (args.inputName == "")
+					args.inputName = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+
 				createInputByArgs(args);
+
 
 				reportExecution(args);
 			}
@@ -265,7 +263,7 @@ namespace commands
 			{
 				string name = args.name;
 				if (name == "")
-					name = defaultTreeName;
+					name = default_tree_name;
 				
 				activePowerTree = make_shared<PowerTree>(name);
 			}
@@ -274,7 +272,7 @@ namespace commands
 			{
 				string name = args.inputName;
 				if (name == "")
-					name = defaultInputName;
+					name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
 
 				activePowerTree->addInput(name, args.inputCvType, args.inputCvValue);
 			}
@@ -283,7 +281,7 @@ namespace commands
 			{
 				string name = args.name;
 				if (name == "")
-					name = defaultTreeName;
+					name = default_tree_name;
 				name = "\"" + name + "\" ";
 				
 				string cvType = "voltage";
@@ -726,6 +724,8 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
 		
+				if (args.name.empty())
+					args.name = suggestEnterNameAndGet();
 				if (isnan(args.cvValue))
 					args.cvValue = requestCvValue(args.cvType);
 		
@@ -789,6 +789,24 @@ namespace commands
 	
 		
 	
+			string suggestEnterNameAndGet () const
+			{
+				string name = "";
+				cout << "Do you want to set a name for the new input?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				{
+					getline(cin, name);
+					return name;
+				}
+				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+					throw exception("Invalid answer");
+
+				name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+				return name;
+			}
+
 			double requestCvValue (const VarKind type) const
 			{
 				cout << "Plase enter a value of " << type << endl;
@@ -846,6 +864,8 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
 	
+				if (args.name.empty())
+					args.name = suggestEnterNameAndGet();
 				if (isnan(args.cvValue))
 					args.cvValue = requestCvValue(args.cvType);
 				if (args.parentName == "")
@@ -939,7 +959,25 @@ namespace commands
 	
 				throw exception("There is at least one invalid argument");
 			}
-	
+
+			string suggestEnterNameAndGet () const
+			{
+				string name = "";
+				cout << "Do you want to set a name for the new tree?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				{
+					getline(cin, name);
+					return name;
+				}
+				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+					throw exception("Invalid answer");
+
+				name = activePowerTree->getDefaultNodeName(DeviceType::CONVERTER);
+				return name;
+			}
+
 			double requestCvValue (const VarKind type) const
 			{
 				cout << "Plase enter a value of " << type << endl;
@@ -1015,8 +1053,8 @@ namespace commands
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
 	
-				if (args.name == "")
-					args.name = requestAndGetNewName();
+				if (args.name.empty())
+					args.name = suggestEnterNameAndGet();
 				if (isnan(args.value))
 					args.value = requestValue(args.type);
 				if (args.parentName == "")
@@ -1096,15 +1134,25 @@ namespace commands
 	
 				throw exception("There is at least one invalid argument");
 			}
-	
-			string requestAndGetNewName () const
+
+			string suggestEnterNameAndGet () const
 			{
-				cout << "Enter a name of new load: ";
-				string newName;
-				getline(cin, newName);
-				return newName;
+				string name = "";
+				cout << "Do you want to set a name for the new tree?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+				{
+					getline(cin, name);
+					return name;
+				}
+				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
+					throw exception("Invalid answer");
+
+				name = activePowerTree->getDefaultNodeName(DeviceType::LOAD);
+				return name;
 			}
-	
+
 			double requestValue (const LoadType type) const
 			{
 				cout << "Enter a value of ";
@@ -2947,8 +2995,7 @@ namespace commands
 			}
 
 	};
-	
-	
+
 	
 	
 	
@@ -2957,25 +3004,26 @@ namespace commands
 	
 	
 
-	static const map< string, const shared_ptr<Command> > commandDictionary = { { "cr", make_shared<CommandCreate>()          },
-																				{ "rn", make_shared<CommandRename>()          },
-																				{ "sl", make_shared<CommandSolve>()           },
-																				{ "ss", make_shared<CommandShowStructure>()   },
-	
-																				{ "ci", make_shared<CommandCreateInput>()     },
-																				{ "cc", make_shared<CommandCreateConverter>() },
-																				{ "cl", make_shared<CommandCreateLoad>()      },
-																				{ "mi", make_shared<CommandModifyInput>()     },
-																				{ "mc", make_shared<CommandModifyConverter>() },
-																				{ "ml", make_shared<CommandModifyLoad>()      },
-																				{ "ms", make_shared<CommandMoveSink>()        },
-																				{ "ds", make_shared<CommandDisconnectSink>()  },
-																				{ "dn", make_shared<CommandDeleteNode>()      },
-																				{ "cn", make_shared<CommandCopyNode>()        },
-	
-																			    { "sv", make_shared<CommandSave>()            },
-																				{ "ld", make_shared<CommandLoad>()            },
-																				{ "cd", make_shared<CommandChangeDirectory>() }  };
+
+	static const map<string, const shared_ptr<Command>> commandDictionary = { { "cr", make_shared<CommandCreate>()          },
+																			  { "rn", make_shared<CommandRename>()          },
+																			  { "sl", make_shared<CommandSolve>()           },
+																			  { "ss", make_shared<CommandShowStructure>()   },
+																			  
+																			  { "ci", make_shared<CommandCreateInput>()     },
+																			  { "cc", make_shared<CommandCreateConverter>() },
+																			  { "cl", make_shared<CommandCreateLoad>()      },
+																			  { "mi", make_shared<CommandModifyInput>()     },
+																			  { "mc", make_shared<CommandModifyConverter>() },
+																			  { "ml", make_shared<CommandModifyLoad>()      },
+																			  { "ms", make_shared<CommandMoveSink>()        },
+																			  { "ds", make_shared<CommandDisconnectSink>()  },
+																			  { "dn", make_shared<CommandDeleteNode>()      },
+																			  { "cn", make_shared<CommandCopyNode>()        },
+																			  
+																			  { "sv", make_shared<CommandSave>()            },
+																			  { "ld", make_shared<CommandLoad>()            },
+																			  { "cd", make_shared<CommandChangeDirectory>() }  };
 	
 	
 	

@@ -20,6 +20,15 @@ using std::function;
 namespace electric_net
 {
 	
+	const string default_tree_name = "New power tree";
+
+	const string default_input_name_body = "in";
+	const string default_converter_name_body = "con";
+	const string default_load_name_body = "load";
+
+
+
+
 	enum class DeviceType { INPUT, CONVERTER, LOAD };
 
 	inline string toStr (DeviceType type)
@@ -480,6 +489,8 @@ namespace electric_net
 			virtual DiodeLoadResults getDiodeLoadResults (Key loadName) const = 0;
 
 			virtual void iterateAndExecuteForEach (function<void (Key)> functor) const = 0;
+
+			virtual Key getDefaultNodeName (DeviceType type) const = 0;
 			
 
 

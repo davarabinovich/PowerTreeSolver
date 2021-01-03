@@ -104,8 +104,7 @@ namespace electric_net
 
 			virtual void iterateAndExecuteForEach (function<void (Key)> functor) const override;
 
-
-
+			virtual Key getDefaultNodeName (DeviceType type) const override;
 
 #ifdef DEBUG
 			bool operator != (const ElectricNet & other) const;
@@ -186,6 +185,10 @@ namespace electric_net
 
 
 			mutable bool isStoragedResultsActual = false;
+
+			mutable unsigned actualDefaultInputNumber = 1;
+			mutable unsigned actualDefaultConverterNumber = 1;
+			mutable unsigned actualDefaultLoadNumber = 1;
 
 
 

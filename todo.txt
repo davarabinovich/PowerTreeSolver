@@ -1,31 +1,15 @@
 - Replace Node_ptr with the Node
 - Add functions for copying subnets and full sets of descendants
-- Make commands as functors
-- Make all cataloges normally, remove a workaround with absolute path
 - Use a fast method of structures returning
 - Package ciflib on .lib or .dll
-- Unifie behavior with an undefined name of command object
+- Unificate behavior with an undefined name of command object
 - Use functions "capitalize" wherever it's required
 - Add cache to ElectricNet or Forest
-- Wrap command.cpp content into class CommandSession. Implement qt as a native command with the API function isQuitCommand
 - Добавить новую команду в диалог сложнА. Надо придумать как простА и запилить этА. И длинную/короткую формы надА сделать.
-- При добавлении новой команды надо контролировать, что мнемоника не занята.
-- Надо как-то различить случаи, когда введен параметр команды, и не введён. Понять, как для cin определить, что пользователь жмёт сплошные энтеры.
-- Два варианта sovle - с выводом результатов и без него.
-- В энуме DeletingMode убрать NONE. Подумать про дефолтные NAN-значения для энум классов
-- Сделать своё исключение для невалидной комманды.
-- Нужна возмножность сделать создание узла с параметрами и без них.
-- Добавить ключи параметрам.
-- Сделать возможныым задавать разное количество параметров одной командой
-- Реализовать контроль размерностей.
-- Сделать параметры однородными сущностями.
-- Подумать, не избавиться ли от переменных "name" в command.cpp
-- Добавить команду изменениия типа (преобразователя или нагрузки)
-- Генерировать инкременты номеров в дефолтных именах
+- Think about default NAN-values for enum classes
+- To generate default names of nodes
 - Добавить поддержку пробелов в именах
 - Подумать, как можно что-нибудь сломать, создавая новые экземпляры уже существующих команд. Подумать о синглтоне.
-- Попробовать удалить (=0) execute из Command
-- Оформить CifLib библиотекой
 - Исключениями только ошибки программиста. Ошибки пользователя - логикой.
 - Реализовать произвольный порядок аргументов где это можно
 - Попробовать перенести вызов парсинга и валидации в базовый класс
