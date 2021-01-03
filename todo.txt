@@ -1,2 +1,52 @@
 
+Wishes for Command processor:
 - I don't like, that CommandSave is placed before CommandCreate
+
+
+Refactoring of Commands' processor plan:
+- Whether replace deque with a vector?
+- Remove workarounds on the end of command.cpp file
+- Make as class CommandProcessor
+- Use a fast method of structures returning
+- Use not only name but content during iterating at tree
+- Implement a possibility to exit "require..." functions discarding corresponding command execution
+- Exceptions for only programmer's mistakes. User's mistakes are being handeled by logic
+- Implement qt as a native command with the API function isQuitCommand
+- Needs to distinguish cases, when command's parameter has benn typed and not typed. Needs to understand how to detect for cin, that a user is continuously pressing Enter
+- Add keys to params
+- Make descent calls hierarchy
+- Use isYes and isNo everywhere it's possible
+- Use functions "capitalize" wherever it's required
+- Unificate behavior with an undefined name of command object
+- Implement long and short forms of commands
+- Names of nodes must can be with spaces
+- Needs supporting of any arguments' consequence everywhere it's possible
+- Report error if command without args has received some args
+- Make as static everythink that can be static
+- Clean up line breaks
+
+
+Refactoring of Electric Net plan:
+- Now it is actually output of structures; reading of tree content with immediate output is better;
+- Also eliminate code doubling between interface and implementation (structs to out and to ne stored)
+- Use a fast method of structures returning
+- Implement checking of units by calculations
+- Exceptions for only programmer's mistakes. User's mistakes are being handeled by logic
+- Eliminate types' zoo - only one type for converters, many types for load, absence of bijection between storaged and showed types etc.
+- Mayby replace Node_ptr with the Node (to make mutable such an operation, that is mutable for node); it’s difficicult because it’s impossible make polymorphic nodes without pointers
+- Make descent calls hierarchy
+
+
+Refactoring of Forest plan:
+- Tracking last descendants and pointers to the next parent’s descendant and the first descendant instead the set, remove ptr;
+- Unified work with roots and desces, create fictive LUCA;
+- Mayby replace parent_ptr in Node’s constrcutor with the its name;
+- Refactor auxiliary funcs
+- Exceptions for only programmer's mistakes. User's mistakes are being handeled by logic
+- Pack Forest into ciflib
+- Use a fast method of structures returning
+- Package ciflib on .lib or .dll
+- Testing framework pack to separate library
+- Needs don't allow to set some commad's arg twice
+- Make descent calls hierarchy
+- Implement a possibility to iterate at separate subnets
