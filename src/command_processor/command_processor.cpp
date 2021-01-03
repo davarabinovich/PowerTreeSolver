@@ -13,9 +13,6 @@
 #include "lib/ciflib.h"
 
 
-#include "config.h"
-
-
 #include "electric_net/electric_net_if.h"
 #include "electric_net/electric_net.h"
 #include "file_server/file_server.h"
@@ -26,21 +23,16 @@
 
 
 
-using namespace std;
-using namespace electric_net;
-using namespace file_server;
-
-
-
-
-
-
-
-
-
 
 namespace command_processor
 {
+
+	using namespace electric_net;
+	using namespace file_server;
+
+
+
+
 	// Dependencies injection is there
 	using PowerTree = ElectricNet;
 	static shared_ptr<ElectricNet_If> activePowerTree;
@@ -3116,7 +3108,7 @@ namespace command_processor
 
 
 #ifdef DEBUG
-extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
+extern shared_ptr<electric_net::ElectricNet> readTreeFromFile (string name, string path)
 {
 	using namespace command_processor;
 
@@ -3130,7 +3122,7 @@ extern shared_ptr<ElectricNet> readTreeFromFile (string name, string path)
 }
 
 
-extern void writeTreeToFile (string name, string path, shared_ptr<ElectricNet> source)
+extern void writeTreeToFile (string name, string path, shared_ptr<electric_net::ElectricNet> source)
 {
 	using namespace command_processor;
 
