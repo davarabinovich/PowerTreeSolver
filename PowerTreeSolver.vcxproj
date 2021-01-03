@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\commands\commands.cpp" />
+    <ClCompile Include="src\command_processor\command_processor.cpp" />
     <ClCompile Include="src\electric_net\electric_net.cpp" />
     <ClCompile Include="src\file_server\file_server.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -35,7 +35,7 @@
     <ClCompile Include="src\test_runner\test_runner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\commands\commands.h" />
+    <ClInclude Include="src\command_processor\command_processor.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\electric_net\electric_net.h" />
     <ClInclude Include="src\electric_net\electric_net_if.h" />

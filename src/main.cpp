@@ -3,10 +3,13 @@
 #include <iomanip>
 
 
-#include "commands/commands.h"
 #include "config.h"
 
+
 #include "tests/tests.h"
+
+
+#include "command_processor/command_processor.h"
 
 
 
