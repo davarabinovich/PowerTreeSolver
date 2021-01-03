@@ -2821,7 +2821,7 @@ namespace commands
 
 
 
-	class CopyingCommand : public CommandWorkingWithExsistingTree
+	class NodeCopyingCommand : public CommandWorkingWithExsistingTree
 	{
 		
 		protected:
@@ -2835,7 +2835,7 @@ namespace commands
 		
 		
 		
-			void copyNode(const Arguments& args) const
+			void copyNode (const Arguments & args) const
 			{
 				auto type = activePowerTree->getNodeType(args.exampleName);
 		
@@ -2912,7 +2912,7 @@ namespace commands
 
 
 
-			virtual ~CopyingCommand () {;}
+			virtual ~NodeCopyingCommand () {;}
 		
 	};
 
@@ -2920,7 +2920,7 @@ namespace commands
 
 
 
-	class CommandCopyNode : public CopyingCommand
+	class CommandCopyNode : public NodeCopyingCommand
 	{
 
 		public:

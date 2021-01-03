@@ -1,9 +1,12 @@
 
 - Use GNU Bison for parsing
+- Consider a cache in ElectricNet or Forest
 
 - Use biside comparison <=> when it apprears in the lang
 
 - Long-term and difficult considering of possible terms' mnemonics shall be eliminated
+- Rework enum classes in If; Think about default NAN-values for enum classes
+- Add functions for copying subnets and full sets of descendants (with converters descendants and without them)
 
 Needs supporting:
 	- Parallel and serial sources' connection

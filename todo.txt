@@ -1,9 +1,2 @@
-- Replace Node_ptr with the Node
-- Add functions for copying subnets and full sets of descendants
-- Use a fast method of structures returning
-- Think about default NAN-values for enum classes
 
-- Add cache to ElectricNet or Forest
-
-
-- I don't like, that CommandSave is placed before CommanCreate
+- I don't like, that CommandSave is placed before CommandCreate
