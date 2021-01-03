@@ -2,17 +2,8 @@
 - Add functions for copying subnets and full sets of descendants
 - Use a fast method of structures returning
 - Think about default NAN-values for enum classes
-- Implement linear converters' efficiency via self-consumtion parameter
-- Экстерминировать возможность дублирования задания аргументов в командах, задающих аргументы
-- Опциональные аргументы в CreateInput и тому подобных командах - как избавиться от перебора при присваивании поля структуры Arguments в parseArgs
-- Избавиться от долгих переборов условий в выражениях с мнемониками
-- Сделать шаблонный тип StructWithBlanks
-- Прога валится, когда в перечне аргументов замыкающий пробел
-- Не должны допускаться одинаковые имены для нод разных типов
-- DisconnectSink с другой буквой в мнемонике - устранить это
-- Норм иерархию вызовов сделать
-- Реализовать возможность выхода из функций "require..." с отменой выполнения команды
-- Тестовый фреймворк в отдельную либу
-- Подумать, как организовать тесты
 
 - Add cache to ElectricNet or Forest
+
+
+- I don't like, that CommandSave is placed before CommanCreate

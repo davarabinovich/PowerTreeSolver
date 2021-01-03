@@ -94,6 +94,210 @@ namespace commands
 
 	
 	
+	class CommandWorkingWithExsistingTree : public Command
+	{
+
+		protected:
+
+			void ensureIfThereAreSomeTree () const
+			{
+				if (isThereSomeTree())	return;
+				throw exception("There is no power tree. Create or load a tree");
+			}
+
+
+
+			virtual ~CommandWorkingWithExsistingTree () { ; }
+
+	};
+
+
+
+
+
+	class CommandSave : public CommandWorkingWithExsistingTree
+	{
+
+		public:
+
+			virtual void operator () (TokensDeque& tokens) const override
+			{
+				ensureIfThereAreSomeTree();
+
+
+				Arguments args;
+				try { args = parseArguments(tokens); }
+				catch (exception& ex) { throw exception(ex.what()); }
+
+				updateSystemVariables(args);
+				recordPowerTree(args);
+				reportExecution(args);
+			}
+
+
+
+
+		private:
+
+			struct Arguments
+			{
+				string fileName;
+				string path;
+			};
+
+
+
+			Arguments parseArguments (TokensDeque & tokens) const
+			{
+				if (tokens.empty())    return Arguments();
+
+
+				Arguments args;
+
+				if (tokens.size() == 1)
+				{
+					auto handeledArg = tokens.front();
+
+					if (isBackSlashInString(handeledArg))
+						args.path = handeledArg;
+					else
+						args.fileName = handeledArg;
+				}
+				else if (tokens.size() == 2)
+				{
+					auto firstArg = tokens[0];
+					auto secondArg = tokens[1];
+
+					if (isBackSlashInString(secondArg))
+					{
+						args.path = secondArg;
+						args.fileName = firstArg;
+					}
+					else
+					{
+						args.path = firstArg;
+						args.fileName = secondArg;
+					}
+				}
+				else
+					throw exception("Too many arguments for this command");
+
+				return args;
+			}
+
+
+			void updateSystemVariables(Arguments args) const
+			{
+				if (!args.fileName.empty())
+					fileName = args.fileName;
+
+				if (!args.path.empty())
+					path = args.path;
+			}
+
+
+			void recordPowerTree(Arguments args) const
+			{
+				string treeTitle = activePowerTree->getTitle();
+
+				auto [newFileName, newPath] = args;
+
+				if (args.fileName.empty())
+					args.fileName = fileName;
+
+				if (args.path.empty())
+					args.path = path;
+
+				FileWriter fileWriter(treeTitle, fileName, path);
+				WriteNode writeNode(fileWriter);
+
+				activePowerTree->iterateAndExecuteForEach(writeNode);
+			}
+
+			FUNCTOR(WriteNode, void, Key nodeName)
+				auto nodeType = activePowerTree->getNodeType(nodeName);
+			switch (nodeType)
+			{
+				case DeviceType::INPUT:
+				{
+					auto inputData = activePowerTree->getInputData(nodeName);
+					wfstream << inputData;
+					break;
+				}
+
+				case DeviceType::CONVERTER:
+				{
+					auto converterData = activePowerTree->getConverterData(nodeName);
+					wfstream << converterData;
+					break;
+				}
+
+				case DeviceType::LOAD:
+				{
+					writeLoad(nodeName, wfstream);
+					break;
+				}
+
+
+				default:
+					throw exception("Invalid type of device");
+
+			}
+			FUNCTOR_END_BODY
+				WriteNode(FileWriter& genWfstream)
+				: wfstream(genWfstream) {
+				;
+			}
+
+		private:
+			FileWriter& wfstream;
+			END_FUNCTOR
+
+				void reportExecution(Arguments args) const
+			{
+				cout << "Power tree \"" << activePowerTree->getTitle()
+					<< "\" is been successfully saved to the file \"" << args.fileName << "\"" << endl << endl;
+			}
+
+
+			static void writeLoad(Key loadName, FileWriter& wfstream)
+			{
+				auto type = activePowerTree->getLoadType(loadName);
+				switch (type)
+				{
+					case LoadType::RESISTIVE:
+					{
+						auto loadData = activePowerTree->getResistiveLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+
+					case LoadType::CONSTANT_CURRENT:
+					{
+						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+
+					case LoadType::DIODE:
+					{
+						auto loadData = activePowerTree->getDiodeLoadData(loadName);
+						wfstream << loadData;
+						break;
+					}
+
+
+					default:
+						throw exception("Invalid type of load");
+				}
+			}
+
+	};
+
+
+
+
+
 	class CommandCreate : public Command
 	{
 
@@ -101,6 +305,17 @@ namespace commands
 
 			virtual void operator () (TokensDeque & tokens) const override
 			{
+				if (isThereSomeTree())
+				{
+					bool needToSaveActiveTree = suggestSaveActiveTree();
+					if (needToSaveActiveTree)
+					{
+						CommandSave commandSave;
+						TokensDeque savingTokens;
+						commandSave(savingTokens);
+					}
+				}
+
 				Arguments args;			
 				try { args = parseArguments(tokens); }
 				catch (exception & ex) { throw exception(ex.what()); }
@@ -137,6 +352,19 @@ namespace commands
 			
 			
 			
+			bool suggestSaveActiveTree () const
+			{
+				string activeTreeTitle = activePowerTree->getTitle();
+				cout << "Do you want to save the power tree \"" << activeTreeTitle << "\"?" << endl;
+				string answer; getline(cin, answer);
+
+				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+					return true;
+				else if (answer == "no" || answer == "No" || answer == "n" || answer == "N")
+					return false;
+				throw exception("Invalid answer");
+			}
+
 			Arguments parseArguments (TokensDeque & tokens) const
 			{
 				Arguments args;
@@ -304,27 +532,6 @@ namespace commands
 			}
 
 };
-	
-	
-
-	
-	
-	class CommandWorkingWithExsistingTree : public Command
-	{
-
-		protected:
-
-			void ensureIfThereAreSomeTree () const
-			{
-				if ( isThereSomeTree() )	return;
-				throw exception("There is no power tree. Create or load a tree");
-			}
-
-
-
-			virtual ~CommandWorkingWithExsistingTree () {;}
-
-	};
 
 
 
@@ -2346,185 +2553,6 @@ namespace commands
 
 
 
-	class CommandSave : public CommandWorkingWithExsistingTree
-	{
-
-		public:
-
-			virtual void operator () (TokensDeque & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-
-
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-
-				updateSystemVariables(args);
-				recordPowerTree(args);
-				reportExecution(args);
-			}
-
-
-
-
-		private:
-
-			struct Arguments
-			{
-				string fileName;
-				string path;
-			};
-
-
-
-			Arguments parseArguments (TokensDeque & tokens) const
-			{
-				if (tokens.empty())    return Arguments();
-
-
-				Arguments args;
-
-				if (tokens.size() == 1)
-				{
-					auto handeledArg = tokens.front();
-
-					if (isBackSlashInString(handeledArg))
-						args.path = handeledArg;
-					else
-						args.fileName = handeledArg;
-				}
-				else if (tokens.size() == 2)
-				{
-					auto firstArg = tokens[0];
-					auto secondArg = tokens[1];
-
-					if (isBackSlashInString(secondArg))
-					{
-						args.path = secondArg;
-						args.fileName = firstArg;
-					}
-					else
-					{
-						args.path = firstArg;
-						args.fileName = secondArg;
-					}
-				}
-				else
-					throw exception("Too many arguments for this command");
-
-				return args;
-			}
-
-
-			void updateSystemVariables (Arguments args) const
-			{
-				if (!args.fileName.empty())
-					fileName = args.fileName;
-
-				if (!args.path.empty())
-					path = args.path;
-			}
-
-
-			void recordPowerTree (Arguments args) const
-			{
-				string treeTitle = activePowerTree->getTitle();
-
-				auto [newFileName, newPath] = args;
-
-				if (args.fileName.empty())
-					args.fileName = fileName;
-
-				if (args.path.empty())
-					args.path = path;
-
-				FileWriter fileWriter(treeTitle, fileName, path);
-				WriteNode writeNode(fileWriter);
-
-				activePowerTree->iterateAndExecuteForEach(writeNode);
-			}
-
-			FUNCTOR (WriteNode, void, Key nodeName)
-				auto nodeType = activePowerTree->getNodeType(nodeName);
-				switch (nodeType)
-				{
-					case DeviceType::INPUT:
-					{
-						auto inputData = activePowerTree->getInputData(nodeName);
-						wfstream << inputData;
-						break;
-					}
-
-					case DeviceType::CONVERTER:
-					{
-						auto converterData = activePowerTree->getConverterData(nodeName);
-						wfstream << converterData;
-						break;
-					}
-
-					case DeviceType::LOAD:
-					{
-						writeLoad(nodeName, wfstream);
-						break;
-					}
-
-					default:
-						throw exception("Invalid type of device");
-
-				}
-			FUNCTOR_END_BODY
-				WriteNode(FileWriter & genWfstream)
-					: wfstream(genWfstream) {;}
-
-				private:
-					FileWriter & wfstream;
-			END_FUNCTOR
-
-			void reportExecution (Arguments args) const
-			{
-				cout << "Power tree \"" << activePowerTree->getTitle() 
-					 << "\" is been successfully saved to the file \"" << args.fileName << "\"" << endl << endl;
-			}
-
-
-			static void writeLoad (Key loadName, FileWriter & wfstream)
-			{
-				auto type = activePowerTree->getLoadType(loadName);
-				switch (type)
-				{
-					case LoadType::RESISTIVE:
-					{
-						auto loadData = activePowerTree->getResistiveLoadData(loadName);
-						wfstream << loadData;
-						break;
-					}
-				
-					case LoadType::CONSTANT_CURRENT:
-					{
-						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
-						wfstream << loadData;
-						break;
-					}
-				
-					case LoadType::DIODE:
-					{
-						auto loadData = activePowerTree->getDiodeLoadData(loadName);
-						wfstream << loadData;
-						break;
-					}
-				
-					default:
-							throw exception("Invalid type of load");
-				}
-			}
-
-	};
-
-
-
-
-
 	class CommandLoad : public Command
 	{
 
@@ -3036,32 +3064,31 @@ namespace commands
 	
 
 
-	TokensDeque tokenize (const string & command_string)
+	TokensDeque tokenize (const string & commandStr)
 	{
-		if (command_string.size() == 0)    return TokensDeque();
-	
 		TokensDeque tokens;
-		auto wordBegin_it = command_string.cbegin();
-		scrollInteratorToNewWord_unsafe(wordBegin_it);
-		auto wordEnd_it = wordBegin_it;
-	
-		while (wordBegin_it != command_string.cend())
+
+		bool isActuallyWordRead = false;
+		Token actualWord;
+		for (const auto actualChar : commandStr)
 		{
-			while (true)
+			if (isActuallyWordRead)
 			{
-				if (wordEnd_it == command_string.cend())
-					break;
-				if (*wordEnd_it == ' ')
-					break;
-				wordEnd_it++;
+				if (actualChar != ' ')
+					tokens.back() += actualChar;
+				else
+					isActuallyWordRead = false;
 			}
-	
-			tokens.push_back(string(wordBegin_it, wordEnd_it));
-			if (wordEnd_it != command_string.cend())
-				scrollInteratorToNewWord_unsafe(wordEnd_it);
-			wordBegin_it = wordEnd_it;
+			else
+			{
+				if (actualChar != ' ')
+				{
+					isActuallyWordRead = true;
+					tokens.push_back(Token(1, actualChar));
+				}
+			}
 		}
-	
+
 		return tokens;
 	}
 	

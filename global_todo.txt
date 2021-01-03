@@ -3,5 +3,7 @@
 
 - Use biside comparison <=> when it apprears in the lang
 
+- Long-term and difficult considering of possible terms' mnemonics shall be eliminated
+
 Needs supporting:
 	- Parallel and serial sources' connection

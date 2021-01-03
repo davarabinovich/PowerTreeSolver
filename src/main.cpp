@@ -44,14 +44,14 @@ int main (int argc, char * argv [], char * envp [])
 
 	while (true)
 	{
-		string newCommand_str;
+		string enteredCommandWithArgs_str;
 		do
-			getline(cin, newCommand_str); 
-		while (newCommand_str.size() == 0);
+			getline(cin, enteredCommandWithArgs_str); 
+		while (enteredCommandWithArgs_str.size() == 0);
 		
-		if (newCommand_str == command_quit_mnemonic || newCommand_str == command_quit_large_form) break;
+		if (enteredCommandWithArgs_str == command_quit_mnemonic || enteredCommandWithArgs_str == command_quit_large_form) break;
 
-		try { executeCommand(newCommand_str); }
+		try { executeCommand(enteredCommandWithArgs_str); }
 		catch (exception & err) { handleCommandError(err.what()); }
 	} 
 
