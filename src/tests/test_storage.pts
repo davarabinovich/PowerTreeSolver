@@ -7,7 +7,7 @@ f2 con c1
 vol 5 p 98
 
 f3 con c2
-vol 3.3 l
+vol 3.3 l 0
 
 f4 l l1
 cur 0.1

@@ -39,7 +39,7 @@ namespace electric_net
 			virtual void addConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							          double cvValue = 0.0, double efficiency = 100.0) override;
 			virtual void addConverter (Key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
-							           double efficiency = 100.0) override;
+							           double efficiencyParam = 100.0) override;
 			virtual void insertConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							              double cvValue = 0.0, double efficiency = 100.0) override;
 			virtual void insertConverter (Key name, Key sourceName, Key sinkName, ConverterType type = ConverterType::PULSE, 
@@ -76,7 +76,7 @@ namespace electric_net
 			virtual void setSourceCvType (Key name, VarKind newType) override;
 			virtual void setSourceCvValue (Key name, double value) override;
 			virtual void setConverterType (Key name, ConverterType type) override;
-			virtual void setConverterEfficiency (Key name, double efficiency) override;
+			virtual void setConverterEfficiencyParam (Key name, double efficiencyParam) override;
 			virtual void setLoadType (Key name, LoadType type) override;
 			virtual void setLoadResistance (Key name, double resistance) override;
 			virtual void setLoadCurrent (Key name, double current) override;
@@ -143,7 +143,7 @@ namespace electric_net
 				Converter (VarKind cvType, double value, ConverterType type, double efficiency);
 
 				ConverterType type;
-				double efficiency;
+				double efficiencyParam;
 
 				double inputValue = NAN;
 			};
@@ -201,7 +201,7 @@ namespace electric_net
 			double reduceOutputToInput (ConstDesc_it sink_it, ConstDesc_it source_it) const;
 			double calculateLoadConsumptionDrivenByVoltageSource (ConstDesc_it load_it, ConstDesc_it source_it) const;
 
-			VarKind calcInputVarTypeByParent (Key parentName) const;
+			VarKind calcInputVarKindByParent (Key parentName) const;
 
 #ifdef DEBUG
 			static bool isNodesEqualByContent (Node_ptr first_ptr, Node_ptr second_ptr);

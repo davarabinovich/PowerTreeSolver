@@ -423,11 +423,11 @@ namespace electric_net
 
 			virtual void addInput (Key name, VarKind type = VarKind::VOLTAGE, double cvValue = 0.0) = 0;
 			virtual void addConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
-							   double cvValue = 0.0, double efficiency = 100.0) = 0;
+							           double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void addConverter (Key name, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0,
-							   double efficiency = 100.0) = 0;
+							           double efficiencyParam = 100.0) = 0;
 			virtual void insertConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
-							      double cvValue = 0.0, double efficiency = 100.0) = 0;
+							              double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void insertConverter (Key name, Key sourceName, Key sinkName, ConverterType type = ConverterType::PULSE, 
 								  VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void addLoad (Key name, Key sourceName, LoadType type, double param) = 0;
@@ -462,7 +462,7 @@ namespace electric_net
 			virtual void setSourceCvType (Key name, VarKind newType) = 0;
 			virtual void setSourceCvValue (Key name, double value) = 0;
 			virtual void setConverterType (Key name, ConverterType type) = 0;
-			virtual void setConverterEfficiency (Key name, double efficiency) = 0;
+			virtual void setConverterEfficiencyParam (Key name, double efficiencyParam) = 0;
 			virtual void setLoadType (Key name, LoadType type) = 0;
 			virtual void setLoadResistance (Key name, double resistance) = 0;
 			virtual void setLoadCurrent (Key name, double current) = 0;

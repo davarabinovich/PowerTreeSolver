@@ -86,7 +86,7 @@ namespace file_server
 		ConverterType type;
 		VarKind cvKind;
 		double value;
-		double efficiency;
+		double efficiencyParam;
 	};
 
 

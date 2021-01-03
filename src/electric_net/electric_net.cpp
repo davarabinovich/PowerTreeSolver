@@ -30,11 +30,11 @@ namespace electric_net
 	}
 
 
-	void ElectricNet::addConverter (Key name, ConverterType type, VarKind cvType, double cvValue, double efficiency)
+	void ElectricNet::addConverter (Key name, ConverterType type, VarKind cvType, double cvValue, double efficiencyParam)
 	{
 		isStoragedResultsActual = false;
 
-		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiency);
+		auto newConverter_ptr = make_shared<Converter>(cvType, cvValue, type, efficiencyParam);
 		net.addRoot(name, newConverter_ptr);
 	}
 
@@ -304,7 +304,7 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-		auto source_ptr = dynamic_pointer_cast<Source>( net[name] );
+		auto source_ptr = dynamic_pointer_cast<Source>(net[name]);
 		source_ptr->cvValue = newValue;
 	}
 
@@ -313,17 +313,17 @@ namespace electric_net
 	{
 		isStoragedResultsActual = false;
 
-		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
+		auto converter_ptr = dynamic_pointer_cast<Converter>(net[name]);
 		converter_ptr->type = newType;
 	}
 
 
-	void ElectricNet::setConverterEfficiency (Key name, double newEfficiency)
+	void ElectricNet::setConverterEfficiencyParam (Key name, double efficiencyParam)
 	{
 		isStoragedResultsActual = false;
 
-		auto converter_ptr = dynamic_pointer_cast<Converter>( net[name] );
-		converter_ptr->efficiency = newEfficiency;
+		auto converter_ptr = dynamic_pointer_cast<Converter>(net[name]);
+		converter_ptr->efficiencyParam = efficiencyParam;
 	}
 
 
@@ -409,7 +409,7 @@ namespace electric_net
 		data.cvKind = converter->Source::cvKind;
 		data.value = converter->cvValue;
 		data.type = converter->type;
-		data.efficiency = converter->efficiency;
+		data.efficiency = converter->efficiencyParam;
 
 		return data;
 	}
@@ -558,7 +558,7 @@ namespace electric_net
 		results.resistance = load->param;
 
 		results.inputValue = load->inputValue;
-		results.inputVarKind = calcInputVarTypeByParent(loadName);
+		results.inputVarKind = calcInputVarKindByParent(loadName);
 
 		return results;
 	}
@@ -805,7 +805,7 @@ namespace electric_net
 		auto converterVarKind = converter->cvKind;
 
 		double outputPower = (converter->cvValue) * (converter->avValue);
-		double efficiency = converter->efficiency;
+		double efficiency = converter->efficiencyParam;
 		double sourcesCv = source->cvValue;
 
 		double inputValue;
@@ -819,11 +819,11 @@ namespace electric_net
 				switch (converterVarKind)
 				{
 					case VarKind::VOLTAGE:
-						inputValue = converter->avValue;
+						inputValue = converter->avValue + converter->efficiencyParam;
 						break;
 
 					case VarKind::CURRENT:
-						inputValue = converter->cvValue;
+						inputValue = converter->cvValue + converter->efficiencyParam;
 						break;
 
 
@@ -875,7 +875,7 @@ namespace electric_net
 	}
 
 
-	VarKind ElectricNet::calcInputVarTypeByParent (Key loadName) const
+	VarKind ElectricNet::calcInputVarKindByParent (Key loadName) const
 	{
 		auto parent_ptr = net.getParent(loadName);
 		auto type = dynamic_pointer_cast<Source>(parent_ptr)->cvKind;
@@ -922,7 +922,7 @@ namespace electric_net
 					return false;
 
 				if (firstConverter.type == ConverterType::PULSE)
-					if (firstConverter.efficiency != secondConverter.efficiency)
+					if (firstConverter.efficiencyParam != secondConverter.efficiencyParam)
 						return false;
 
 
@@ -1015,7 +1015,7 @@ namespace electric_net
 
 
 	ElectricNet::Converter::Converter (VarKind cvType, double value, ConverterType tp, double effcnc)
-		: Source(DeviceType::CONVERTER, cvType, value), type(tp), efficiency(effcnc)    {;}
+		: Source(DeviceType::CONVERTER, cvType, value), type(tp), efficiencyParam(effcnc)    {;}
 
 
 

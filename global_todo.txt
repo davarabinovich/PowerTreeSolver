@@ -1,2 +1,7 @@
 
 - Use GNU Bison for parsing
+
+- Use biside comparison <=> when it apprears in the lang
+
+Needs supporting:
+	- Parallel and serial sources' connection

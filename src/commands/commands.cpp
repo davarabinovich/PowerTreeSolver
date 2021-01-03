@@ -636,12 +636,14 @@ namespace commands
 
 			static void displayConverter (ConverterData data)
 			{
-				auto [name, nestingLevel, cvType, value, type, efficiency] = data;
+				auto [name, nestingLevel, cvType, value, type, efficiencyParam] = data;
 				auto shift = string((nestingLevel-1) * spaces_per_level_shift, ' ');
 				
 				string output = shift + to_string(value) + getVarKindDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
 				if (type == ConverterType::PULSE)
-					output += " (eff. " + to_string(efficiency) + "%):";
+					output += " (eff. " + to_string(efficiencyParam) + "%):";
+				else
+					output += " (own cons. " + to_string(1000*efficiencyParam) + "mA):";
 				cout << output << endl;
 			}
 
@@ -888,7 +890,7 @@ namespace commands
 				double cvValue = NAN;
 	
 				ConverterType type = ConverterType::PULSE;
-				double efficiency = 100.0;
+				double efficiencyParam = 100.0;
 	
 				string parentName = "";
 			};
@@ -942,7 +944,7 @@ namespace commands
 	
 				if (isFloatNumberString(handeledArg))
 				{
-					args.efficiency = strToDouble(handeledArg);
+					args.efficiencyParam = strToDouble(handeledArg);
 	
 					tokens.pop_front();
 					if (tokens.empty())    return args;
@@ -1006,9 +1008,9 @@ namespace commands
 			void createConverterByArgs (const Arguments & args) const
 			{
 				if (args.parentName == "")
-					activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiency);
+					activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiencyParam);
 				else
-					activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiency);
+					activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiencyParam);
 			}
 	
 			void reportExecution (const Arguments & args) const
@@ -1461,7 +1463,7 @@ namespace commands
 				optional<double> cvValue; 
 	
 				optional<ConverterType> type;
-				optional<double> efficiency;
+				optional<double> efficiencyParam;
 			};
 		
 		
@@ -1479,39 +1481,39 @@ namespace commands
 				{
 					if (isParamWithKey(token))
 					{
-						Token Key = extractKeyFromToken(token);
-						if (Key == "n")
+						Token key = extractKeyFromToken(token);
+						if (key == "n")
 						{
 							if (args.newName)    continue;
 		
 							args.newName = extractParamFromToken(token);
 						}
-						else if (Key == "u")
+						else if (key == "u")
 						{
 							if (args.cvType)    continue;
 		
 							args.cvType = parseVarKind(extractParamFromToken(token));
 						}
-						else if (Key == "v")
+						else if (key == "v")
 						{
 							if (args.cvValue)    continue;
 		
 							args.cvValue = strToDouble(extractParamFromToken(token));
 						}
-						else if (Key == "t")
+						else if (key == "t")
 						{
 							if (args.type)    continue;
 	
 							args.type = parseConverterType(extractParamFromToken(token));
 						}
-						else if (Key == "e")
+						else if (key == "e" || key == "c")
 						{
-							if (args.efficiency)    continue;
+							if (args.efficiencyParam)    continue;
 	
-							args.efficiency = strToDouble(extractParamFromToken(token));
+							args.efficiencyParam = strToDouble(extractParamFromToken(token));
 						}
 						else
-							throw exception(string("Unrecognized parameter \"" + Key).c_str());
+							throw exception(string("Unrecognized parameter \"" + key).c_str());
 					}
 					else
 					{
@@ -1540,9 +1542,9 @@ namespace commands
 								args.cvValue = strToDouble(token);
 								continue;
 							}
-							if (args.efficiency)
+							if (args.efficiencyParam)
 							{
-								args.efficiency = strToDouble(token);
+								args.efficiencyParam = strToDouble(token);
 								continue;
 							}
 						}
@@ -1592,8 +1594,8 @@ namespace commands
 					activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
 				if (args.type)
 					activePowerTree->setConverterType(args.currentName, *args.type);
-				if (args.efficiency)
-					activePowerTree->setConverterEfficiency(args.currentName, *args.efficiency);
+				if (args.efficiencyParam)
+					activePowerTree->setConverterEfficiencyParam(args.currentName, *args.efficiencyParam);
 	
 				if (args.newName)
 					activePowerTree->renameNode(args.currentName, *args.newName);
@@ -1618,9 +1620,9 @@ namespace commands
 						cvUnit = "A";
 					cout << " " << cvUnit;
 				}
-				if (args.efficiency)
+				if (args.efficiencyParam)
 				{
-					cout << endl << "    Efficiency - " << *args.efficiency << " %";
+					cout << endl << "    Efficiency - " << *args.efficiencyParam << " %";
 				}
 		
 				cout << endl;
@@ -2685,10 +2687,10 @@ namespace commands
 				auto data = get<ReadConverter>(node.data);
 
 				if (data.commonSinkData.parentName.empty())
-					activePowerTree->addConverter(node.name, data.type, data.cvKind, data.value, data.efficiency);
+					activePowerTree->addConverter(node.name, data.type, data.cvKind, data.value, data.efficiencyParam);
 				else
 					activePowerTree->addConverter(node.name, data.commonSinkData.parentName, data.type, data.cvKind, data.value, 
-					                                         data.efficiency);
+					                                         data.efficiencyParam);
 			}
 
 			void createLoadByParams (ReadNode & node) const

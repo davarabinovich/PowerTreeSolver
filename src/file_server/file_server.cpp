@@ -86,9 +86,8 @@ namespace file_server
 		wstream << getNodeTagByNestingLevel(nestingLevel) << " ";
 
 		wstream << node_converter_tag << " " << name << endl;
-		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value) << " " << getConverterTypeTagByType(type);
-		if (type == ConverterType::PULSE)
-			wstream << " " << to_string(efficiency);
+		wstream << getVarTagByVarKind(cvKind) << " " << to_string(value) << " " << getConverterTypeTagByType(type) << " " 
+			    << to_string(efficiency);
 
 		return *this;
 	}
@@ -363,12 +362,9 @@ namespace file_server
 		is >> type_tag;
 		data.type = parseConverterType(type_tag);
 
-		if (data.type == ConverterType::PULSE)
-		{
-			double efficiency;
-			is >> efficiency;
-			data.efficiency = efficiency;
-		}
+		double efficiencyParam;
+		is >> efficiencyParam;
+		data.efficiencyParam = efficiencyParam;
 
 		return is;
 	}
