@@ -24,9 +24,6 @@
 
 
 
-namespace command_processor
-{
-
 	using namespace electric_net;
 	using namespace file_server;
 
@@ -3096,7 +3093,6 @@ namespace command_processor
 		(*currentCommand)(tokens);
 	}
 
-}
 
 
 
@@ -3110,10 +3106,6 @@ namespace command_processor
 #ifdef DEBUG
 extern shared_ptr<electric_net::ElectricNet> readTreeFromFile (string name, string path)
 {
-	using namespace command_processor;
-
-
-
 	TokensDeque tokens = { name, path };
 	CommandLoad cl;
 	cl(tokens);
@@ -3124,10 +3116,6 @@ extern shared_ptr<electric_net::ElectricNet> readTreeFromFile (string name, stri
 
 extern void writeTreeToFile (string name, string path, shared_ptr<electric_net::ElectricNet> source)
 {
-	using namespace command_processor;
-
-
-
 	activePowerTree = source;
 	TokensDeque tokens = { name, path };
 	CommandSave sv;
@@ -3137,10 +3125,6 @@ extern void writeTreeToFile (string name, string path, shared_ptr<electric_net::
 
 extern void resetTree ()
 {
-	using namespace command_processor;
-
-
-
 	activePowerTree.reset();
 	fileName = "";
 	path = "";
