@@ -30,6 +30,29 @@ Small fixing:
 
 
 
+Criteria                                  Pointers        Functors
+Unified body of ()                           -               +
+Needs constructor for each command           +               -
+Encapsulation of agrs                        - (weak)        +
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Wishes for user input handling:
 - Add keys to params
 - Unificate behavior with an undefined name of command object
