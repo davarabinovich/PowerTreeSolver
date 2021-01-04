@@ -54,7 +54,8 @@
     <Text Include="high-level design\stroraging_format.txt" />
     <Text Include="high-level design\tree data structure requirements.txt" />
     <Text Include="high-level design\tree%27s nodes and parameters.txt" />
-    <Text Include="high-level_design\refactoring ideas.txt" />
+    <Text Include="high-level_design\command_processor_options.txt" />
+    <Text Include="high-level_design\forest_options.txt" />
     <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>

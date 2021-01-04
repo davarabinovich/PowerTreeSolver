@@ -1,0 +1,22 @@
+
+II. Arguments of commands
+- Variant
+    One unified variant structure on the base class Command. Each variant corresponds to some specified command
+    
+    Contra:
+        - Base class will know about all its descendants. Information of each command will kept far from class of that command.
+    
+- Templates
+    Class Command is a template. Command classes are being inherited from Commands' instance by their arguments' structures.
+  
+    Contra:
+	    - Structs Args won't be members of the corresponding command classes  	
+	
+- Void pointers
+    It requires an overloading of casting to arguments structure operator overloading.
+
+	Contra:
+		- Requires an exsitance of static object (args struct into the function parseArgs), that is a workaround (similar to option with members)
+		- Dirty workaround
+
+- Members of command classes

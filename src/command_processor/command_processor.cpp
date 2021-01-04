@@ -41,41 +41,61 @@
 	}
 	
 	
-	
-	
 	static string fileName;
 	static string path;
 	
 	
 	
-	
-	
-
-
-
 
 
 	using Token = string;
 	using TokensDeque = deque<Token>;
 
 	
-	
+
+
 
 
 	class Command
 	{
-	
+
 		public:
-	
-			virtual void operator () (TokensDeque & tokens) const = 0;
-	
-	
-	
-	
+
+			virtual void operator () (TokensDeque & tokens) const;
+
+
+
+
 		protected:
-	
+
+			struct Args 
+			{
+			
+			};
+
+			struct ValidationData 
+			{
+					operator bool () const;
+
+				private:
+					bool isValid = false;
+			};
+
+
+
+
+			virtual void checkContext () const = 0;
+			Args& parseArgs(TokensDeque& tokens) const { static Args args;  return args; }
+			ValidationData& isArgsValid(Args& args) const { static ValidationData validationData; return validationData; }
+			void execute(Args& args) const {}
+			void reportExecution(const Args& args) const {}
+			void reportError(const ValidationData& validData) const {}
+
+
+
+
 			virtual ~Command () {;}
-	
+
 	};
 	
 	
@@ -84,19 +104,11 @@
 	
 	class CommandWorkingWithExsistingTree : public Command
 	{
-
 		protected:
+			virtual void checkContext () const override;
+			void ensureIfThereAreSomeTree () const;
 
-			void ensureIfThereAreSomeTree () const
-			{
-				if (isThereSomeTree())	return;
-				throw exception("There is no power tree. Create or load a tree");
-			}
-
-
-
-			virtual ~CommandWorkingWithExsistingTree () { ; }
-
+			virtual ~CommandWorkingWithExsistingTree () {;}
 	};
 
 
@@ -108,7 +120,7 @@
 
 		public:
 
-			virtual void operator () (TokensDeque& tokens) const override
+			virtual void operator () (TokensDeque & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -340,6 +352,9 @@
 			
 			
 			
+
+			virtual void checkContext() const override;
+
 			bool suggestSaveActiveTree () const
 			{
 				string activeTreeTitle = activePowerTree->getTitle();
@@ -2587,6 +2602,8 @@
 
 
 
+			virtual void checkContext() const override;
+
 			bool suggestSaveActiveTree () const
 			{
 				string activeTreeTitle = activePowerTree->getTitle();
@@ -2774,6 +2791,9 @@
 			};
 
 
+
+
+			virtual void checkContext() const override;
 
 			Arguments parseArguments (TokensDeque & tokens) const
 			{
@@ -3130,3 +3150,72 @@ extern void resetTree ()
 	path = "";
 }
 #endif
+
+
+
+
+
+
+
+
+Command::ValidationData::operator bool () const
+{
+	return isValid;
+}
+
+
+
+void Command::operator () (TokensDeque & tokens) const
+{
+	checkContext();
+	auto & args = parseArgs(tokens);
+	AUTO_CONST_REF validData = isArgsValid(args);
+	if (validData)
+	{
+		execute(args);
+		reportExecution(args);
+	}
+	else
+		reportError(validData);
+}
+
+
+
+
+void CommandCreate::checkContext () const
+{
+
+}
+
+
+void CommandWorkingWithExsistingTree::checkContext () const
+{
+
+}
+
+
+void CommandWorkingWithExsistingTree::ensureIfThereAreSomeTree () const
+{
+	if (isThereSomeTree())	return;
+	throw exception("There is no power tree. Create or load a tree");
+}
+
+
+
+
+
+
+
+
+
+
+void CommandLoad::checkContext () const
+{
+
+}
+
+
+void CommandChangeDirectory::checkContext() const
+{
+
+}

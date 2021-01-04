@@ -91,7 +91,10 @@
     <Text Include="global_todo.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="high-level_design\refactoring ideas.txt">
+    <Text Include="high-level_design\command_processor_options.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="high-level_design\forest_options.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
