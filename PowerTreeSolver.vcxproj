@@ -56,6 +56,7 @@
     <Text Include="high-level design\tree%27s nodes and parameters.txt" />
     <Text Include="high-level_design\command_processor_options.txt" />
     <Text Include="high-level_design\forest_options.txt" />
+    <Text Include="src\command_processor\new_command_templates.txt" />
     <Text Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>

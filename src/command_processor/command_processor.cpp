@@ -115,56 +115,21 @@
 
 			virtual void checkContext() const {}
 			virtual Args parseArgs(TokensCollection& tokens) const;
-			virtual void reportTooManyArgs () const;
 			virtual void complementArgs(Args args) const {};
 			virtual const ValidationData isArgsValid(Args args) const;
 
 			virtual const IntermediateData getIntermediateData() const;
-			virtual ExecutionData execute(const Args args) const { return ExecutionData(true); };
+			virtual const ExecutionData execute(const Args args) const { return ExecutionData(true); };
 			virtual void reportExecution(const Args args) const {};
 			virtual void reportError(const ValidationData validData) const {};
 			virtual void reportError(const ExecutionData validData) const {};
 
 
+			void reportTooManyArgs () const;
 
 
-
-
-			//void CommandX::checkContext() const
-			//{
-			//
-			//}
-			//
-			//
-			//Command::Args CommandX::parseArgs (TokensCollection & tokens) const
-			//{
-			//	static Args args;
-			//
-			//
-			//
-			//	return { &args };
-			//}
-			//
-			//
-			//void CommandX::complementArgs(Command::Args rawArgs) const
-			//{
-			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
-			//}
-			//
-			//
-			//void CommandX::execute(const Command::Args rawArgs) const
-			//{
-			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
-			//}
-			//
-			//
-			//void CommandX::reportExecution(const Command::Args rawArgs) const
-			//{
-			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
-			//}
-
-
-
+			template <typename Type>
+			void parseAndRecordArgAndRemoveToken (TokensCollection& tokens, Type & arg) const;
 
 			UserAnswer suggestEnterParamAndGetStr (string message = "") const;
 
@@ -400,7 +365,7 @@
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
 
-			virtual ExecutionData execute(const Command::Args args) const override;
+			virtual const ExecutionData execute(const Command::Args args) const override;
 			virtual void reportExecution(const Command::Args args) const override;
 
 
@@ -967,6 +932,18 @@
 		
 		private:
 		
+			struct Args
+			{
+				string name;
+
+				VarKind cvKind = VarKind::VOLTAGE;
+				double cvValue = NAN;
+				ConverterType type = ConverterType::PULSE;
+				double efficiencyParam = 100.0;
+
+				string parentName;
+			};
+
 			struct Arguments
 			{
 				string name = "";
@@ -980,6 +957,14 @@
 			};
 		
 		
+
+
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
+			virtual const Command::ValidationData isArgsValid(Command::Args args) const override;
+
+			virtual const Command::ExecutionData execute(const Command::Args args) const override;
+			virtual void reportExecution(const Command::Args args) const override;
 
 
 			Arguments parseArguments (TokensCollection & tokens) const
@@ -3107,7 +3092,10 @@ void Command::operator () (TokensCollection & tokens) const
 
 	auto args = parseArgs(tokens);
 	if (!tokens.empty())
+	{
 		reportTooManyArgs();
+		return;
+	}
 
 	complementArgs(args);
 	const auto validData = isArgsValid(args);
@@ -3120,7 +3108,10 @@ void Command::operator () (TokensCollection & tokens) const
 	const auto IntermediateData = getIntermediateData();
 	const auto executionData = execute(args);
 	if (!executionData.isSuccess)
+	{
 		reportError(executionData);
+		return;
+	}
 
 	reportExecution(args);
 }
@@ -3134,12 +3125,6 @@ Command::Args Command::parseArgs (TokensCollection & tokens) const
 }
 
 
-void Command::reportTooManyArgs () const
-{
-	cout << "Too many arguments for this command";
-}
-
-
 const Command::ValidationData Command::isArgsValid (Args args) const
 {
 	return ValidationData(true);
@@ -3149,6 +3134,35 @@ const Command::ValidationData Command::isArgsValid (Args args) const
 const Command::IntermediateData Command::getIntermediateData () const
 {
 	return IntermediateData();
+}
+
+
+void Command::reportTooManyArgs() const
+{
+	cout << "Too many arguments for this command";
+}
+
+
+template <typename Type>
+void Command::parseAndRecordArgAndRemoveToken (TokensCollection & tokens, Type & arg) const
+{
+	auto it = find_if(tokens.begin(), tokens.end(), Type::isInStr);
+	if (it != tokens.end())
+	{
+		arg = Type::parse(*it);
+		tokens.erase(it);
+	}
+}
+
+template <>
+void Command::parseAndRecordArgAndRemoveToken<double> (TokensCollection & tokens, double & arg) const
+{
+	auto it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (it != tokens.end())
+	{
+		arg = strToDouble(*it);
+		tokens.erase(it);
+	}
 }
 
 
@@ -3199,12 +3213,13 @@ Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
 	const auto tokensBegin_it = tokens.begin();
 	const auto tokensEnd_it = tokens.end();
 	
-	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
-	if (value_it != tokens.end())
+	parseAndRecordArgAndRemoveToken(tokens, args.firstInputCvValue);
+	/*auto value_it = find_if(tokensBegin_it, tokensEnd_it, isFloatNumberString);
+	if (value_it != tokensEnd_it)
 	{
 		args.firstInputCvValue = strToDouble(*value_it);
 		tokens.erase(value_it);
-	}
+	}*/
 
 	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
 	if (kind_it != tokens.end())
@@ -3246,7 +3261,7 @@ void CommandCreate::complementArgs (Command::Args rawArgs) const
 }
 
 
-Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs) const
 {
 	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
 
@@ -3268,7 +3283,7 @@ void CommandCreate::reportExecution (const Command::Args rawArgs) const
 
 	auto [name, firstInputName, firstInputCvKind, firstInputCvValue] = args;
 
-	cout << "A new power three " << name << " with a " << firstInputCvKind << " input \"" << firstInputName << "\"" << " "
+	cout << "A new power three \"" << name << "\" with a " << firstInputCvKind << " input \"" << firstInputName << "\"" << " "
 		 << firstInputCvValue << " " << getVarKindDesignatorStr(firstInputCvKind) << " has been created";
 	cout << endl << endl;
 }
@@ -3337,10 +3352,64 @@ void CommandWorkingWithExsistingTree::ensureIfThereAreSomeTree () const
 
 
 
+Command::Args CommandCreateConverter::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+
+
+	const auto tokensBegin_it = tokens.begin();
+	const auto tokensEnd_it = tokens.end();
+
+
+	return { &args };
+}
+
+
+void CommandCreateConverter::complementArgs(Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+}
+
+
+const Command::ValidationData CommandCreateConverter::isArgsValid(Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	return ValidationData();
+}
+
+
+const Command::ExecutionData CommandCreateConverter::execute(const Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	return ExecutionData();
+}
+
+
+void CommandCreateConverter::reportExecution(const Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+}
+
+
+
+
+
+
+
+
+
+
 void CommandLoad::checkContext () const
 {
 
 }
+
+
+
+
+
+
+
 
 
 void CommandChangeDirectory::checkContext() const

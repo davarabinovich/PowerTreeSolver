@@ -18,6 +18,7 @@ After main:
 - Remove workarounds on the end of command.cpp file
 - Make descent calls hierarchy
 - Clean up line breaks
+- Place final directives
 
 Small fixing:
 - Implement a possibility to exit "require..." functions discarding corresponding command execution

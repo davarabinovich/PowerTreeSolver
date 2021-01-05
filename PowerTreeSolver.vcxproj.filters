@@ -97,6 +97,9 @@
     <Text Include="high-level_design\forest_options.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="src\command_processor\new_command_templates.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\tests\test_storage.pts">
