@@ -90,14 +90,14 @@
 
 
 			virtual void checkContext () const = 0;
-			Args & parseArgs (TokensDeque & tokens) const { static Args args;  return args; }
-			void complementArgs (Args & args) const {}
-			const ValidationData & isArgsValid (Args & args) const { static ValidationData validationData; return validationData; }
+			virtual Args & parseArgs (TokensDeque & tokens) const { static Args args;  return args; }
+			virtual void complementArgs (Args & args) const {}
+			virtual const ValidationData & isArgsValid (Args & args) const { static ValidationData validationData; return validationData; }
 
-			const IntermediateData & genIntermediateData () const { static IntermediateData data; return data; }
-			void execute (const Args & args) const {}
-			void reportExecution (const Args & args) const {}
-			void reportError (const ValidationData & validData) const {}
+			virtual const IntermediateData & genIntermediateData () const { static IntermediateData data; return data; }
+			virtual void execute (const Args & args) const {}
+			virtual void reportExecution (const Args & args) const {}
+			virtual void reportError (const ValidationData & validData) const {}
 
 
 
@@ -3197,7 +3197,16 @@ void Command::operator () (TokensDeque & tokens) const
 
 void CommandCreate::checkContext () const
 {
-
+	if (isThereSomeTree())
+	{
+		bool needToSaveActiveTree = suggestSaveActiveTree();
+		if (needToSaveActiveTree)
+		{
+			CommandSave commandSave;
+			TokensDeque savingTokens;
+			commandSave(savingTokens);
+		}
+	}
 }
 
 

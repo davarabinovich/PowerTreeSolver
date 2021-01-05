@@ -8,8 +8,9 @@ Refactoring of Commands' processor plan:
 Main:
 - Make as class CommandProcessor
 - Use a fast method of structures returning
-- Use not only name but content during iterating at tree
+- Use not only name but also content during iterating at tree
 - Make as static everything that can be static
+- Unificate a "suggest" and "request" funs
 
 During main:
 - Use isYes and isNo everywhere it's possible
