@@ -73,6 +73,11 @@
 			
 			};
 
+			struct IntermediateData
+			{
+
+			};
+
 			struct ValidationData 
 			{
 					operator bool () const;
@@ -85,11 +90,14 @@
 
 
 			virtual void checkContext () const = 0;
-			Args& parseArgs(TokensDeque& tokens) const { static Args args;  return args; }
-			ValidationData& isArgsValid(Args& args) const { static ValidationData validationData; return validationData; }
-			void execute(Args& args) const {}
-			void reportExecution(const Args& args) const {}
-			void reportError(const ValidationData& validData) const {}
+			Args & parseArgs (TokensDeque & tokens) const { static Args args;  return args; }
+			void complementArgs (Args & args) const {}
+			const ValidationData & isArgsValid (Args & args) const { static ValidationData validationData; return validationData; }
+
+			const IntermediateData & genIntermediateData () const { static IntermediateData data; return data; }
+			void execute (const Args & args) const {}
+			void reportExecution (const Args & args) const {}
+			void reportError (const ValidationData & validData) const {}
 
 
 
@@ -3168,10 +3176,15 @@ Command::ValidationData::operator bool () const
 void Command::operator () (TokensDeque & tokens) const
 {
 	checkContext();
+
+
 	auto & args = parseArgs(tokens);
+	complementArgs(args);
 	AUTO_CONST_REF validData = isArgsValid(args);
+
 	if (validData)
 	{
+		AUTO_CONST_REF IntermediateData = genIntermediateData();
 		execute(args);
 		reportExecution(args);
 	}
