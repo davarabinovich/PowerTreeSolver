@@ -29,7 +29,7 @@ void handleCommandError (string errorMessage);
 int main (int argc, char * argv [], char * envp [])
 {
 #ifdef DEBUG
-	//TestAll();
+	TestAll();
 #endif
 
 

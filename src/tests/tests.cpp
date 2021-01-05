@@ -66,6 +66,153 @@ void TestForest ()
 
 
 
+void TestIsVarKindChecker ()
+{
+	using namespace electric_net;
+
+	//// Positive cases ////
+	{
+		string testingValue = "c";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "C";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "cur";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "Cur";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "current";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "Current";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "v";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "V";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "vol";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "Vol";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "voltage";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+	{
+		string testingValue = "Voltage";
+		bool result = isConverterTypeString(testingValue);
+		Assert(result, testingValue);
+	}
+
+
+	//// Negative cases ////
+	{
+		string testingValue = "ñ";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "Ñ";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "cu";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "Cu";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "cure";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "Cure";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "vo";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "Vo";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "volt";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "Volt";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+
+	{
+		string testingValue = "sdf";
+		bool result = isConverterTypeString(testingValue);
+		Assert(!result, testingValue);
+	}
+}
+
+
 void TestIsConverterTypeChecker ()
 {
 	using namespace electric_net;
@@ -222,6 +369,12 @@ void TestIsConverterTypeChecker ()
 }
 
 
+void TestVarKindFunctions ()
+{
+	TestIsVarKindChecker();
+}
+
+
 void TestConverterTypeFunctions ()
 {
 	TestIsConverterTypeChecker();
@@ -230,6 +383,7 @@ void TestConverterTypeFunctions ()
 
 void TestApiCommonFunctions ()
 {
+	TestVarKindFunctions();
 	TestConverterTypeFunctions();
 }
 
