@@ -14,6 +14,7 @@ During main:
 - Validation is possibly not required
 
 After main:
+- Command must be an abstract class
 - Remove workarounds on the end of command.cpp file
 - Make descent calls hierarchy
 - Clean up line breaks

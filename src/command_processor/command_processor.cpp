@@ -92,42 +92,73 @@
 
 			struct ValidationData 
 			{
-				public:
-					bool isValid () const;
+				ValidationData() {};
+				ValidationData(bool isValid);
+
+				ValidationData& operator = (ValidationData example);
+
+				bool isValid = false;
+			};
+
+			struct ExecutionData
+			{
+				ExecutionData() {};
+				ExecutionData(bool isSuccess);
+
+				ExecutionData& operator = (ExecutionData example);
+
+				bool isSuccess = false;
 			};
 
 
 
 
-			virtual void checkContext () const = 0;
-			virtual Args parseArgs (TokensCollection & tokens) const { static Args args;  return args; }
+			virtual void checkContext() const {}
+			virtual Args parseArgs(TokensCollection& tokens) const;
 			virtual void reportTooManyArgs () const;
-			virtual void complementArgs (Args args) const {}
-			virtual const ValidationData isArgsValid (Args args) const { static ValidationData validationData; return validationData; }
+			virtual void complementArgs(Args args) const {};
+			virtual const ValidationData isArgsValid(Args args) const;
 
-			virtual const IntermediateData getIntermediateData () const { static IntermediateData data; return data; }
-			virtual void execute (const Args args) const {}
-			virtual void reportExecution (const Args args) const {}
-			virtual void reportError (const ValidationData validData) const {}
-
-
-
+			virtual const IntermediateData getIntermediateData() const;
+			virtual ExecutionData execute(const Args args) const { return ExecutionData(true); };
+			virtual void reportExecution(const Args args) const {};
+			virtual void reportError(const ValidationData validData) const {};
+			virtual void reportError(const ExecutionData validData) const {};
 
 
 
-			//void CommandCreate::complementArgs(Command::Args rawArgs) const
+
+
+
+			//void CommandX::checkContext() const
+			//{
+			//
+			//}
+			//
+			//
+			//Command::Args CommandX::parseArgs (TokensCollection & tokens) const
+			//{
+			//	static Args args;
+			//
+			//
+			//
+			//	return { &args };
+			//}
+			//
+			//
+			//void CommandX::complementArgs(Command::Args rawArgs) const
 			//{
 			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
 			//}
 			//
 			//
-			//void CommandCreate::execute(const Command::Args rawArgs) const
+			//void CommandX::execute(const Command::Args rawArgs) const
 			//{
 			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
 			//}
 			//
 			//
-			//void CommandCreate::reportExecution(const Command::Args rawArgs) const
+			//void CommandX::reportExecution(const Command::Args rawArgs) const
 			//{
 			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
 			//}
@@ -368,12 +399,9 @@
 			virtual void checkContext() const override;
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
-			virtual const ValidationData isArgsValid(Command::Args args) const override;
 
-			virtual const IntermediateData getIntermediateData() const override;
-			virtual void execute(const Command::Args args) const override;
+			virtual ExecutionData execute(const Command::Args args) const override;
 			virtual void reportExecution(const Command::Args args) const override;
-			virtual void reportError(const ValidationData validData) const override;
 
 
 			bool suggestSaveActiveTree() const;
@@ -952,7 +980,8 @@
 			};
 		
 		
-		
+
+
 			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
@@ -3025,9 +3054,41 @@ Command::UserAnswer Command::UserAnswer::genInvalidAnswer ()
 
 
 
-bool Command::ValidationData::isValid () const
+
+
+
+
+Command::ValidationData::ValidationData (bool genIsValid)
+	: isValid(genIsValid)    {;}
+
+
+
+
+Command::ValidationData & Command::ValidationData::operator = (ValidationData example)
 {
-	return true;
+	isValid = example.isValid;
+	return *this;
+}
+
+
+
+
+
+
+
+
+
+
+Command::ExecutionData::ExecutionData (bool genIsSuccess)
+	: isSuccess(genIsSuccess) {;}
+
+
+
+
+Command::ExecutionData & Command::ExecutionData::operator = (ExecutionData example)
+{
+	isSuccess = example.isSuccess;
+	return *this;
 }
 
 
@@ -3050,23 +3111,44 @@ void Command::operator () (TokensCollection & tokens) const
 
 	complementArgs(args);
 	const auto validData = isArgsValid(args);
-
-	if (validData.isValid())
+	if (!validData.isValid)
 	{
-		const auto IntermediateData = getIntermediateData();
-		execute(args);
-		reportExecution(args);
-	}
-	else
 		reportError(validData);
+		return;
+	}
+	
+	const auto IntermediateData = getIntermediateData();
+	const auto executionData = execute(args);
+	if (!executionData.isSuccess)
+		reportError(executionData);
+
+	reportExecution(args);
 }
 
 
 
 
+Command::Args Command::parseArgs (TokensCollection & tokens) const
+{
+	return Args();
+}
+
+
 void Command::reportTooManyArgs () const
 {
 	cout << "Too many arguments for this command";
+}
+
+
+const Command::ValidationData Command::isArgsValid (Args args) const
+{
+	return ValidationData(true);
+}
+
+
+const Command::IntermediateData Command::getIntermediateData () const
+{
+	return IntermediateData();
 }
 
 
@@ -3164,21 +3246,7 @@ void CommandCreate::complementArgs (Command::Args rawArgs) const
 }
 
 
-const CommandCreate::ValidationData CommandCreate::isArgsValid(Command::Args args) const
-{
-	static ValidationData data;
-	return data;
-}
-
-
-const CommandCreate::IntermediateData CommandCreate::getIntermediateData () const
-{
-	static IntermediateData data;
-	return data;
-}
-
-
-void CommandCreate::execute (const Command::Args rawArgs) const
+Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs) const
 {
 	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
 
@@ -3187,6 +3255,9 @@ void CommandCreate::execute (const Command::Args rawArgs) const
 	fileName = args.name;
 
 	createInputByArgs(args);
+
+	
+	return ExecutionData(true);
 }
 
 
@@ -3203,13 +3274,7 @@ void CommandCreate::reportExecution (const Command::Args rawArgs) const
 }
 
 
-void CommandCreate::reportError (const ValidationData validData) const
-{
-
-}
-
-
-bool CommandCreate::suggestSaveActiveTree() const
+bool CommandCreate::suggestSaveActiveTree () const
 {
 	string activeTreeTitle = activePowerTree->getTitle();
 	cout << "Do you want to save the power tree \"" << activeTreeTitle << "\"?" << endl;
@@ -3223,7 +3288,7 @@ bool CommandCreate::suggestSaveActiveTree() const
 }
 
 
-void CommandCreate::createTreeByArgs(const Args & args) const
+void CommandCreate::createTreeByArgs (const Args & args) const
 {
 	string name = args.name;
 	if (name == "")
@@ -3233,7 +3298,7 @@ void CommandCreate::createTreeByArgs(const Args & args) const
 }
 
 
-void CommandCreate::createInputByArgs(const Args & args) const
+void CommandCreate::createInputByArgs (const Args & args) const
 {
 	string name = args.firstInputName;
 	if (name == "")

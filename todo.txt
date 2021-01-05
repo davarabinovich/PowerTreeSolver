@@ -3,6 +3,7 @@ Wishes for Command processor:
 - I don't like, that CommandSave is placed before CommandCreate
 - Invalid answer to library
 - Command to library
+- ValData and ExecData - via macros for their struct
 
 
 
