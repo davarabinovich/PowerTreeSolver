@@ -49,7 +49,7 @@
 
 
 	using Token = string;
-	using TokensDeque = deque<Token>;
+	using TokensCollection = deque<Token>;
 
 	
 
@@ -61,16 +61,28 @@
 
 		public:
 
-			virtual void operator () (TokensDeque & tokens) const;
+			virtual void operator () (TokensCollection & tokens) const;
 
 
 
 
 		protected:
 
+			struct UserAnswer
+			{
+				UserAnswer();
+				UserAnswer (string content);
+
+				static UserAnswer genInvalidAnswer();
+
+				bool isValid;
+				string content;
+			};
+
+
 			struct Args 
 			{
-			
+				void * args;
 			};
 
 			struct IntermediateData
@@ -80,24 +92,50 @@
 
 			struct ValidationData 
 			{
-					operator bool () const;
-
-				private:
-					bool isValid = false;
+				public:
+					bool isValid () const;
 			};
 
 
 
 
 			virtual void checkContext () const = 0;
-			virtual Args & parseArgs (TokensDeque & tokens) const { static Args args;  return args; }
-			virtual void complementArgs (Args & args) const {}
-			virtual const ValidationData & isArgsValid (Args & args) const { static ValidationData validationData; return validationData; }
+			virtual Args parseArgs (TokensCollection & tokens) const { static Args args;  return args; }
+			virtual void reportTooManyArgs () const;
+			virtual void complementArgs (Args args) const {}
+			virtual const ValidationData isArgsValid (Args args) const { static ValidationData validationData; return validationData; }
 
-			virtual const IntermediateData & genIntermediateData () const { static IntermediateData data; return data; }
-			virtual void execute (const Args & args) const {}
-			virtual void reportExecution (const Args & args) const {}
-			virtual void reportError (const ValidationData & validData) const {}
+			virtual const IntermediateData getIntermediateData () const { static IntermediateData data; return data; }
+			virtual void execute (const Args args) const {}
+			virtual void reportExecution (const Args args) const {}
+			virtual void reportError (const ValidationData validData) const {}
+
+
+
+
+
+
+			//void CommandCreate::complementArgs(Command::Args rawArgs) const
+			//{
+			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+			//}
+			//
+			//
+			//void CommandCreate::execute(const Command::Args rawArgs) const
+			//{
+			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+			//}
+			//
+			//
+			//void CommandCreate::reportExecution(const Command::Args rawArgs) const
+			//{
+			//	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+			//}
+
+
+
+
+			UserAnswer suggestEnterParamAndGetStr (string message = "") const;
 
 
 
@@ -128,7 +166,7 @@
 
 		public:
 
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -155,7 +193,7 @@
 
 
 
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				if (tokens.empty())    return Arguments();
 
@@ -309,238 +347,38 @@
 	class CommandCreate : public Command
 	{
 
-		public:
-
-			virtual void operator () (TokensDeque & tokens) const override
-			{
-				if (isThereSomeTree())
-				{
-					bool needToSaveActiveTree = suggestSaveActiveTree();
-					if (needToSaveActiveTree)
-					{
-						CommandSave commandSave;
-						TokensDeque savingTokens;
-						commandSave(savingTokens);
-					}
-				}
-
-				Arguments args;			
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-
-
-				if (args.name == "")
-					args.name = suggestEnterNameAndGet();
-
-				createTreeByArgs(args);
-				fileName = args.name;
-
-
-				if (args.inputName == "")
-					args.inputName = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
-
-				createInputByArgs(args);
-
-
-				reportExecution(args);
-			}
-
-
-
-
 		private:
 
-			struct Arguments
+			static const string name_suggesting_message;
+
+
+
+
+			struct Args 
 			{
-				string name = "";
-				string inputName = "";
-				VarKind inputCvType = VarKind::VOLTAGE;
-				double inputCvValue = NAN;
+				string name;
+				string firstInputName;
+				VarKind firstInputCvKind = VarKind::VOLTAGE;
+				double firstInputCvValue = 24;
 			}; 
 			
 			
 			
 
 			virtual void checkContext() const override;
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
+			virtual const ValidationData isArgsValid(Command::Args args) const override;
 
-			bool suggestSaveActiveTree () const
-			{
-				string activeTreeTitle = activePowerTree->getTitle();
-				cout << "Do you want to save the power tree \"" << activeTreeTitle << "\"?" << endl;
-				string answer; getline(cin, answer);
-
-				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-					return true;
-				else if (answer == "no" || answer == "No" || answer == "n" || answer == "N")
-					return false;
-				throw exception("Invalid answer");
-			}
-
-			Arguments parseArguments (TokensDeque & tokens) const
-			{
-				Arguments args;
-
-				if (tokens.empty()) return args;
-
-				Token handeledArg = tokens.front(); tokens.pop_front();
-				if (!isVarKindString(handeledArg))
-					if (!isFloatNumberString(handeledArg))
-						args.name = handeledArg;
-					else
-					{
-						args.inputCvValue = strToDouble(handeledArg);
-						if (tokens.size() != 0)
-							throw exception("CommandCreate: parseArguments");
-						return args;
-					}
-				else
-				{
-					args.inputCvType = parseVarKind(handeledArg);
-
-					if (tokens.size() != 0)
-					{
-						handeledArg = tokens.front(); tokens.pop_front();
-						if (!isFloatNumberString(handeledArg))
-					
-							throw exception("CommandCreate: parseArguments");
-						else
-						{
-							args.inputCvValue = strToDouble(handeledArg);
-							if (tokens.size() != 0)
-								throw exception("CommandCreate: parseArguments");
-						}
-					}
-
-					return args;
-				}
-				
-
-				if (tokens.size() == 0)    return args;
-			
-				handeledArg = tokens.front(); tokens.pop_front();
-				if (!isVarKindString(handeledArg))
-					if (!isFloatNumberString(handeledArg))
-						args.inputName = handeledArg;
-					else
-					{
-						args.inputCvValue = strToDouble(handeledArg);
-						if (tokens.size() != 0)
-							throw exception("CommandCreate: parseArguments");
-						return args;
-					}
-				else
-				{
-					args.inputCvType = parseVarKind(handeledArg);
-
-					if (tokens.size() != 0)
-					{
-						handeledArg = tokens.front(); tokens.pop_front();
-						if (!isFloatNumberString(handeledArg))
-							throw exception("CommandCreate: parseArguments");
-						else
-						{
-							args.inputCvValue = strToDouble(handeledArg);
-							if (tokens.size() != 0)
-								throw exception("CommandCreate: parseArguments");
-						}
-					}
-
-					return args;
-				}
+			virtual const IntermediateData getIntermediateData() const override;
+			virtual void execute(const Command::Args args) const override;
+			virtual void reportExecution(const Command::Args args) const override;
+			virtual void reportError(const ValidationData validData) const override;
 
 
-
-				if (tokens.size() == 0)    return args;
-					
-				handeledArg = tokens.front(); tokens.pop_front();
-				if (!isVarKindString(handeledArg))
-					if (!isFloatNumberString(handeledArg))
-						throw exception("CommandCreate: parseArguments");
-					else
-					{
-						args.inputCvValue = strToDouble(handeledArg);
-						if (tokens.size() != 0)
-							throw exception("CommandCreate: parseArguments");
-						return args;
-					}
-				else
-				{
-					args.inputCvType = parseVarKind(handeledArg);
-
-					if (tokens.size() != 0)
-					{
-						handeledArg = tokens.front(); tokens.pop_front();
-						if (!isFloatNumberString(handeledArg))
-							throw exception("CommandCreate: parseArguments");
-						else
-						{
-							args.inputCvValue = strToDouble(handeledArg);
-							if (tokens.size() != 0)
-								throw exception("CommandCreate: parseArguments");
-						}
-					}
-
-					return args;
-				}
-			}	
-
-			string suggestEnterNameAndGet () const
-			{
-				string name = "";
-				cout << "Do you want to set a name for the new tree?" << endl;
-				string answer; getline(cin, answer);
-
-				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-					getline(cin, name);
-				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-					throw exception("Invalid answer");
-
-				return name;
-			}
-			
-			void createTreeByArgs (const Arguments & args) const
-			{
-				string name = args.name;
-				if (name == "")
-					name = default_tree_name;
-				
-				activePowerTree = make_shared<PowerTree>(name);
-			}
-
-			void createInputByArgs (const Arguments & args) const
-			{
-				string name = args.inputName;
-				if (name == "")
-					name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
-
-				activePowerTree->addInput(name, args.inputCvType, args.inputCvValue);
-			}
-
-			void reportExecution (const Arguments & args) const
-			{
-				string name = args.name;
-				if (name == "")
-					name = default_tree_name;
-				name = "\"" + name + "\" ";
-				
-				string cvType = "voltage";
-				if (args.inputCvType == VarKind::CURRENT)
-					cvType = "current"; 
-
-				bool isCvValuePresent = false;
-				string cvUnit = "V";
-				if (!isnan(args.inputCvValue))
-				{
-					isCvValuePresent = true;
-					if (args.inputCvType == VarKind::CURRENT)
-						cvUnit = "A";
-				}
-
-
-				cout << "A new power three " << name << "with a " << cvType << " input \"" << args.inputName << "\"";
-				if (isCvValuePresent)	cout << " " << args.inputCvValue << " " << cvUnit;
-				cout << " is created" << endl << endl;
-			}
+			bool suggestSaveActiveTree() const;
+			void createTreeByArgs(const Args& args) const;
+			void createInputByArgs(const Args& args) const;
 
 };
 
@@ -553,7 +391,7 @@
 	
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -635,7 +473,7 @@
 	
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -794,7 +632,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -935,7 +773,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -968,7 +806,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 	
@@ -1075,7 +913,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1115,7 +953,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 	
@@ -1264,7 +1102,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1303,7 +1141,7 @@
 		
 	
 	
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 	
@@ -1480,7 +1318,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1509,7 +1347,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 				if (tokens.empty())    return args;
@@ -1652,7 +1490,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1686,7 +1524,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 				if (tokens.empty())    return args;
@@ -1862,7 +1700,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 	
@@ -1893,7 +1731,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 				if (tokens.empty())    return args;
@@ -2091,7 +1929,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2126,7 +1964,7 @@
 		
 		
 		
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 	
@@ -2250,7 +2088,7 @@
 		
 		public:
 		
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2284,7 +2122,7 @@
 
 
 
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 				bool isModeSpecifiedExplicitly = false;
@@ -2424,7 +2262,7 @@
 	
 	public:
 	
-		virtual void operator () (TokensDeque & tokens) const override
+		virtual void operator () (TokensCollection & tokens) const override
 		{
 			ensureIfThereAreSomeTree();
 
@@ -2453,7 +2291,7 @@
 
 
 
-		Arguments parseArguments (TokensDeque & tokens) const
+		Arguments parseArguments (TokensCollection & tokens) const
 		{
 			Arguments args;
 			bool isModeSpecifiedExplicitly = false;
@@ -2569,7 +2407,7 @@
 
 		public:
 
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				if (isThereSomeTree())
 				{
@@ -2577,7 +2415,7 @@
 					if (needToSaveActiveTree)
 					{
 						CommandSave commandSave;
-						TokensDeque savingTokens;
+						TokensCollection savingTokens;
 						commandSave(savingTokens);
 					}
 				}
@@ -2625,7 +2463,7 @@
 				throw exception("Invalid answer");
 			}
 
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				if (tokens.empty())    return Arguments();
 
@@ -2778,7 +2616,7 @@
 
 		public:
 
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				Arguments args;
 				try { args = parseArguments(tokens); }
@@ -2803,7 +2641,7 @@
 
 			virtual void checkContext() const override;
 
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				if (tokens.empty())    throw exception("Title of new directory should be specified");
 
@@ -2941,7 +2779,7 @@
 
 		public:
 
-			virtual void operator () (TokensDeque & tokens) const override
+			virtual void operator () (TokensCollection & tokens) const override
 			{
 				ensureIfThereAreSomeTree();
 
@@ -2968,7 +2806,7 @@
 
 		private:
 
-			Arguments parseArguments (TokensDeque & tokens) const
+			Arguments parseArguments (TokensCollection & tokens) const
 			{
 				Arguments args;
 				Token handeledArg;
@@ -3080,9 +2918,9 @@
 	
 
 
-	TokensDeque tokenize (const string & commandStr)
+	TokensCollection tokenize (const string & commandStr)
 	{
-		TokensDeque tokens;
+		TokensCollection tokens;
 
 		bool isActuallyWordRead = false;
 		Token actualWord;
@@ -3134,7 +2972,7 @@
 #ifdef DEBUG
 extern shared_ptr<electric_net::ElectricNet> readTreeFromFile (string name, string path)
 {
-	TokensDeque tokens = { name, path };
+	TokensCollection tokens = { name, path };
 	CommandLoad cl;
 	cl(tokens);
 	shared_ptr<ElectricNet> destination = dynamic_pointer_cast<ElectricNet>(activePowerTree);
@@ -3145,7 +2983,7 @@ extern shared_ptr<electric_net::ElectricNet> readTreeFromFile (string name, stri
 extern void writeTreeToFile (string name, string path, shared_ptr<electric_net::ElectricNet> source)
 {
 	activePowerTree = source;
-	TokensDeque tokens = { name, path };
+	TokensCollection tokens = { name, path };
 	CommandSave sv;
 	sv(tokens);
 }
@@ -3166,31 +3004,92 @@ extern void resetTree ()
 
 
 
-Command::ValidationData::operator bool () const
+Command::UserAnswer::UserAnswer ()
+	: isValid(true), content("")    {;}
+
+
+Command::UserAnswer::UserAnswer (string genContent)
+	: content(genContent)    {;}
+
+
+
+Command::UserAnswer Command::UserAnswer::genInvalidAnswer ()
 {
-	return isValid;
+	UserAnswer invalidAnswer("");
+	invalidAnswer.isValid = false;
+	return invalidAnswer;
 }
 
 
 
-void Command::operator () (TokensDeque & tokens) const
+
+
+
+bool Command::ValidationData::isValid () const
+{
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
+void Command::operator () (TokensCollection & tokens) const
 {
 	checkContext();
 
 
-	auto & args = parseArgs(tokens);
-	complementArgs(args);
-	AUTO_CONST_REF validData = isArgsValid(args);
+	auto args = parseArgs(tokens);
+	if (!tokens.empty())
+		reportTooManyArgs();
 
-	if (validData)
+	complementArgs(args);
+	const auto validData = isArgsValid(args);
+
+	if (validData.isValid())
 	{
-		AUTO_CONST_REF IntermediateData = genIntermediateData();
+		const auto IntermediateData = getIntermediateData();
 		execute(args);
 		reportExecution(args);
 	}
 	else
 		reportError(validData);
 }
+
+
+
+
+void Command::reportTooManyArgs () const
+{
+	cout << "Too many arguments for this command";
+}
+
+
+Command::UserAnswer Command::suggestEnterParamAndGetStr (string message) const
+{
+	string param_str = "";
+	cout << message << endl;
+	string answer; getline(cin, answer);
+
+	if (isNo(answer))
+		return UserAnswer("");
+
+	if (!isYes(answer))
+		return UserAnswer::genInvalidAnswer();
+
+	getline(cin, param_str);
+	return param_str;
+}
+
+
+
+
+const string CommandCreate::name_suggesting_message = "Do you want to set a name for the new tree?";
 
 
 
@@ -3203,11 +3102,153 @@ void CommandCreate::checkContext () const
 		if (needToSaveActiveTree)
 		{
 			CommandSave commandSave;
-			TokensDeque savingTokens;
+			TokensCollection savingTokens;
 			commandSave(savingTokens);
 		}
 	}
 }
+
+
+Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+
+
+	const auto tokensBegin_it = tokens.begin();
+	const auto tokensEnd_it = tokens.end();
+	
+	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (value_it != tokens.end())
+	{
+		args.firstInputCvValue = strToDouble(*value_it);
+		tokens.erase(value_it);
+	}
+
+	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
+	if (kind_it != tokens.end())
+	{
+		args.firstInputCvKind = parseVarKind(*kind_it);
+		tokens.erase(kind_it);
+	}
+	
+	if (tokens.empty())
+		return { &args };
+	args.name = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.firstInputName = tokens.front();
+	tokens.pop_front();
+
+	return { &args };
+}
+
+
+void CommandCreate::complementArgs (Command::Args rawArgs) const
+{
+	auto args = *( reinterpret_cast<Args*>(rawArgs.args) );
+
+
+	if (args.name.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(name_suggesting_message);
+		if (answer.isValid && !answer.content.empty())
+			args.name = answer.content;
+		else
+			args.name = default_tree_name;
+	}
+
+	if (args.firstInputName.empty())
+		args.firstInputName = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+}
+
+
+const CommandCreate::ValidationData CommandCreate::isArgsValid(Command::Args args) const
+{
+	static ValidationData data;
+	return data;
+}
+
+
+const CommandCreate::IntermediateData CommandCreate::getIntermediateData () const
+{
+	static IntermediateData data;
+	return data;
+}
+
+
+void CommandCreate::execute (const Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+
+	createTreeByArgs(args);
+	fileName = args.name;
+
+	createInputByArgs(args);
+}
+
+
+void CommandCreate::reportExecution (const Command::Args rawArgs) const
+{
+	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+
+	auto [name, firstInputName, firstInputCvKind, firstInputCvValue] = args;
+
+	cout << "A new power three " << name << " with a " << firstInputCvKind << " input \"" << firstInputName << "\"" << " "
+		 << firstInputCvValue << " " << getVarKindDesignatorStr(firstInputCvKind) << " has been created";
+	cout << endl << endl;
+}
+
+
+void CommandCreate::reportError (const ValidationData validData) const
+{
+
+}
+
+
+bool CommandCreate::suggestSaveActiveTree() const
+{
+	string activeTreeTitle = activePowerTree->getTitle();
+	cout << "Do you want to save the power tree \"" << activeTreeTitle << "\"?" << endl;
+	string answer; getline(cin, answer);
+
+	if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
+		return true;
+	else if (answer == "no" || answer == "No" || answer == "n" || answer == "N")
+		return false;
+	throw exception("Invalid answer");
+}
+
+
+void CommandCreate::createTreeByArgs(const Args & args) const
+{
+	string name = args.name;
+	if (name == "")
+		name = default_tree_name;
+
+	activePowerTree = make_shared<PowerTree>(name);
+}
+
+
+void CommandCreate::createInputByArgs(const Args & args) const
+{
+	string name = args.firstInputName;
+	if (name == "")
+		name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+
+	activePowerTree->addInput(name, args.firstInputCvKind, args.firstInputCvValue);
+}
+
+
+
+
+
+
+
+
 
 
 void CommandWorkingWithExsistingTree::checkContext () const
