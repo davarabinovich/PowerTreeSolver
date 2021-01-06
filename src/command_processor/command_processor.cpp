@@ -128,9 +128,6 @@
 			void reportTooManyArgs () const;
 
 
-			template <typename Type>
-			void parseAndRecordArgAndRemoveToken (TokensCollection& tokens, Type & arg) const;
-
 			UserAnswer suggestEnterParamAndGetStr (string message = "") const;
 
 
@@ -3143,29 +3140,6 @@ void Command::reportTooManyArgs() const
 }
 
 
-template <typename Type>
-void Command::parseAndRecordArgAndRemoveToken (TokensCollection & tokens, Type & arg) const
-{
-	auto it = find_if(tokens.begin(), tokens.end(), Type::isInStr);
-	if (it != tokens.end())
-	{
-		arg = Type::parse(*it);
-		tokens.erase(it);
-	}
-}
-
-template <>
-void Command::parseAndRecordArgAndRemoveToken<double> (TokensCollection & tokens, double & arg) const
-{
-	auto it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
-	if (it != tokens.end())
-	{
-		arg = strToDouble(*it);
-		tokens.erase(it);
-	}
-}
-
-
 Command::UserAnswer Command::suggestEnterParamAndGetStr (string message) const
 {
 	string param_str = "";
@@ -3213,13 +3187,12 @@ Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
 	const auto tokensBegin_it = tokens.begin();
 	const auto tokensEnd_it = tokens.end();
 	
-	parseAndRecordArgAndRemoveToken(tokens, args.firstInputCvValue);
-	/*auto value_it = find_if(tokensBegin_it, tokensEnd_it, isFloatNumberString);
-	if (value_it != tokensEnd_it)
+	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (value_it != tokens.end())
 	{
 		args.firstInputCvValue = strToDouble(*value_it);
 		tokens.erase(value_it);
-	}*/
+	}
 
 	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
 	if (kind_it != tokens.end())

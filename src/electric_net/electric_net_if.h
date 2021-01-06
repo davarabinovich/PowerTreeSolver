@@ -93,9 +93,8 @@ namespace electric_net
 
 	inline bool isVarKindString (const string & str)
 	{
-		if (str[0] != 'c' && str[0] != 'C' && str[0] != 'v' && str[0] != 'V') return false;
-		if (str != "cur" && str != "Cur" && str != "current" && str != "Current")
-			if (str != "vol" && str != "Vol" && str != "voltage" && str != "Voltage") return false;
+		if (str != "c" && str != "C" && str != "cur" && str != "Cur" && str != "current" && str != "Current")
+			if (str != "v" && str != "V" && str != "vol" && str != "Vol" && str != "voltage" && str != "Voltage") return false;
 		return true;
 	}
 	
