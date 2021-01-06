@@ -22,6 +22,7 @@ namespace electric_net
 	
 	const string default_tree_name = "New power tree";
 
+	const string default_frist_input_name = "in1";
 	const string default_input_name_body = "in";
 	const string default_converter_name_body = "con";
 	const string default_load_name_body = "load";
@@ -428,7 +429,7 @@ namespace electric_net
 			virtual void insertConverter (Key name, Key sourceName, ConverterType type = ConverterType::PULSE, VarKind cvType = VarKind::VOLTAGE, 
 							              double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void insertConverter (Key name, Key sourceName, Key sinkName, ConverterType type = ConverterType::PULSE, 
-								  VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
+								          VarKind cvType = VarKind::VOLTAGE, double cvValue = 0.0, double efficiency = 100.0) = 0;
 			virtual void addLoad (Key name, Key sourceName, LoadType type, double param) = 0;
 			virtual void addLoad (Key name, LoadType type, double param) = 0;
 			virtual void addLoad (Key name, Key sourceName, LoadType type, double mainParam, double secondaryParam) = 0;

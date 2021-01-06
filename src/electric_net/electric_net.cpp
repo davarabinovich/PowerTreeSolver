@@ -19,6 +19,9 @@ namespace electric_net
 
 		auto newInput_ptr = make_shared<Input>(type, cvValue);
 		net.addRoot(name, newInput_ptr);
+
+		if (name == default_frist_input_name)
+			actualDefaultInputNumber++;
 	}
 
 	void ElectricNet::addConverter (Key name, Key sourceName, ConverterType type, VarKind cvType, double cvValue, double efficiency)
@@ -816,14 +819,15 @@ namespace electric_net
 				break;
 
 			case ConverterType::LINEAR:
+				inputValue = converter->efficiencyParam;
 				switch (converterVarKind)
 				{
 					case VarKind::VOLTAGE:
-						inputValue = converter->avValue + converter->efficiencyParam;
+						inputValue += converter->avValue;
 						break;
 
 					case VarKind::CURRENT:
-						inputValue = converter->cvValue + converter->efficiencyParam;
+						inputValue += converter->cvValue;
 						break;
 
 

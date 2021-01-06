@@ -19,12 +19,14 @@ After main:
 - Make descent calls hierarchy
 - Clean up line breaks
 - Place final directives
+- Understand why deque.erase(it) doen't work with it to last elem
 
 Small fixing:
 - Implement a possibility to exit "require..." functions discarding corresponding command execution
 - Implement qt as a native command with the API function isQuitCommand
 - Needs to distinguish cases, when command's parameter has been typed and not typed. Needs to understand how to detect for cin, that a user is continuously pressing Enter
 - Do something with empty functions
+- Refactor suggestSaveActiveTree
 
 
 

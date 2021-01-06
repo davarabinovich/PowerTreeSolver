@@ -68,6 +68,9 @@
 
 		protected:
 
+			enum class MessageMode { STRAIGHT, REVERSE };
+
+			
 			struct UserAnswer
 			{
 				UserAnswer();
@@ -128,7 +131,8 @@
 			void reportTooManyArgs () const;
 
 
-			UserAnswer suggestEnterParamAndGetStr (string message = "") const;
+			UserAnswer suggestEnterParamAndGetStr (string message = "", MessageMode mode = MessageMode::STRAIGHT) const;
+			UserAnswer requestParamAndGet(string message = "") const;
 
 
 
@@ -901,34 +905,16 @@
 	class CommandCreateConverter : public CommandWorkingWithExsistingTree
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-	
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-	
-				if (args.name.empty())
-					args.name = suggestEnterNameAndGet();
-				if (isnan(args.cvValue))
-					args.cvValue = requestCvValue(args.cvType);
-				if (args.parentName == "")
-					args.parentName = suggestSpecifieParentAndGet();
-		
-				createConverterByArgs(args);
-		
-				reportExecution(args);
-			}
-		
-		
-		
-		
 		private:
 		
+			static const string name_suggesting_message;
+			static const string parent_suggesting_message;
+
+			static const string cv_value_requiresting_message_template;
+
+
+
+
 			struct Args
 			{
 				string name;
@@ -940,167 +926,18 @@
 
 				string parentName;
 			};
-
-			struct Arguments
-			{
-				string name = "";
-				VarKind cvType = VarKind::VOLTAGE;
-				double cvValue = NAN;
-	
-				ConverterType type = ConverterType::PULSE;
-				double efficiencyParam = 100.0;
-	
-				string parentName = "";
-			};
 		
 		
 
 
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
-			virtual const Command::ValidationData isArgsValid(Command::Args args) const override;
 
 			virtual const Command::ExecutionData execute(const Command::Args args) const override;
 			virtual void reportExecution(const Command::Args args) const override;
 
 
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				Arguments args;
-	
-				if (tokens.empty())    return args;
-	
-	
-				auto handeledArg = tokens.front();
-	
-				if (!isVarKindString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
-				{
-					args.name = handeledArg;
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isVarKindString(handeledArg))
-				{
-					args.cvType = parseVarKind(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isFloatNumberString(handeledArg))
-				{
-					args.cvValue = strToDouble(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isConverterTypeString(handeledArg))
-				{
-					args.type = parseConverterType(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isFloatNumberString(handeledArg))
-				{
-					args.efficiencyParam = strToDouble(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (!isVarKindString(handeledArg) && !isConverterTypeString(handeledArg) && !isFloatNumberString(handeledArg))
-				{
-					args.parentName = handeledArg;
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-				}
-	
-				throw exception("There is at least one invalid argument");
-			}
-
-			string suggestEnterNameAndGet () const
-			{
-				string name = "";
-				cout << "Do you want to set a name for the new tree?" << endl;
-				string answer; getline(cin, answer);
-
-				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				{
-					getline(cin, name);
-					return name;
-				}
-				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-					throw exception("Invalid answer");
-
-				name = activePowerTree->getDefaultNodeName(DeviceType::CONVERTER);
-				return name;
-			}
-
-			double requestCvValue (const VarKind type) const
-			{
-				cout << "Plase enter a value of " << type << endl;
-				string enteredValue; getline(cin, enteredValue);
-				auto value = strToDouble(enteredValue);
-				return value;
-			}
-	
-			string suggestSpecifieParentAndGet () const
-			{
-				string parentName = "";
-				cout << "Do you want to leave the new converter unconnected?" << endl;
-				string answer; getline(cin, answer);
-	
-				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
-				{
-					cout << "Enter the name of parent source" << endl;
-					getline(cin, parentName);
-				}
-				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
-					throw exception("Invalid answer");
-	
-				return parentName;
-			}
-	
-			void createConverterByArgs (const Arguments & args) const
-			{
-				if (args.parentName == "")
-					activePowerTree->addConverter(args.name, args.type, args.cvType, args.cvValue, args.efficiencyParam);
-				else
-					activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvType, args.cvValue, args.efficiencyParam);
-			}
-	
-			void reportExecution (const Arguments & args) const
-			{
-				bool isFree = args.parentName.empty();
-	
-	
-				string name = "\"" + args.name + "\" ";
-	
-				string cvUnit = "V";
-				if (args.cvType == VarKind::CURRENT)
-					cvUnit = "A";
-	
-	
-				cout << "A new ";
-				if (isFree)
-					cout << "free ";
-				cout << args.type << " converter " << name << args.cvValue << " " << cvUnit;
-				cout << " is created";
-				if (!isFree)
-					cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
-				cout << endl << endl;
-			}
+			void createConverterByArgs (const Args & args) const;
 		
 	};
 
@@ -3140,20 +2977,39 @@ void Command::reportTooManyArgs() const
 }
 
 
-Command::UserAnswer Command::suggestEnterParamAndGetStr (string message) const
+Command::UserAnswer Command::suggestEnterParamAndGetStr (string message, MessageMode mode) const
 {
 	string param_str = "";
 	cout << message << endl;
 	string answer; getline(cin, answer);
 
-	if (isNo(answer))
-		return UserAnswer("");
+	if (mode == MessageMode::STRAIGHT)
+	{
+		if (isNo(answer))
+			return UserAnswer("");
 
-	if (!isYes(answer))
-		return UserAnswer::genInvalidAnswer();
+		if (!isYes(answer))
+			return UserAnswer::genInvalidAnswer();
+	}
+	else
+	{
+		if (isYes(answer))
+			return UserAnswer("");
+
+		if (!isNo(answer))
+			return UserAnswer::genInvalidAnswer();
+	}
 
 	getline(cin, param_str);
 	return param_str;
+}
+
+
+Command::UserAnswer Command::requestParamAndGet (string message) const
+{
+	cout << message << endl;
+	string answer; getline(cin, answer);
+	return answer;
 }
 
 
@@ -3184,8 +3040,12 @@ Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
 	static Args args;
 
 
-	const auto tokensBegin_it = tokens.begin();
-	const auto tokensEnd_it = tokens.end();
+	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
+	if (kind_it != tokens.end())
+	{
+		args.firstInputCvKind = parseVarKind(*kind_it);
+		tokens.erase(kind_it);
+	}
 	
 	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
 	if (value_it != tokens.end())
@@ -3194,13 +3054,6 @@ Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
 		tokens.erase(value_it);
 	}
 
-	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
-	if (kind_it != tokens.end())
-	{
-		args.firstInputCvKind = parseVarKind(*kind_it);
-		tokens.erase(kind_it);
-	}
-	
 	if (tokens.empty())
 		return { &args };
 	args.name = tokens.front();
@@ -3217,7 +3070,7 @@ Command::Args CommandCreate::parseArgs (TokensCollection & tokens) const
 
 void CommandCreate::complementArgs (Command::Args rawArgs) const
 {
-	auto args = *( reinterpret_cast<Args*>(rawArgs.args) );
+	auto & args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
 
 	if (args.name.empty())
@@ -3230,13 +3083,13 @@ void CommandCreate::complementArgs (Command::Args rawArgs) const
 	}
 
 	if (args.firstInputName.empty())
-		args.firstInputName = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+		args.firstInputName = default_frist_input_name;
 }
 
 
 const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
 
 	createTreeByArgs(args);
@@ -3251,7 +3104,7 @@ const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs
 
 void CommandCreate::reportExecution (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
 
 	auto [name, firstInputName, firstInputCvKind, firstInputCvValue] = args;
@@ -3306,7 +3159,7 @@ void CommandCreate::createInputByArgs (const Args & args) const
 
 void CommandWorkingWithExsistingTree::checkContext () const
 {
-
+	ensureIfThereAreSomeTree();
 }
 
 
@@ -3325,42 +3178,128 @@ void CommandWorkingWithExsistingTree::ensureIfThereAreSomeTree () const
 
 
 
+const string CommandCreateConverter::name_suggesting_message = "Do you want to set a name for the new converter?";
+const string CommandCreateConverter::parent_suggesting_message = "Do you want to leave the new converter unconnected?";
+
+const string CommandCreateConverter::cv_value_requiresting_message_template = "Please enter a value of ";
+
+
+
+
 Command::Args CommandCreateConverter::parseArgs (TokensCollection & tokens) const
 {
 	static Args args;
 
 
-	const auto tokensBegin_it = tokens.begin();
-	const auto tokensEnd_it = tokens.end();
+	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
+	if (kind_it != tokens.end())
+	{
+		args.cvKind = parseVarKind(*kind_it);
+		tokens.erase(kind_it);
+	}
 
+	auto type_it = find_if(tokens.begin(), tokens.end(), isConverterTypeString);
+	if (type_it != tokens.end())
+	{
+		args.type = parseConverterType(*type_it);
+		tokens.erase(type_it);
+	}
+	
+	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (value_it != tokens.end())
+	{
+		args.cvValue = strToDouble(*value_it);
+		tokens.erase(value_it);
+	}
+
+	auto efficiency_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (efficiency_it != tokens.end())
+	{
+		args.efficiencyParam = strToDouble(*efficiency_it);
+		tokens.erase(efficiency_it);
+	}
+
+	if (tokens.empty())
+		return { &args };
+	args.name = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.parentName = tokens.front();
+	tokens.pop_front();
 
 	return { &args };
 }
 
 
-void CommandCreateConverter::complementArgs(Command::Args rawArgs) const
+void CommandCreateConverter::complementArgs (Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	auto & args = *( reinterpret_cast<Args*>(rawArgs.args) );
+
+
+	if (args.name.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(name_suggesting_message);
+		if (answer.isValid && !answer.content.empty())
+			args.name = answer.content;
+		else
+			args.name = activePowerTree->getDefaultNodeName(DeviceType::CONVERTER);
+	}
+
+	if (isnan(args.cvValue))
+	{
+		auto answer = requestParamAndGet(cv_value_requiresting_message_template + args.cvKind);
+		args.cvValue = strToDouble(answer.content);
+	}
+
+	if (args.parentName.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(parent_suggesting_message, MessageMode::REVERSE);
+		if (answer.isValid && !answer.content.empty())
+			args.parentName = answer.content;
+		else
+			args.parentName = default_tree_name;
+	}
 }
 
 
-const Command::ValidationData CommandCreateConverter::isArgsValid(Command::Args rawArgs) const
+const Command::ExecutionData CommandCreateConverter::execute (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
-	return ValidationData();
+	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
+
+	createConverterByArgs(args);
+
+	return ExecutionData(true);
 }
 
 
-const Command::ExecutionData CommandCreateConverter::execute(const Command::Args rawArgs) const
+void CommandCreateConverter::reportExecution (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
-	return ExecutionData();
+	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
+
+
+	auto [name, cvKind, cvValue, type, efficiencyParam, parentName] = args;
+	bool isFree = args.parentName.empty();
+
+	cout << "A new ";
+	if (isFree)
+		cout << "free ";
+	cout << args.type << " converter \"" << name << "\" " << args.cvValue << " " << getVarKindDesignatorStr(args.cvKind) << " is created";
+	if (!isFree)
+		cout << " at the " << toStr(activePowerTree->getNodeType(args.parentName)) << " \"" << args.parentName << "\"";
+	cout << endl << endl;
 }
 
 
-void CommandCreateConverter::reportExecution(const Command::Args rawArgs) const
+
+
+void CommandCreateConverter::createConverterByArgs (const Args & args) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	if (args.parentName == "")
+		activePowerTree->addConverter(args.name, args.type, args.cvKind, args.cvValue, args.efficiencyParam);
+	else
+		activePowerTree->addConverter(args.name, args.parentName, args.type, args.cvKind, args.cvValue, args.efficiencyParam);
 }
 
 

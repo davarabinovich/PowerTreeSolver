@@ -25,8 +25,7 @@ Command::Args CommandCreateConverter::parseArgs (TokensCollection & tokens) cons
 	static Args args;
 
 
-	const auto tokensBegin_it = tokens.begin();
-	const auto tokensEnd_it = tokens.end();
+
 
 	return { &args };
 }
