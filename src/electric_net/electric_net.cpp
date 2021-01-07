@@ -467,6 +467,17 @@ namespace electric_net
 	}
 
 
+	VarKind ElectricNet::getConverterVarKind (Key converterName) const
+	{
+		ConverterData data;
+
+		AUTO_CONST_REF node = net.at(converterName);
+		AUTO_CONST_REF converter = dynamic_pointer_cast<Converter>(node);
+
+		return converter->cvKind;
+	}
+
+
 	bool ElectricNet::isLoadExsist (Key name) const
 	{
 		if (net.isExsist(name))

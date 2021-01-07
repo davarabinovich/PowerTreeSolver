@@ -14,15 +14,16 @@ virtual void reportError(const Command::ExecutionData validData) const override;
 
 
 
-void CommandCreateConverter::checkContext () const
+void CommandX::checkContext () const
 {
 
 }
 
 
-Command::Args CommandCreateConverter::parseArgs (TokensCollection & tokens) const
+Command::Args CommandX::parseArgs (TokensCollection & tokens) const
 {
 	static Args args;
+	args = Args();
 
 
 
@@ -31,45 +32,45 @@ Command::Args CommandCreateConverter::parseArgs (TokensCollection & tokens) cons
 }
 
 
-void CommandCreateConverter::complementArgs (Command::Args rawArgs) const
+void CommandX::complementArgs (Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	auto & args = *(reinterpret_cast<Args*>(rawArgs.args));
 }
 
 
-const Command::ValidationData CommandCreateConverter::isArgsValid (Command::Args rawArgs) const
+const Command::ValidationData CommandX::isArgsValid (Command::Args rawArgs) const
 {
-    auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+    AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
     return ValidationData();
 }
 
 
-const Command::IntermediateData CommandCreateConverter::getIntermediateData () const
+const Command::IntermediateData CommandX::getIntermediateData () const
 {
 	return IntermediateData();
 }
 
 
-const Command::ExecutionData CommandCreateConverter::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandX::execute (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 	return ExecutionData();
 }
 
 
-void CommandCreateConverter::reportExecution (const Command::Args rawArgs) const
+void CommandX::reportExecution (const Command::Args rawArgs) const
 {
-	auto args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 }
 
 
-void CommandCreateConverter::reportError (const Command::ValidationData validData) const
+void CommandX::reportError (const Command::ValidationData validData) const
 {
 	
 }
 
 
-void CommandCreateConverter::reportError (const Command::ExecutionData validData) const
+void CommandX::reportError (const Command::ExecutionData validData) const
 {
 
 }

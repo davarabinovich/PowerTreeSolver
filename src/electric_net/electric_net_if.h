@@ -475,6 +475,7 @@ namespace electric_net
 			virtual ResistiveLoadData getResistiveLoadData (Key loadName) const = 0;
 			virtual ConstantCurrentLoadData getConstantCurrentLoadData (Key loadName) const = 0;
 			virtual DiodeLoadData getDiodeLoadData (Key loadName) const = 0;
+			virtual VarKind getConverterVarKind (Key converterName) const = 0;
 			virtual bool isLoadExsist (Key name) const = 0;
 			virtual LoadType getLoadType (Key name) const = 0;
 
