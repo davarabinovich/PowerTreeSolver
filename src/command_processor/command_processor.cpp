@@ -1762,170 +1762,33 @@
 	class CommandMoveSink : public CommandWorkingWithExsistingTree
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-
-
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-		
-				if (args.name == "")
-					args.name = requestNameAndGet();
-				if (args.newParentName == "")
-					args.newParentName = requestNewParentNameAndGet();
-		
-				connectSinkTo(args);
-		
-				reportExecution(args);
-			}
-		
-		
-		
-		
 		private:
 		
-			struct Arguments
+			static const string name_requesting_message;
+			static const string new_parent_name_requesting_message;
+
+
+
+
+			struct Args
 			{
-				string name = "";
-				string newParentName = "";
+				string name;
+				string newParentName;
 				optional<MotionMode> mode = MotionMode::WITH_DESCES;
-				optional<string> newSinksParentName = "";
+				optional<string> newSinksParentName;
 			};
 
 
 
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				Arguments args;
-				bool isModeSpecifiedExplicitly = false;
-	
-				if (tokens.empty())    return args;
-	
-	
-				auto handeledArg = tokens.front();
-	
-				if (!isMotionModeString(handeledArg))
-				{
-					args.name = handeledArg;
 
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isMotionModeString(handeledArg))
-				{
-					isModeSpecifiedExplicitly = true;
-					args.mode = parseMotionMode(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (!isMotionModeString(handeledArg))
-				{
-					args.newParentName = handeledArg;
-						
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (!isMotionModeString(handeledArg))
-				{
-					args.newSinksParentName = handeledArg;
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
 
-					if ( isModeSpecifiedExplicitly && (args.mode != MotionMode::RECONNECT_DESCES) )
-						throw exception ("New parent for descendants can't be specified when motion modei is not \"Reconnect\"");
-
-					args.mode = MotionMode::RECONNECT_DESCES;
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-				}
+			virtual const Command::ExecutionData execute(const Command::Args args) const override;
+			virtual void reportExecution(const Command::Args args) const override;
 
 
-				throw exception("Too many arguments for this command");
-			}
-
-			string requestNameAndGet () const
-			{
-				cout << "Please enter name of the moving sink" << endl;
-				string newName; getline(cin, newName);
-				return newName;
-			}
-
-			string requestNewParentNameAndGet () const
-			{
-				cout << "Please enter name of a desired new parent" << endl;
-				string newName; getline(cin, newName);
-				return newName;
-			}
-
-			void connectSinkTo (const Arguments & args) const
-			{
-				if ( activePowerTree->isLoadExsist(args.name) )
-					activePowerTree->moveLoad(args.name, args.newParentName);
-				else
-				{
-					switch (*args.mode)
-					{
-						case MotionMode::WITH_DESCES:
-							activePowerTree->moveSubnet(args.name, args.newParentName);
-							break;
-
-						case MotionMode::FREE_DESCES:
-							activePowerTree->moveNode(args.name, args.newParentName);
-							break;
-
-						case MotionMode::RECONNECT_DESCES:
-							activePowerTree->moveNode(args.name, args.newParentName, *args.newSinksParentName);
-							break;
-
-
-						default:
-							throw exception("Invalid mode of deleting a source");
-					}
-				}
-			}
-
-			void reportExecution (const Arguments & args) const
-			{
-				string type = toStr( activePowerTree->getNodeType(args.name) );
-				cout << capitalize(type) << " \"" << args.name << "\" has been connected to the " 
-					 << toStr( activePowerTree->getNodeType(args.newParentName) ) << " \"" << args.newParentName << "\"";
-
-				if (type == "load")
-				{
-					cout << "." << endl;
-					return;
-				}
-
-				switch (*args.mode)
-				{
-					case MotionMode::WITH_DESCES:
-						cout << " with its sinks." << endl;
-						return;
-
-					case MotionMode::FREE_DESCES:
-						cout << ". All sinks are left free." << endl;
-						return;
-
-					case MotionMode::RECONNECT_DESCES:
-						cout << ". All sinks have been connected to the " << toStr( activePowerTree->getNodeType(*args.newSinksParentName) ) 
-							 << " \"" << *args.newSinksParentName << "\"." << endl;
-						return;
-
-
-					default:
-						;
-				}
-			}
+			void connectSinkTo(const Args& args) const;
 		
 };
 
@@ -3141,9 +3004,9 @@ const Command::ExecutionData CommandCreateConverter::execute (const Command::Arg
 void CommandCreateConverter::reportExecution (const Command::Args rawArgs) const
 {
 	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
-
-
 	auto [name, cvKind, cvValue, type, efficiencyParam, parentName] = args;
+
+
 	bool isFree = args.parentName.empty();
 
 	cout << "A new ";
@@ -3284,28 +3147,29 @@ const Command::ExecutionData CommandModifyConverter::execute (const Command::Arg
 void CommandModifyConverter::reportExecution (const Command::Args rawArgs) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	auto [currentName, newName, cvKind, cvValue, type, efficiencyParam] = args;
 
 
-	cout << "Parameters of converter \"" << args.currentName << "\" is changed: ";
+	cout << "Parameters of converter \"" << currentName << "\" is changed: ";
 
-	if (args.newName)
-		cout << endl << "    Name - \"" << *args.newName << "\"";
-	if (args.type)
-		cout << endl << "    Type - " << *args.type;
-	if (args.cvKind)
-		cout << endl << "    Type of controlled variable - " << *args.cvKind;
+	if (newName)
+		cout << endl << "    Name - \"" << *newName << "\"";
+	if (type)
+		cout << endl << "    Type - " << *type;
+	if (cvKind)
+		cout << endl << "    Type of controlled variable - " << *cvKind;
 	
-	if (args.cvValue)
+	if (cvValue)
 	{
-		string actualName = args.currentName;
-		if (args.newName)
-			actualName = *args.newName;
+		string actualName = currentName;
+		if (newName)
+			actualName = *newName;
 
 		auto nodeType = activePowerTree->getConverterVarKind(actualName);
-		cout << endl << "    Controlled variable - " << *args.cvValue << " " << getVarKindDesignatorStr(nodeType);
+		cout << endl << "    Controlled variable - " << *cvValue << " " << getVarKindDesignatorStr(nodeType);
 	}
-	if (args.efficiencyParam)
-		cout << endl << "    Efficiency - " << *args.efficiencyParam << " %";
+	if (efficiencyParam)
+		cout << endl << "    Efficiency - " << *efficiencyParam << " %";
 
 	cout << endl;
 }
@@ -3324,6 +3188,145 @@ void CommandModifyConverter::modifyConverterParams (const Args & args) const
 
 	if (args.newName)
 		activePowerTree->renameNode(args.currentName, *args.newName);
+}
+
+
+
+
+
+
+
+
+
+
+const string CommandMoveSink::name_requesting_message = "Please enter name of the moving sink";
+const string CommandMoveSink::new_parent_name_requesting_message = "Please enter name of a desired new parent";
+
+
+
+
+Command::Args CommandMoveSink::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+	auto mode_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (mode_it != tokens.end())
+	{
+		args.mode = parseMotionMode(*mode_it);
+		tokens.erase(mode_it);
+	}
+
+	if (tokens.empty())
+		return { &args };
+	args.name = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.newParentName = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.newSinksParentName = tokens.front();
+	tokens.pop_front();
+
+	return { &args };
+}
+
+
+void CommandMoveSink::complementArgs (Command::Args rawArgs) const
+{
+	auto & args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+
+	if (args.name.empty())
+	{
+		auto answer = requestParamAndGet(name_requesting_message);
+		args.name = answer.content;
+	}
+
+	if (args.newParentName.empty())
+	{
+		auto answer = requestParamAndGet(new_parent_name_requesting_message);
+		args.newParentName = answer.content;
+	}
+}
+
+
+const Command::ExecutionData CommandMoveSink::execute (const Command::Args rawArgs) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	connectSinkTo(args);
+
+	return ExecutionData(true);
+}
+
+
+void CommandMoveSink::reportExecution (const Command::Args rawArgs) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	auto [name, newParentName, mode, newSinksParentName] = args;
+
+
+	string type = toStr(activePowerTree->getNodeType(name));
+	cout << capitalize(type) << " \"" << name << "\" has been connected to the "
+		<< toStr(activePowerTree->getNodeType(newParentName)) << " \"" << newParentName << "\"";
+
+	if (type == "load")
+	{
+		cout << "." << endl;
+		return;
+	}
+
+	switch (*mode)
+	{
+		case MotionMode::WITH_DESCES:
+			cout << " with its sinks." << endl;
+			return;
+
+		case MotionMode::FREE_DESCES:
+			cout << ". All sinks are left free." << endl;
+			return;
+
+		case MotionMode::RECONNECT_DESCES:
+			cout << ". All sinks have been connected to the " << toStr(activePowerTree->getNodeType(*newSinksParentName))
+				<< " \"" << *newSinksParentName << "\"." << endl;
+			return;
+	}
+}
+
+
+void CommandMoveSink::connectSinkTo (const Args & args) const
+{
+	auto [name, newParentName, mode, newSinksParentName] = args;
+
+	if (activePowerTree->isLoadExsist(name))
+		activePowerTree->moveLoad(name, newParentName);
+	else
+	{
+		switch (*args.mode)
+		{
+			case MotionMode::WITH_DESCES:
+				activePowerTree->moveSubnet(name, newParentName);
+				break;
+
+			case MotionMode::FREE_DESCES:
+				activePowerTree->moveNode(name, newParentName);
+				break;
+
+			case MotionMode::RECONNECT_DESCES:
+				activePowerTree->moveNode(name, newParentName, *newSinksParentName);
+				break;
+
+
+			default:
+				throw exception("Invalid mode of deleting a source");
+		}
+	}
 }
 
 

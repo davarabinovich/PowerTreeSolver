@@ -54,7 +54,7 @@ const Command::IntermediateData CommandX::getIntermediateData () const
 const Command::ExecutionData CommandX::execute (const Command::Args rawArgs) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
-	return ExecutionData();
+	return ExecutionData(true);
 }
 
 
