@@ -47,7 +47,7 @@
 	
 	
 
-
+	
 	using Token = string;
 	using TokensCollection = deque<Token>;
 
@@ -165,28 +165,9 @@
 	class CommandSave : public CommandWorkingWithExsistingTree
 	{
 
-		public:
-
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-
-
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception& ex) { throw exception(ex.what()); }
-
-				updateSystemVariables(args);
-				recordPowerTree(args);
-				reportExecution(args);
-			}
-
-
-
-
 		private:
 
-			struct Arguments
+			struct Args
 			{
 				string fileName;
 				string path;
@@ -194,150 +175,54 @@
 
 
 
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				if (tokens.empty())    return Arguments();
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
+
+			virtual const Command::ExecutionData execute(const Command::Args args) const override;
+			virtual void reportExecution(const Command::Args args) const override;
 
 
-				Arguments args;
-
-				if (tokens.size() == 1)
-				{
-					auto handeledArg = tokens.front();
-
-					if (isBackSlashInString(handeledArg))
-						args.path = handeledArg;
-					else
-						args.fileName = handeledArg;
-				}
-				else if (tokens.size() == 2)
-				{
-					auto firstArg = tokens[0];
-					auto secondArg = tokens[1];
-
-					if (isBackSlashInString(secondArg))
-					{
-						args.path = secondArg;
-						args.fileName = firstArg;
-					}
-					else
-					{
-						args.path = firstArg;
-						args.fileName = secondArg;
-					}
-				}
-				else
-					throw exception("Too many arguments for this command");
-
-				return args;
-			}
-
-
-			void updateSystemVariables(Arguments args) const
-			{
-				if (!args.fileName.empty())
-					fileName = args.fileName;
-
-				if (!args.path.empty())
-					path = args.path;
-			}
-
-
-			void recordPowerTree(Arguments args) const
-			{
-				string treeTitle = activePowerTree->getTitle();
-
-				auto [newFileName, newPath] = args;
-
-				if (args.fileName.empty())
-					args.fileName = fileName;
-
-				if (args.path.empty())
-					args.path = path;
-
-				FileWriter fileWriter(treeTitle, fileName, path);
-				WriteNode writeNode(fileWriter);
-
-				activePowerTree->iterateAndExecuteForEach(writeNode);
-			}
+			void updateSystemVariables(const Args args) const;
+			void recordPowerTree(const Args args) const;
 
 			FUNCTOR(WriteNode, void, Key nodeName)
 				auto nodeType = activePowerTree->getNodeType(nodeName);
-			switch (nodeType)
-			{
-				case DeviceType::INPUT:
+				switch (nodeType)
 				{
-					auto inputData = activePowerTree->getInputData(nodeName);
-					wfstream << inputData;
-					break;
-				}
-
-				case DeviceType::CONVERTER:
-				{
-					auto converterData = activePowerTree->getConverterData(nodeName);
-					wfstream << converterData;
-					break;
-				}
-
-				case DeviceType::LOAD:
-				{
-					writeLoad(nodeName, wfstream);
-					break;
-				}
-
-
-				default:
-					throw exception("Invalid type of device");
-
-			}
-			FUNCTOR_END_BODY
-				WriteNode(FileWriter& genWfstream)
-				: wfstream(genWfstream) {
-				;
-			}
-
-		private:
-			FileWriter& wfstream;
-			END_FUNCTOR
-
-				void reportExecution(Arguments args) const
-			{
-				cout << "Power tree \"" << activePowerTree->getTitle()
-					<< "\" is been successfully saved to the file \"" << args.fileName << "\"" << endl << endl;
-			}
-
-
-			static void writeLoad(Key loadName, FileWriter& wfstream)
-			{
-				auto type = activePowerTree->getLoadType(loadName);
-				switch (type)
-				{
-					case LoadType::RESISTIVE:
+					case DeviceType::INPUT:
 					{
-						auto loadData = activePowerTree->getResistiveLoadData(loadName);
-						wfstream << loadData;
+						auto inputData = activePowerTree->getInputData(nodeName);
+						wfstream << inputData;
 						break;
 					}
 
-					case LoadType::CONSTANT_CURRENT:
+					case DeviceType::CONVERTER:
 					{
-						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
-						wfstream << loadData;
+						auto converterData = activePowerTree->getConverterData(nodeName);
+						wfstream << converterData;
 						break;
 					}
 
-					case LoadType::DIODE:
+					case DeviceType::LOAD:
 					{
-						auto loadData = activePowerTree->getDiodeLoadData(loadName);
-						wfstream << loadData;
+						writeLoad(nodeName, wfstream);
 						break;
 					}
 
 
 					default:
-						throw exception("Invalid type of load");
+						throw exception("Invalid type of device");
+
 				}
-			}
+			FUNCTOR_END_BODY
+					WriteNode(FileWriter& genWfstream)
+					: wfstream(genWfstream) {;}
+
+				private:
+					FileWriter & wfstream;
+			END_FUNCTOR
+
+			static void writeLoad (Key loadName, FileWriter & wfstream);
 
 	};
 
@@ -3326,6 +3211,126 @@ void CommandMoveSink::connectSinkTo (const Args & args) const
 			default:
 				throw exception("Invalid mode of deleting a source");
 		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+Command::Args CommandSave::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+	auto path_it = find_if(tokens.begin(), tokens.end(), isBackSlashInString);
+	if (path_it != tokens.end())
+	{
+		args.path = *path_it;
+		tokens.erase(path_it);
+	}
+
+	if (tokens.empty())
+		return { &args };
+	args.fileName = tokens.front();
+	tokens.pop_front();
+
+
+	return { &args };
+}
+
+
+void CommandSave::complementArgs (Command::Args rawArgs) const
+{
+	auto & args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+
+	if (args.fileName.empty())
+		args.fileName = fileName;
+	
+	if (args.path.empty())
+		args.path = path;
+}
+
+
+const Command::ExecutionData CommandSave::execute (const Command::Args rawArgs) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	updateSystemVariables(args);
+	recordPowerTree(args);
+
+	return ExecutionData(true);
+}
+
+
+void CommandSave::reportExecution (const Command::Args rawArgs) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	cout << "Power tree \"" << activePowerTree->getTitle()
+		 << "\" is been successfully saved to the file \"" << args.fileName << "\"" << endl << endl;
+}
+
+
+void CommandSave::updateSystemVariables (const Args args) const
+{
+	if (!args.fileName.empty())
+		fileName = args.fileName;
+
+	if (!args.path.empty())
+		path = args.path;
+}
+
+
+void CommandSave::recordPowerTree (const Args args) const
+{
+	string treeTitle = activePowerTree->getTitle();
+
+	auto [newFileName, newPath] = args;
+
+	FileWriter fileWriter(treeTitle, fileName, path);
+	WriteNode writeNode(fileWriter);
+
+	activePowerTree->iterateAndExecuteForEach(writeNode);
+}
+
+
+void CommandSave::writeLoad (Key loadName, FileWriter & wfstream)
+{
+	auto type = activePowerTree->getLoadType(loadName);
+	switch (type)
+	{
+	case LoadType::RESISTIVE:
+	{
+		auto loadData = activePowerTree->getResistiveLoadData(loadName);
+		wfstream << loadData;
+		break;
+	}
+
+	case LoadType::CONSTANT_CURRENT:
+	{
+		auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+		wfstream << loadData;
+		break;
+	}
+
+	case LoadType::DIODE:
+	{
+		auto loadData = activePowerTree->getDiodeLoadData(loadName);
+		wfstream << loadData;
+		break;
+	}
+
+
+	default:
+		throw exception("Invalid type of load");
 	}
 }
 
