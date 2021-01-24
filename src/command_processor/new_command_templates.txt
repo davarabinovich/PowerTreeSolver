@@ -5,7 +5,7 @@ virtual void complementArgs(Command::Args args) const override;
 virtual const Command::ValidationData isArgsValid(Command::Args args) const override;
 
 virtual const Command::IntermediateData getIntermediateData() const override;
-virtual const Command::ExecutionData execute(const Command::Args args) const override;
+virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
 virtual void reportExecution(const Command::Args args) const override;
 virtual void reportError(const Command::ValidationData validData) const override;
 virtual void reportError(const Command::ExecutionData validData) const override;
@@ -51,16 +51,18 @@ const Command::IntermediateData CommandX::getIntermediateData () const
 }
 
 
-const Command::ExecutionData CommandX::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandX::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF data = *(reinterpret_cast<IntermediateData*>(rawData.data));
 	return ExecutionData(true);
 }
 
 
-void CommandX::reportExecution (const Command::Args rawArgs) const
+void CommandX::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF data = *(reinterpret_cast<IntermediateData*>(rawData.data));
 }
 
 

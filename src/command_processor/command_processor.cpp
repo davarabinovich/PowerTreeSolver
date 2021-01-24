@@ -90,7 +90,7 @@
 
 			struct IntermediateData
 			{
-
+				void * data;
 			};
 
 			struct ValidationData 
@@ -122,8 +122,8 @@
 			virtual const ValidationData isArgsValid(Args args) const;
 
 			virtual const IntermediateData getIntermediateData() const;
-			virtual const ExecutionData execute(const Args args) const { return ExecutionData(true); };
-			virtual void reportExecution(const Args args) const {};
+			virtual const ExecutionData execute(const Args args, const IntermediateData data) const { return ExecutionData(true); };
+			virtual void reportExecution(const Args args, const IntermediateData data) const {};
 			virtual void reportError(const ValidationData validData) const {};
 			virtual void reportError(const ExecutionData validData) const {};
 
@@ -178,8 +178,8 @@
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
 
-			virtual const Command::ExecutionData execute(const Command::Args args) const override;
-			virtual void reportExecution(const Command::Args args) const override;
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData rawData) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
 
 			void updateSystemVariables(const Args args) const;
@@ -255,8 +255,8 @@
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
 
-			virtual const ExecutionData execute(const Command::Args args) const override;
-			virtual void reportExecution(const Command::Args args) const override;
+			virtual const ExecutionData execute(const Command::Args args, const Command::IntermediateData rawData) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
 
 			bool suggestSaveActiveTree() const;
@@ -272,54 +272,33 @@
 	class CommandRename : public CommandWorkingWithExsistingTree
 	{
 	
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-				if (tokens.size() > 1)    throw exception("Too many arguments for this command");
-	
-				string newName;
-				if (tokens.empty())
-					newName = requestAndGetNewName();
-				else
-					newName = tokens.front();
-	
-				string oldName = activePowerTree->getTitle();
-				activePowerTree->rename(newName);
-	
-				Arguments args = { newName, oldName };
-				reportExecution(args);
-			}
-	
-	
-	
-	
 		private:
 		
-			struct Arguments
+			static const string new_name_requesting_message;
+
+
+
+
+			struct Args
 			{
-				string newName = "";
-				string oldName = "";
+				string newName;
+			};
+
+			struct IntermediateData
+			{
+				string oldName;
 			};
 	
+
 	
 	
-			string requestAndGetNewName () const
-			{
-				cout << "Enter a new name for this power tree: ";
-				Token newName;
-				getline(cin, newName);
-				return newName;
-			}
-	
-			void reportExecution (const Arguments & args) const
-			{
-				cout << "The power tree \"" << args.oldName << "\" is renamed " << args.newName 
-					 << endl << endl;
-			}
-	
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
+
+			virtual const Command::IntermediateData getIntermediateData() const;
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData data) const override;
+
 	};
 		
 	
@@ -822,8 +801,8 @@
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
 
-			virtual const Command::ExecutionData execute(const Command::Args args) const override;
-			virtual void reportExecution(const Command::Args args) const override;
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData rawData) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
 
 			void createConverterByArgs (const Args & args) const;
@@ -1244,8 +1223,8 @@
 
 			virtual Command::Args parseArgs (TokensCollection & tokens) const override;
 
-			virtual const Command::ExecutionData execute(const Command::Args args) const override;
-			virtual void reportExecution(const Command::Args args) const override;
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData data) const override;
 
 
 			void modifyConverterParams (const Args & args) const;
@@ -1669,8 +1648,8 @@
 			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
 			virtual void complementArgs(Command::Args args) const override;
 
-			virtual const Command::ExecutionData execute(const Command::Args args) const override;
-			virtual void reportExecution(const Command::Args args) const override;
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData data) const override;
 
 
 			void connectSinkTo(const Args& args) const;
@@ -2515,15 +2494,15 @@ void Command::operator () (TokensCollection & tokens) const
 		return;
 	}
 	
-	const auto IntermediateData = getIntermediateData();
-	const auto executionData = execute(args);
+	const auto intermediateData = getIntermediateData();
+	const auto executionData = execute(args, intermediateData);
 	if (!executionData.isSuccess)
 	{
 		reportError(executionData);
 		return;
 	}
 
-	reportExecution(args);
+	reportExecution(args, intermediateData);
 }
 
 
@@ -2694,7 +2673,7 @@ void CommandCreate::complementArgs (Command::Args rawArgs) const
 }
 
 
-const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
@@ -2709,7 +2688,7 @@ const Command::ExecutionData CommandCreate::execute (const Command::Args rawArgs
 }
 
 
-void CommandCreate::reportExecution (const Command::Args rawArgs) const
+void CommandCreate::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
@@ -2774,6 +2753,77 @@ void CommandWorkingWithExsistingTree::ensureIfThereAreSomeTree () const
 {
 	if (isThereSomeTree())	return;
 	throw exception("There is no power tree. Create or load a tree");
+}
+
+
+
+
+
+
+
+
+
+
+const string CommandRename::new_name_requesting_message = "Enter new name";
+
+
+
+
+Command::Args CommandRename::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+	if (tokens.empty())
+		return { &args };
+	args.newName = tokens.front();
+	tokens.pop_front();
+
+	return { &args };
+}
+
+
+void CommandRename::complementArgs (Command::Args rawArgs) const
+{
+	auto & args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	if (args.newName.empty())
+	{
+		auto answer = requestParamAndGet(new_name_requesting_message);
+		args.newName = answer.content;
+	}
+}
+
+
+const Command::IntermediateData CommandRename::getIntermediateData () const
+{
+	static IntermediateData data;
+	data.oldName = activePowerTree->getTitle();
+	
+	Command::IntermediateData rawData;
+	rawData.data = &data;
+	return rawData;
+}
+
+
+const Command::ExecutionData CommandRename::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	
+	fileName = args.newName;
+	activePowerTree->rename(args.newName);
+	
+	return ExecutionData(true);
+}
+
+
+void CommandRename::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF data = *(reinterpret_cast<IntermediateData*>(rawData.data));
+
+	cout << "The power tree \"" << data.oldName << "\" is renamed " << args.newName	<< endl << endl;
 }
 
 
@@ -2876,7 +2926,7 @@ void CommandCreateConverter::complementArgs (Command::Args rawArgs) const
 }
 
 
-const Command::ExecutionData CommandCreateConverter::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandCreateConverter::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 
@@ -2886,7 +2936,7 @@ const Command::ExecutionData CommandCreateConverter::execute (const Command::Arg
 }
 
 
-void CommandCreateConverter::reportExecution (const Command::Args rawArgs) const
+void CommandCreateConverter::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *( reinterpret_cast<Args*>(rawArgs.args) );
 	auto [name, cvKind, cvValue, type, efficiencyParam, parentName] = args;
@@ -3019,7 +3069,7 @@ Command::Args CommandModifyConverter::parseArgs (TokensCollection & tokens) cons
 }
 
 
-const Command::ExecutionData CommandModifyConverter::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandModifyConverter::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 
@@ -3029,7 +3079,7 @@ const Command::ExecutionData CommandModifyConverter::execute (const Command::Arg
 }
 
 
-void CommandModifyConverter::reportExecution (const Command::Args rawArgs) const
+void CommandModifyConverter::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 	auto [currentName, newName, cvKind, cvValue, type, efficiencyParam] = args;
@@ -3141,7 +3191,7 @@ void CommandMoveSink::complementArgs (Command::Args rawArgs) const
 }
 
 
-const Command::ExecutionData CommandMoveSink::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandMoveSink::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 
@@ -3151,7 +3201,7 @@ const Command::ExecutionData CommandMoveSink::execute (const Command::Args rawAr
 }
 
 
-void CommandMoveSink::reportExecution (const Command::Args rawArgs) const
+void CommandMoveSink::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 	auto [name, newParentName, mode, newSinksParentName] = args;
@@ -3259,7 +3309,7 @@ void CommandSave::complementArgs (Command::Args rawArgs) const
 }
 
 
-const Command::ExecutionData CommandSave::execute (const Command::Args rawArgs) const
+const Command::ExecutionData CommandSave::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 
@@ -3270,7 +3320,7 @@ const Command::ExecutionData CommandSave::execute (const Command::Args rawArgs) 
 }
 
 
-void CommandSave::reportExecution (const Command::Args rawArgs) const
+void CommandSave::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
 
