@@ -333,155 +333,24 @@
 	class CommandSolve : public CommandWithShowingStrucute
 	{
 	
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-
-				activePowerTree->calculte();
-				displayResults();
-			}
-		
-		
-		
-		
 		private:
 
-			void displayResults () const
-			{
-				displayHeader();
-				activePowerTree->iterateAndExecuteForEach(displayResultsForElectricNode);
-				cout << endl;
-			}
-
-			static void displayResultsForElectricNode (Key nodeName)
-			{
-				auto nodeType = activePowerTree->getNodeType(nodeName);
-				switch (nodeType)
-				{
-					case DeviceType::INPUT:
-					{
-						auto inputResults = activePowerTree->getInputResults(nodeName);
-						displayInputResults(inputResults);
-						break;
-					}
-
-					case DeviceType::CONVERTER:
-					{
-						auto converterResults = activePowerTree->getConverterResults(nodeName);
-						displayConverterResults(converterResults);
-						break;
-					}
-
-					case DeviceType::LOAD:
-					{
-						displayLoadResults(nodeName);
-						break;
-					}
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
 
-					default:
-						throw exception("Invalid type of device");
 
-				}
-			}
+			void displayResults() const;
 
-			static void displayInputResults (InputResults results)
-			{
-				auto [name, cvKind, value, avValue] = results;
+			static void displayResultsForElectricNode(Key nodeName);
+			static void displayInputResults(InputResults results);
+			static void displayConverterResults(ConverterResults results);
+			static void displayLoadResults(Key loadName);
+			static void displayResistiveLoadResults(ResistiveLoadResults results);
+			static void displayConstantCurrentLoadResults(ConstantCurrentLoadResults results);
+			static void displayDiodeLoadResults(DiodeLoadResults metadata);
 
-				string output = to_string(value) + getVarKindDesignatorStr(cvKind) + " source \"" + name + "\":\n";
-				output += ("   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind));
-
-				cout << output << endl << endl;
-			}
-
-			static void displayConverterResults (ConverterResults results)
-			{
-				auto [name, nestingLevel, cvKind, value, type, avValue, inputValue] = results;
-				auto shift = generateShift(nestingLevel);
-
-				string output = shift + to_string(value) + getVarKindDesignatorStr(cvKind) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
-				output += (shift + "   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind) + "\n");
-				output += (shift + "   consumes " + to_string(inputValue) + "A");
-
-				cout << output << endl << endl;
-			}
-
-			static void displayLoadResults (Key loadName)
-			{
-				auto type = activePowerTree->getLoadType(loadName);
-				switch (type)
-				{
-					case LoadType::RESISTIVE:
-					{
-						auto loadResults = activePowerTree->getResistiveLoadResults(loadName);
-						displayResistiveLoadResults(loadResults);
-						break;
-					}
-				
-					case LoadType::CONSTANT_CURRENT:
-					{
-						auto loadResults = activePowerTree->getConstantCurrentLoadResults(loadName);
-						displayConstantCurrentLoadResults(loadResults);
-						break;
-					}
-				
-					case LoadType::DIODE:
-					{
-						auto loadData = activePowerTree->getDiodeLoadResults(loadName);
-						displayDiodeLoadResults(loadData);
-						break;
-					}
-				
-					default:
-							throw exception("Invalid type of load");
-				}
-			}
-
-			static void displayResistiveLoadResults (ResistiveLoadResults results)
-			{
-				auto [name, nestingLevel, resistance, inputValue, inputVarKind] = results;
-				auto shift = generateShift(nestingLevel);
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:" + "\n";
-				
-				output += shift;
-				if (inputVarKind == VarKind::VOLTAGE)
-					output += "   consumes ";
-				else
-					output += "   works by ";
-				output += (to_string(inputValue) + getVarKindDesignatorStr(!inputVarKind));
-
-				cout << output << endl << endl;
-			}
-
-			static void displayConstantCurrentLoadResults (ConstantCurrentLoadResults results)
-			{
-				auto [name, nestingLevel, current, inputVoltage] = results;
-				auto shift = generateShift(nestingLevel);
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(current) + "A";
-
-				cout << output << endl << endl;
-			}
-
-			static void displayDiodeLoadResults (DiodeLoadResults metadata)
-			{
-				auto [name, nestingLevel, voltage, current] = metadata;
-				auto shift = generateShift(nestingLevel);
-				
-				string output = shift + "Diode \"" + name + "\" " + to_string(voltage) + "V, " + to_string(current) + "A";
-
-				cout << output << endl << endl;
-			}
-
-			static string generateShift (unsigned shifts_qty)
-			{
-				auto shift = string(shifts_qty*spaces_per_level_shift, ' ');
-				return shift;
-			}
+			static string generateShift(unsigned shifts_qty);
 
 	};
 	
@@ -2824,6 +2693,171 @@ void CommandRename::reportExecution (const Command::Args rawArgs, const Command:
 	AUTO_CONST_REF data = *(reinterpret_cast<IntermediateData*>(rawData.data));
 
 	cout << "The power tree \"" << data.oldName << "\" is renamed " << args.newName	<< endl << endl;
+}
+
+
+
+
+
+
+
+
+
+
+const Command::ExecutionData CommandSolve::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	activePowerTree->calculte();
+	return ExecutionData(true);
+}
+
+
+void CommandSolve::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	displayResults();
+}
+
+
+void CommandSolve::displayResults() const
+{
+	displayHeader();
+	activePowerTree->iterateAndExecuteForEach(displayResultsForElectricNode);
+	cout << endl;
+}
+
+
+void CommandSolve::displayResultsForElectricNode (Key nodeName)
+{
+	auto nodeType = activePowerTree->getNodeType(nodeName);
+	switch (nodeType)
+	{
+	case DeviceType::INPUT:
+	{
+		auto inputResults = activePowerTree->getInputResults(nodeName);
+		displayInputResults(inputResults);
+		break;
+	}
+
+	case DeviceType::CONVERTER:
+	{
+		auto converterResults = activePowerTree->getConverterResults(nodeName);
+		displayConverterResults(converterResults);
+		break;
+	}
+
+	case DeviceType::LOAD:
+	{
+		displayLoadResults(nodeName);
+		break;
+	}
+
+
+	default:
+		throw exception("Invalid type of device");
+
+	}
+}
+
+
+void CommandSolve::displayInputResults (InputResults results)
+{
+	auto [name, cvKind, value, avValue] = results;
+
+	string output = to_string(value) + getVarKindDesignatorStr(cvKind) + " source \"" + name + "\":\n";
+	output += ("   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind));
+
+	cout << output << endl << endl;
+}
+
+
+void CommandSolve::displayConverterResults (ConverterResults results)
+{
+	auto [name, nestingLevel, cvKind, value, type, avValue, inputValue] = results;
+	auto shift = generateShift(nestingLevel);
+
+	string output = shift + to_string(value) + getVarKindDesignatorStr(cvKind) + " " + toStr(type) + " dc/dc \"" + name + "\":\n";
+	output += (shift + "   gives " + to_string(avValue) + getVarKindDesignatorStr(!cvKind) + "\n");
+	output += (shift + "   consumes " + to_string(inputValue) + "A");
+
+	cout << output << endl << endl;
+}
+
+
+void CommandSolve::displayLoadResults (Key loadName)
+{
+	auto type = activePowerTree->getLoadType(loadName);
+	switch (type)
+	{
+	case LoadType::RESISTIVE:
+	{
+		auto loadResults = activePowerTree->getResistiveLoadResults(loadName);
+		displayResistiveLoadResults(loadResults);
+		break;
+	}
+
+	case LoadType::CONSTANT_CURRENT:
+	{
+		auto loadResults = activePowerTree->getConstantCurrentLoadResults(loadName);
+		displayConstantCurrentLoadResults(loadResults);
+		break;
+	}
+
+	case LoadType::DIODE:
+	{
+		auto loadData = activePowerTree->getDiodeLoadResults(loadName);
+		displayDiodeLoadResults(loadData);
+		break;
+	}
+
+	default:
+		throw exception("Invalid type of load");
+	}
+}
+
+
+void CommandSolve::displayResistiveLoadResults (ResistiveLoadResults results)
+{
+	auto [name, nestingLevel, resistance, inputValue, inputVarKind] = results;
+	auto shift = generateShift(nestingLevel);
+
+	string output = shift + "Load \"" + name + "\" " + to_string(resistance) + "Ohm:" + "\n";
+
+	output += shift;
+	if (inputVarKind == VarKind::VOLTAGE)
+		output += "   consumes ";
+	else
+		output += "   works by ";
+	output += (to_string(inputValue) + getVarKindDesignatorStr(!inputVarKind));
+
+	cout << output << endl << endl;
+}
+
+
+void CommandSolve::displayConstantCurrentLoadResults (ConstantCurrentLoadResults results)
+{
+	auto [name, nestingLevel, current, inputVoltage] = results;
+	auto shift = generateShift(nestingLevel);
+
+	string output = shift + "Load \"" + name + "\" " + to_string(current) + "A";
+
+	cout << output << endl << endl;
+}
+
+
+void CommandSolve::displayDiodeLoadResults (DiodeLoadResults metadata)
+{
+	auto [name, nestingLevel, voltage, current] = metadata;
+	auto shift = generateShift(nestingLevel);
+
+	string output = shift + "Diode \"" + name + "\" " + to_string(voltage) + "V, " + to_string(current) + "A";
+
+	cout << output << endl << endl;
+}
+
+
+string CommandSolve::generateShift (unsigned shifts_qty)
+{
+	auto shift = string(shifts_qty * spaces_per_level_shift, ' ');
+	return shift;
 }
 
 
