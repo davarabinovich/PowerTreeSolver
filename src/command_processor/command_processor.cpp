@@ -314,11 +314,7 @@
 
 
 
-			void displayHeader () const
-			{
-				string treeTitle = activePowerTree->getTitle();
-				cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
-			}
+			void displayHeader() const;
 
 
 
@@ -343,9 +339,11 @@
 			void displayResults() const;
 
 			static void displayResultsForElectricNode(Key nodeName);
+
 			static void displayInputResults(InputResults results);
 			static void displayConverterResults(ConverterResults results);
 			static void displayLoadResults(Key loadName);
+
 			static void displayResistiveLoadResults(ResistiveLoadResults results);
 			static void displayConstantCurrentLoadResults(ConstantCurrentLoadResults results);
 			static void displayDiodeLoadResults(DiodeLoadResults metadata);
@@ -361,137 +359,21 @@
 	class CommandShowStructure : public CommandWithShowingStrucute
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-				displayTreeStructure();
-			}
-		
-		
-		
-		
 		private:
+	
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
-			void displayTreeStructure () const
-			{
-				displayHeader();
-				activePowerTree->iterateAndExecuteForEach(displayElectricNode);
-				cout << endl;
-			}
+			void displayTreeStructure() const;
 
-			static void displayElectricNode (Key nodeName)
-			{
-				auto nodeType = activePowerTree->getNodeType(nodeName);
-				switch (nodeType)
-				{
-					case DeviceType::INPUT:
-					{
-						auto inputData = activePowerTree->getInputData(nodeName);
-						displayInput(inputData);
-						break;
-					}
+			static void displayElectricNode(Key nodeName);
 
-					case DeviceType::CONVERTER:
-					{
-						auto converterData = activePowerTree->getConverterData(nodeName);
-						displayConverter(converterData);
-						break;
-					}
+			static void displayInput(InputData data);
+			static void displayConverter(ConverterData data);
+			static void displayLoad(Key loadName);
 
-					case DeviceType::LOAD:
-					{
-						displayLoad(nodeName);
-						break;
-					}
-
-
-					default:
-						throw exception("Invalid type of device");
-
-				}
-			}
-
-			static void displayInput (InputData data)
-			{
-				auto [name, type, value] = data;
-				string output = to_string(value) + getVarKindDesignatorStr(type) + " source \"" + name + "\":   ";
-				cout << output << endl;
-			}
-
-			static void displayConverter (ConverterData data)
-			{
-				auto [name, nestingLevel, cvType, value, type, efficiencyParam] = data;
-				auto shift = string((nestingLevel-1) * spaces_per_level_shift, ' ');
-				
-				string output = shift + to_string(value) + getVarKindDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
-				if (type == ConverterType::PULSE)
-					output += " (eff. " + to_string(efficiencyParam) + "%):";
-				else
-					output += " (own cons. " + to_string(1000*efficiencyParam) + "mA):";
-				cout << output << endl;
-			}
-
-			static void displayLoad (Key loadName)
-			{
-				auto type = activePowerTree->getLoadType(loadName);
-				switch (type)
-				{
-					case LoadType::RESISTIVE:
-					{
-						auto loadData = activePowerTree->getResistiveLoadData(loadName);
-						displayResistiveLoad(loadData);
-						break;
-					}
-				
-					case LoadType::CONSTANT_CURRENT:
-					{
-						auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
-						displayConstantCurrentLoad(loadData);
-						break;
-					}
-				
-					case LoadType::DIODE:
-					{
-						auto loadData = activePowerTree->getDiodeLoadData(loadName);
-						displayDiodeLoad(loadData);
-						break;
-					}
-				
-					default:
-							throw exception("Invalid type of load");
-				}
-			}
-
-			static void displayResistiveLoad (ResistiveLoadData data)
-			{
-				auto [name, nestingLevel, resistance] = data;
-				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE);
-				cout << output << endl;
-			}
-
-			static void displayConstantCurrentLoad (ConstantCurrentLoadData data)
-			{
-				auto [name, nestingLevel, current] = data;
-				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(current) + getMainUnitDesignatorStr(LoadType::CONSTANT_CURRENT);
-				cout << output << endl;
-			}
-
-			static void displayDiodeLoad (DiodeLoadData data)
-			{
-				auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
-				auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
-				
-				string output = shift + "Load \"" + name + "\" " + to_string(forwardVoltage) + getMainUnitDesignatorStr(LoadType::DIODE)
-					                  + " (forw. cur. " + to_string(forwardCurrent) + getAddUnitDesignatorStr(LoadType::DIODE) + ")";
-				cout << output << endl;
-			}
+			static void displayResistiveLoad(ResistiveLoadData data);
+			static void displayConstantCurrentLoad(ConstantCurrentLoadData data);
+			static void displayDiodeLoad(DiodeLoadData data);
 		
 	};
 
@@ -685,213 +567,42 @@
 	class CommandCreateLoad : public CommandWorkingWithExsistingTree
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-	
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-	
-				if (args.name.empty())
-					args.name = suggestEnterNameAndGet();
-				if (isnan(args.value))
-					args.value = requestValue(args.type);
-				if (args.parentName == "")
-					args.parentName = suggestSpecifieParentAndGet();
-	
-				createLoadByArgs(args);
-	
-				reportExecution(args);
-			}
-		
-		
-		
-		
 		private:
-		
-			struct Arguments
+
+			static const string name_suggesting_message;
+			static const string parent_name_suggesting_message;
+			static const string main_parameter_requesting_message_body_begin;
+			static const string main_parameter_requesting_message_body_end;
+			static const string additional_parameter_requesting_message;
+
+
+
+
+			struct Args
 			{
 				string name = "";
-				LoadType type = LoadType::RESISTIVE;
-				double value = NAN;
+				optional<LoadType> type;
+				double mainParam = NAN;
 	
-				double addValue = NAN;
+				double addParam = NAN;
 	
 				string parentName = "";
 			};
 		
 	
-	
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				Arguments args;
-	
-				if (tokens.empty())    return args;
-	
-	
-				auto handeledArg = tokens.front();
-	
-				if (!isLoadTypeString(handeledArg) && !isFloatNumberString(handeledArg))
-				{
-					args.name = handeledArg;
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isLoadTypeString(handeledArg))
-				{
-					args.type = parseLoadType(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isFloatNumberString(handeledArg))
-				{
-					args.value = strToDouble(handeledArg);
-	
-					tokens.pop_front();
-	
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-	
-					if (isFloatNumberString(handeledArg))
-					{
-						args.addValue = strToDouble(handeledArg);
-	
-						tokens.pop_front();
-						if (tokens.empty())    return args;
-					}
-				}
-	
-				args.parentName = tokens.front();
-				tokens.pop_front();
-				if (tokens.empty())    return args;
-	
-				throw exception("There is at least one invalid argument");
-			}
 
-			string suggestEnterNameAndGet () const
-			{
-				string name = "";
-				cout << "Do you want to set a name for the new tree?" << endl;
-				string answer; getline(cin, answer);
+	
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
 
-				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				{
-					getline(cin, name);
-					return name;
-				}
-				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-					throw exception("Invalid answer");
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
-				name = activePowerTree->getDefaultNodeName(DeviceType::LOAD);
-				return name;
-			}
 
-			double requestValue (const LoadType type) const
-			{
-				cout << "Enter a value of ";
-				string mainParam; 
-				switch (type)
-				{
-					case LoadType::RESISTIVE:
-						mainParam = "resistance";
-						break;
-	
-					case LoadType::CONSTANT_CURRENT:
-						mainParam = "current";
-						break;
-	
-					case LoadType::DIODE:
-						mainParam = "forward voltage";
-						break;
-				
-					default:
-							throw exception("Invalid type of load");
-				}
-				cout << mainParam << endl;
-				
-				string enteredValue; getline(cin, enteredValue);
-				auto value = strToDouble(enteredValue);
-				return value;
-			}
-	
-			string suggestSpecifieParentAndGet () const
-			{
-				string parentName = "";
-				cout << "Do you want to leave the new load unconnected?" << endl;
-				string answer; getline(cin, answer);
-	
-				if (answer == "n" || answer == "N" || answer == "no" || answer == "No")
-				{
-					cout << "Enter the name of parent source" << endl;
-					getline(cin, parentName);
-				}
-				else if (answer != "y" && answer != "Y" && answer != "yes" && answer != "Yes")
-					throw exception("Invalid answer");
-	
-				return parentName;
-			}
-	
-			void createLoadByArgs (const Arguments & args) const
-			{
-				switch (args.type)
-				{
-					case (LoadType::RESISTIVE): [[__fallthrough]]
-					case (LoadType::CONSTANT_CURRENT):
-					{
-						if (args.parentName == "")
-							activePowerTree->addLoad(args.name, args.type, args.value);
-						else
-							activePowerTree->addLoad(args.name, args.parentName, args.type, args.value);
-	
-						break;
-					}
-	
-					case (LoadType::DIODE):
-					{
-						if (args.parentName == "")
-							activePowerTree->addLoad(args.name, args.type, args.value, args.addValue);
-						else
-							activePowerTree->addLoad(args.name, args.parentName, args.type, args.value, args.addValue);
-	
-						break;
-					}
-				}
-			}
-	
-			void reportExecution (const Arguments & args) const
-			{
-				bool isFree = args.parentName.empty();
-	
-	
-				string name = "\"" + args.name + "\" ";
-	
-				string valueUnit = "Ohm";
-				if (args.type == LoadType::CONSTANT_CURRENT)
-					valueUnit = "A";
-				else if (args.type == LoadType::DIODE)
-					valueUnit = "V";
-	
-	
-				cout << "A new ";
-				if (isFree)
-					cout << "free ";
-				cout << args.type << " load " << name << args.value << " " << valueUnit;
-				cout << " is created";
-				if (!isFree)
-					cout << " at the " << toStr( activePowerTree->getNodeType(args.parentName) ) << " \"" << args.parentName << "\"";
-				cout << endl << endl;
-			}
-		
+			void createLoadByArgs(const Args& args) const;
+
+			static string formMainParamRequestingMessage(LoadType type);
+
 	};
 	
 
@@ -2704,6 +2415,21 @@ void CommandRename::reportExecution (const Command::Args rawArgs, const Command:
 
 
 
+void CommandWithShowingStrucute::displayHeader () const
+{
+	string treeTitle = activePowerTree->getTitle();
+	cout << "Structure of power net \"" << treeTitle << "\":" << endl << endl;
+}
+
+
+
+
+
+
+
+
+
+
 const Command::ExecutionData CommandSolve::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
 {
 	activePowerTree->calculte();
@@ -2869,6 +2595,146 @@ string CommandSolve::generateShift (unsigned shifts_qty)
 
 
 
+void CommandShowStructure::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	displayTreeStructure();
+}
+
+
+void CommandShowStructure::displayTreeStructure () const
+{
+	displayHeader();
+	activePowerTree->iterateAndExecuteForEach(displayElectricNode);
+	cout << endl;
+}
+
+
+void CommandShowStructure::displayElectricNode (Key nodeName)
+{
+	auto nodeType = activePowerTree->getNodeType(nodeName);
+	switch (nodeType)
+	{
+		case DeviceType::INPUT:
+		{
+			auto inputData = activePowerTree->getInputData(nodeName);
+			displayInput(inputData);
+			break;
+		}
+
+		case DeviceType::CONVERTER:
+		{
+			auto converterData = activePowerTree->getConverterData(nodeName);
+			displayConverter(converterData);
+			break;
+		}
+
+		case DeviceType::LOAD:
+		{
+			displayLoad(nodeName);
+			break;
+		}
+
+
+		default:
+			throw exception("Invalid type of device");
+
+	}
+}
+ 
+
+void CommandShowStructure::displayInput (InputData data)
+{
+	auto [name, type, value] = data;
+	string output = to_string(value) + getVarKindDesignatorStr(type) + " source \"" + name + "\":   ";
+	cout << output << endl;
+}
+
+
+void CommandShowStructure::displayConverter (ConverterData data)
+{
+	auto [name, nestingLevel, cvType, value, type, efficiencyParam] = data;
+	auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
+
+	string output = shift + to_string(value) + getVarKindDesignatorStr(cvType) + " " + toStr(type) + " dc/dc \"" + name + "\"";
+	if (type == ConverterType::PULSE)
+		output += " (eff. " + to_string(efficiencyParam) + "%):";
+	else
+		output += " (own cons. " + to_string(1000 * efficiencyParam) + "mA):";
+	cout << output << endl;
+}
+
+
+void CommandShowStructure::displayLoad (Key loadName)
+{
+	auto type = activePowerTree->getLoadType(loadName);
+	switch (type)
+	{
+		case LoadType::RESISTIVE:
+		{
+			auto loadData = activePowerTree->getResistiveLoadData(loadName);
+			displayResistiveLoad(loadData);
+			break;
+		}
+
+		case LoadType::CONSTANT_CURRENT:
+		{
+			auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+			displayConstantCurrentLoad(loadData);
+			break;
+		}
+
+		case LoadType::DIODE:
+		{
+			auto loadData = activePowerTree->getDiodeLoadData(loadName);
+			displayDiodeLoad(loadData);
+			break;
+		}
+
+		default:
+			throw exception("Invalid type of load");
+	}
+}
+
+
+void CommandShowStructure::displayResistiveLoad (ResistiveLoadData data)
+{
+	auto [name, nestingLevel, resistance] = data;
+	auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
+
+	string output = shift + "Load \"" + name + "\" " + to_string(resistance) + getMainUnitDesignatorStr(LoadType::RESISTIVE);
+	cout << output << endl;
+}
+
+
+void CommandShowStructure::displayConstantCurrentLoad (ConstantCurrentLoadData data)
+{
+	auto [name, nestingLevel, current] = data;
+	auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
+
+	string output = shift + "Load \"" + name + "\" " + to_string(current) + getMainUnitDesignatorStr(LoadType::CONSTANT_CURRENT);
+	cout << output << endl;
+}
+
+
+void CommandShowStructure::displayDiodeLoad (DiodeLoadData data)
+{
+	auto [name, nestingLevel, forwardVoltage, forwardCurrent] = data;
+	auto shift = string((nestingLevel - 1) * spaces_per_level_shift, ' ');
+
+	string output = shift + "Load \"" + name + "\" " + to_string(forwardVoltage) + getMainUnitDesignatorStr(LoadType::DIODE)
+		+ " (forw. cur. " + to_string(forwardCurrent) + getAddUnitDesignatorStr(LoadType::DIODE) + ")";
+	cout << output << endl;
+}
+
+
+
+
+
+
+
+
+
+
 const string CommandCreateConverter::name_suggesting_message = "Do you want to set a name for the new converter?";
 const string CommandCreateConverter::parent_suggesting_message = "Do you want to leave the new converter unconnected?";
 
@@ -2999,6 +2865,187 @@ void CommandCreateConverter::createConverterByArgs (const Args & args) const
 	else
 		activePowerTree->addConverter(name, parentName, type, cvKind, cvValue, efficiencyParam);
 }
+
+
+
+
+
+
+
+
+
+const string CommandCreateLoad::name_suggesting_message = "Do you want to specify a name for new load?";
+const string CommandCreateLoad::parent_name_suggesting_message = "Do you want to leave the new load free?";
+const string CommandCreateLoad::main_parameter_requesting_message_body_begin = "Enter a value of ";
+const string CommandCreateLoad::main_parameter_requesting_message_body_end = ":";
+const string CommandCreateLoad::additional_parameter_requesting_message = "Enter a value of forward current:";
+
+
+
+
+Command::Args CommandCreateLoad::parseArgs (TokensCollection & tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+	auto type_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (type_it != tokens.end())
+	{
+		args.type = parseLoadType(*type_it);
+		tokens.erase(type_it);
+	}
+
+	auto mainParam_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (mainParam_it != tokens.end())
+	{
+		args.mainParam = strToDouble(*mainParam_it);
+		tokens.erase(type_it);
+	}
+
+	auto addParam_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (addParam_it != tokens.end())
+	{
+		args.addParam = strToDouble(*addParam_it);
+		tokens.erase(type_it);
+	}
+
+
+	if (tokens.empty())
+		return { &args };
+	args.name = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.parentName = tokens.front();
+	tokens.pop_front();
+
+
+	return { &args };
+}
+
+
+void CommandCreateLoad::complementArgs(Command::Args rawArgs) const
+{
+	auto & args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+
+	if (args.name.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(name_suggesting_message);
+		if (answer.isValid && !answer.content.empty())
+			args.name = answer.content;
+		else
+			args.name = activePowerTree->getDefaultNodeName(DeviceType::LOAD);
+	}
+
+	if (args.parentName.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(parent_name_suggesting_message, MessageMode::REVERSE);
+		if (answer.isValid && !answer.content.empty())
+			args.parentName = answer.content;
+	}
+
+	if (!args.type)
+		if (isnan(args.addParam))
+			args.type = LoadType::CONSTANT_CURRENT;
+		else
+			args.type = LoadType::DIODE;
+
+	if (isnan(args.mainParam))
+	{
+		auto answer = requestParamAndGet(formMainParamRequestingMessage(*args.type));
+		if (answer.isValid && !answer.content.empty())
+			args.parentName = answer.content;
+	}
+
+	if (isnan(args.addParam) && (args.type == LoadType::DIODE))
+	{
+		auto answer = requestParamAndGet(additional_parameter_requesting_message);
+		if (answer.isValid && !answer.content.empty())
+			args.parentName = answer.content;
+	}
+}
+
+
+const Command::ExecutionData CommandCreateLoad::execute (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	createLoadByArgs(args);
+
+	return ExecutionData(true);
+}
+
+
+void CommandCreateLoad::reportExecution (const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	AUTO_CONST_REF data = *(reinterpret_cast<IntermediateData*>(rawData.data));
+
+	bool isFree = args.parentName.empty();
+
+
+	string name = "\"" + args.name + "\" ";
+
+	string valueUnit = "Ohm";
+	if (args.type == LoadType::CONSTANT_CURRENT)
+		valueUnit = "A";
+	else if (args.type == LoadType::DIODE)
+		valueUnit = "V";
+
+
+	cout << "A new ";
+	if (isFree)
+		cout << "free ";
+	cout << *args.type << " load " << name << args.mainParam << " " << valueUnit;
+	cout << " is created";
+	if (!isFree)
+		cout << " at the " << toStr(activePowerTree->getNodeType(args.parentName)) << " \"" << args.parentName << "\"";
+	cout << endl << endl;
+}
+
+
+void CommandCreateLoad::createLoadByArgs (const Args & args) const
+{
+	switch (*args.type)
+	{
+		case (LoadType::RESISTIVE): [[__fallthrough]]
+		case (LoadType::CONSTANT_CURRENT):
+		{
+			if (args.parentName == "")
+				activePowerTree->addLoad(args.name, *args.type, args.mainParam);
+			else
+				activePowerTree->addLoad(args.name, args.parentName, *args.type, args.mainParam);
+
+			break;
+		}
+
+		case (LoadType::DIODE):
+		{
+			if (args.parentName == "")
+				activePowerTree->addLoad(args.name, *args.type, args.mainParam, args.addParam);
+			else
+				activePowerTree->addLoad(args.name, args.parentName, *args.type, args.mainParam, args.addParam);
+
+			break;
+		}
+
+		default:
+			throw exception("Invalid type of load");
+	}
+}
+
+
+string CommandCreateLoad::formMainParamRequestingMessage (LoadType type)
+{
+	string message = main_parameter_requesting_message_body_begin;
+	message = message + type;
+	message = message + main_parameter_requesting_message_body_end;
+	return message;
+}
+
 
 
 
@@ -3391,30 +3438,30 @@ void CommandSave::writeLoad (Key loadName, FileWriter & wfstream)
 	auto type = activePowerTree->getLoadType(loadName);
 	switch (type)
 	{
-	case LoadType::RESISTIVE:
-	{
-		auto loadData = activePowerTree->getResistiveLoadData(loadName);
-		wfstream << loadData;
-		break;
-	}
+		case LoadType::RESISTIVE:
+		{
+			auto loadData = activePowerTree->getResistiveLoadData(loadName);
+			wfstream << loadData;
+			break;
+		}
 
-	case LoadType::CONSTANT_CURRENT:
-	{
-		auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
-		wfstream << loadData;
-		break;
-	}
+		case LoadType::CONSTANT_CURRENT:
+		{
+			auto loadData = activePowerTree->getConstantCurrentLoadData(loadName);
+			wfstream << loadData;
+			break;
+		}
 
-	case LoadType::DIODE:
-	{
-		auto loadData = activePowerTree->getDiodeLoadData(loadName);
-		wfstream << loadData;
-		break;
-	}
+		case LoadType::DIODE:
+		{
+			auto loadData = activePowerTree->getDiodeLoadData(loadName);
+			wfstream << loadData;
+			break;
+		}
 
 
-	default:
-		throw exception("Invalid type of load");
+		default:
+			throw exception("Invalid type of load");
 	}
 }
 
