@@ -2900,14 +2900,14 @@ Command::Args CommandCreateLoad::parseArgs (TokensCollection & tokens) const
 	if (mainParam_it != tokens.end())
 	{
 		args.mainParam = strToDouble(*mainParam_it);
-		tokens.erase(type_it);
+		tokens.erase(mainParam_it);
 	}
 
 	auto addParam_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
 	if (addParam_it != tokens.end())
 	{
 		args.addParam = strToDouble(*addParam_it);
-		tokens.erase(type_it);
+		tokens.erase(addParam_it);
 	}
 
 
@@ -2957,14 +2957,14 @@ void CommandCreateLoad::complementArgs(Command::Args rawArgs) const
 	{
 		auto answer = requestParamAndGet(formMainParamRequestingMessage(*args.type));
 		if (answer.isValid && !answer.content.empty())
-			args.parentName = answer.content;
+			args.mainParam = strToDouble(answer.content);
 	}
 
 	if (isnan(args.addParam) && (args.type == LoadType::DIODE))
 	{
 		auto answer = requestParamAndGet(additional_parameter_requesting_message);
 		if (answer.isValid && !answer.content.empty())
-			args.parentName = answer.content;
+			args.addParam = strToDouble(answer.content);
 	}
 }
 
