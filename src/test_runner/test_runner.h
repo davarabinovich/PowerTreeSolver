@@ -125,3 +125,30 @@ public:
 private:
   int fail_count = 0;
 };
+
+
+
+
+class StandardIoBuffersKeeper
+{
+public:
+	static void retargetIoBuffers(string cinContent);
+	static void restoreIoBuffers();
+
+	static void retargetCin(string newContent);
+	static void restoreCin();
+
+	static void retargetCout();
+	static void restoreCout();
+
+
+private:
+	static bool isCinStored;
+	static bool isCoutStored;
+	
+	static stringstream* tempCin;
+	static streambuf* cinStorage;
+
+	static stringstream* tempCout;
+	static streambuf* coutStorage;
+};
