@@ -506,169 +506,32 @@
 	class CommandModifyInput : public CommandWorkingWithExsistingTree
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-	
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-	
-				modifyInputParams(args);
-				reportExecution(args);
-			}
-		
-		
-		
-		
 		private:
 		
-			struct Arguments
+			struct Args
 			{
 				string currentName;
 	
 				optional<string> newName;
-				optional<VarKind> cvType;
+				optional<VarKind> cvKind;
 				optional<double> cvValue;
 			};
 		
 		
 		
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				Arguments args;
-				if (tokens.empty())    return args;
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData data) const override;
+
 	
-				args.currentName = tokens.front();
-				if (tokens.empty())    return args;
+			void modifyInputParams(const Args& args) const;
+
+
+			static bool isParamWithKey(const string& token);
+			static string extractKeyFromToken(const string& token);
+			static string extractParamFromToken(const string& token);
 	
-				tokens.pop_front();
-				for (const auto & token : tokens)
-				{
-					if (isParamWithKey(token))
-					{
-						string Key = extractKeyFromToken(token);
-						if (Key == "n")
-						{
-							if (args.newName)    
-								continue;
-	
-							args.newName = extractParamFromToken(token);
-						}
-						else if (Key == "u")
-						{
-							if (args.cvType)    
-								continue;
-	
-							args.cvType = parseVarKind(extractParamFromToken(token));
-						}
-						else if (Key == "v")
-						{
-							if (args.cvValue)    
-								continue;
-	
-							args.cvValue = strToDouble(extractParamFromToken(token));
-						}
-						else
-							throw exception(  string("Unrecognized parameter \"" + Key).c_str()  );
-					}
-					else
-					{
-						if (isVarKindString(token))
-						{
-							if (args.cvType)
-							{
-								args.cvType = parseVarKind(token);
-								continue;
-							}
-						}
-	
-						if (isFloatNumberString(token))
-						{
-							if (args.cvValue)
-							{
-								args.cvValue = strToDouble(token);
-								continue;
-							}
-						}
-						
-						if (args.newName)    
-							continue;
-	
-						args.newName = token;
-					}
-				}
-	
-				return args;
-			}
-	
-			bool isParamWithKey (const string & token) const
-			{
-				const auto charEqual_it = find(token.begin(), token.end(), '=');
-				if (charEqual_it != token.end())    return true;
-				return false;
-			}
-	
-			string extractKeyFromToken (const string & token) const
-			{
-				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a Key");
-	
-				const auto charEqual_it = find(token.begin(), token.end(), '=');
-				string result = string(token.begin(), charEqual_it);
-				return result;
-			}
-	
-			string extractParamFromToken (const string & token) const
-			{
-				if (!isParamWithKey(token))
-					throw exception("This is not a parameter with a Key");
-	
-				const auto charEqual_it = find(token.begin(), token.end(), '=');
-				string result = string(charEqual_it+1, token.end());
-				return result;
-			}
-	
-	
-			void modifyInputParams (const Arguments & args) const
-			{
-				if (args.cvType)
-					activePowerTree->setSourceCvType(args.currentName, *args.cvType);
-				if (args.cvValue)
-					activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
-				if (args.newName)
-					activePowerTree->renameNode(args.currentName, *args.newName);
-			}
-	
-			void reportExecution (const Arguments & args) const
-			{
-				cout << "Parameters of input \"" << args.currentName << "\" is changed: ";
-				
-				if (args.newName)
-					cout << endl << "    Name - \"" << *args.newName << "\"";
-				if (args.cvType)
-					cout << endl << "    Type of controlled variable - " << *args.cvType;
-				if (args.cvValue)
-				{
-					cout << endl << "    Controlled variable - " << *args.cvValue;
-	
-					string cvUnit = "V";
-					if (*args.cvType == VarKind::CURRENT)
-						cvUnit = "A";
-					cout << " " << cvUnit;
-				}
-	
-				cout << endl;
-			}
-	
-			void reportNonexsistentInput (const string & name) const
-			{
-				cout << "An input \"" << name << "\" doesn't exsist." << endl;
-			}
-		
 	};
 	
 
@@ -3060,6 +2923,162 @@ string CommandCreateLoad::formMainParamRequestingMessage (LoadType type)
 
 
 
+Command::Args CommandModifyInput::parseArgs(TokensCollection& tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+	set<TokensCollection::iterator> itsToBeRemoved;
+	for (auto actualToken_it = tokens.begin(); actualToken_it != tokens.end(); actualToken_it++)
+	{
+		if (isParamWithKey(*actualToken_it))
+		{
+			Token key = extractKeyFromToken(*actualToken_it);
+			if (key == "n")
+			{
+				if (args.newName)
+					continue;
+				args.newName = extractParamFromToken(*actualToken_it);
+			}
+			else if (key == "u")
+			{
+				if (args.cvKind)
+					continue;
+				args.cvKind = parseVarKind(extractParamFromToken(*actualToken_it));
+			}
+			else if (key == "v")
+			{
+				if (args.cvValue)
+					continue;
+				args.cvValue = strToDouble(extractParamFromToken(*actualToken_it));
+			}
+			
+			else
+				throw exception(string("Unrecognized parameter \"" + key).c_str());
+
+			itsToBeRemoved.insert(actualToken_it);
+		}
+	}
+
+	for (auto actual_it : itsToBeRemoved)
+		tokens.erase(actual_it);
+
+
+	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
+	if (kind_it != tokens.end())
+	{
+		args.cvKind = parseVarKind(*kind_it);
+		tokens.erase(kind_it);
+	}
+
+	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (value_it != tokens.end())
+	{
+		args.cvValue = strToDouble(*value_it);
+		tokens.erase(value_it);
+	}
+
+	
+	if (tokens.empty())
+		return { &args };
+	args.currentName = tokens.front();
+	tokens.pop_front();
+
+	if (tokens.empty())
+		return { &args };
+	args.newName = tokens.front();
+	tokens.pop_front();
+
+	return { &args };
+}
+
+
+const Command::ExecutionData CommandModifyInput::execute(const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	modifyInputParams(args);
+
+	return ExecutionData(true);
+}
+
+
+void CommandModifyInput::reportExecution(const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	auto [currentName, newName, cvKind, cvValue] = args;
+
+
+	cout << "Parameters of converter \"" << currentName << "\" is changed: ";
+
+	if (newName)
+		cout << endl << "    Name - \"" << *newName << "\"";
+	if (cvKind)
+		cout << endl << "    Type of controlled variable - " << *cvKind;
+
+	if (cvValue)
+	{
+		string actualName = currentName;
+		if (newName)
+			actualName = *newName;
+
+		auto nodeType = activePowerTree->getConverterVarKind(actualName);
+		cout << endl << "    Controlled variable - " << *cvValue << " " << getVarKindDesignatorStr(nodeType);
+	}
+
+	cout << endl;
+}
+
+
+bool CommandModifyInput::isParamWithKey(const string& token)
+{
+	const auto charEqual_it = find(token.begin(), token.end(), '=');
+	if (charEqual_it != token.end())    return true;
+	return false;
+}
+
+string CommandModifyInput::extractKeyFromToken(const string& token)
+{
+	if (!isParamWithKey(token))
+		throw exception("This is not a parameter with a Key");
+
+	const auto charEqual_it = find(token.begin(), token.end(), '=');
+	string result = string(token.begin(), charEqual_it);
+	return result;
+}
+
+string CommandModifyInput::extractParamFromToken(const string& token)
+{
+	if (!isParamWithKey(token))
+		throw exception("This is not a parameter with a Key");
+
+	const auto charEqual_it = find(token.begin(), token.end(), '=');
+	string result = string(charEqual_it + 1, token.end());
+	return result;
+}
+
+
+void CommandModifyInput::modifyInputParams(const Args & args) const
+{
+	if (args.cvKind)
+		activePowerTree->setSourceCvType(args.currentName, *args.cvKind);
+	if (args.cvValue)
+		activePowerTree->setSourceCvValue(args.currentName, *args.cvValue);
+	if (args.newName)
+		activePowerTree->renameNode(args.currentName, *args.newName);
+}
+
+
+
+
+
+
+
+
+
+
+
 Command::Args CommandModifyConverter::parseArgs (TokensCollection & tokens) const
 {
 	static Args args;
@@ -3210,6 +3229,7 @@ void CommandModifyConverter::modifyConverterParams (const Args & args) const
 	if (args.newName)
 		activePowerTree->renameNode(args.currentName, *args.newName);
 }
+
 
 
 
