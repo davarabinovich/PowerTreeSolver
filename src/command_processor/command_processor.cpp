@@ -384,136 +384,30 @@
 	class CommandCreateInput : public CommandWorkingWithExsistingTree
 	{
 		
-		public:
-		
-			virtual void operator () (TokensCollection & tokens) const override
-			{
-				ensureIfThereAreSomeTree();
-	
-	
-				Arguments args;
-				try { args = parseArguments(tokens); }
-				catch (exception & ex) { throw exception(ex.what()); }
-		
-				if (args.name.empty())
-					args.name = suggestEnterNameAndGet();
-				if (isnan(args.cvValue))
-					args.cvValue = requestCvValue(args.cvType);
-		
-				createInputByArgs(args);
-		
-				reportExecution(args);
-			}
-		
-		
-		
-		
 		private:
 		
-			struct Arguments
+			static const string name_suggesting_message;
+			static const string cv_value_requiresting_message_template;
+
+
+
+			struct Args
 			{
-				string name = "";
-				VarKind cvType = VarKind::VOLTAGE;
-				double cvValue = NAN;
+				string name;
+				VarKind cvKind = VarKind::VOLTAGE;
+				double cvValue;
 			};
 		
 		
 		
-			Arguments parseArguments (TokensCollection & tokens) const
-			{
-				Arguments args;
-	
-				if (tokens.empty())    return args;
-	
-	
-				auto handeledArg = tokens.front();
-				
-				if ( !isVarKindString(handeledArg) && !isFloatNumberString(handeledArg) )
-				{
-					args.name = handeledArg;
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-	
-				if (isVarKindString(handeledArg))
-				{
-					args.cvType = parseVarKind(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-					handeledArg = tokens.front();
-				}
-				
-				if (isFloatNumberString(handeledArg))
-				{
-					args.cvValue = strToDouble(handeledArg);
-	
-					tokens.pop_front();
-					if (tokens.empty())    return args;
-				}
-	
-				throw exception("There is at least one invalid argument");
-			}
-	
-	
-		
-	
-			string suggestEnterNameAndGet () const
-			{
-				string name = "";
-				cout << "Do you want to set a name for the new input?" << endl;
-				string answer; getline(cin, answer);
+			virtual Command::Args parseArgs(TokensCollection& tokens) const override;
+			virtual void complementArgs(Command::Args args) const override;
 
-				if (answer == "yes" || answer == "Yes" || answer == "y" || answer == "Y")
-				{
-					getline(cin, name);
-					return name;
-				}
-				else if (answer != "no" && answer != "No" && answer != "n" && answer != "N")
-					throw exception("Invalid answer");
+			virtual const Command::ExecutionData execute(const Command::Args args, const Command::IntermediateData data) const override;
+			virtual void reportExecution(const Command::Args args, const Command::IntermediateData rawData) const override;
 
-				name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
-				return name;
-			}
 
-			double requestCvValue (const VarKind type) const
-			{
-				cout << "Plase enter a value of " << type << endl;
-				string enteredValue; getline(cin, enteredValue);
-				auto value = strToDouble(enteredValue);
-				return value;
-			}
-	
-			void createInputByArgs (Arguments & args) const
-			{
-				activePowerTree->addInput(args.name, args.cvType, args.cvValue);
-			}
-		
-			void reportExecution (const Arguments & args) const
-			{
-				string name = "\"" + args.name + "\" ";
-	
-				string cvType = "voltage";
-				if (args.cvType == VarKind::CURRENT)
-					cvType = "current";
-	
-				bool isCvValuePresent = false;
-				string cvUnit = "V";
-				if (!isnan(args.cvValue))
-				{
-					isCvValuePresent = true;
-					if (args.cvType == VarKind::CURRENT)
-						cvUnit = "A";
-				}
-	
-	
-				cout << "A new " << cvType << " input " << name;
-				if (isCvValuePresent)	
-					cout << args.cvValue << " " << cvUnit;
-				cout << " is created" << endl << endl;
-			}
+			void createInputByArgs(const Args& args) const;
 		
 	};
 	
@@ -2735,10 +2629,121 @@ void CommandShowStructure::displayDiodeLoad (DiodeLoadData data)
 
 
 
+const string CommandCreateInput::name_suggesting_message = "Do you want to specify a name for the new input?";
+const string CommandCreateInput::cv_value_requiresting_message_template = "Enter a value of ";
+
+
+
+
+Command::Args CommandCreateInput::parseArgs(TokensCollection& tokens) const
+{
+	static Args args;
+	args = Args();
+
+
+
+	auto kind_it = find_if(tokens.begin(), tokens.end(), isVarKindString);
+	if (kind_it != tokens.end())
+	{
+		args.cvKind = parseVarKind(*kind_it);
+		tokens.erase(kind_it);
+	}
+
+	auto value_it = find_if(tokens.begin(), tokens.end(), isFloatNumberString);
+	if (value_it != tokens.end())
+	{
+		args.cvValue = strToDouble(*value_it);
+		tokens.erase(value_it);
+	}
+
+
+	if (tokens.empty())
+		return { &args };
+	args.name = tokens.front();
+	tokens.pop_front();
+
+	return { &args };
+}
+
+
+void CommandCreateInput::complementArgs(Command::Args rawArgs) const
+{
+	auto& args = *(reinterpret_cast<Args*>(rawArgs.args));
+
+	if (args.name.empty())
+	{
+		auto answer = suggestEnterParamAndGetStr(name_suggesting_message);
+		if (answer.isValid && !answer.content.empty())
+			args.name = answer.content;
+		else
+			args.name = activePowerTree->getDefaultNodeName(DeviceType::INPUT);
+	}
+
+	if (isnan(args.cvValue))
+	{
+		auto answer = requestParamAndGet(cv_value_requiresting_message_template + args.cvKind);
+		args.cvValue = strToDouble(answer.content);
+	}
+}
+
+
+const Command::ExecutionData CommandCreateInput::execute(const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	
+	createInputByArgs(args);
+
+	return ExecutionData(true);
+}
+
+
+void CommandCreateInput::reportExecution(const Command::Args rawArgs, const Command::IntermediateData rawData) const
+{
+	AUTO_CONST_REF args = *(reinterpret_cast<Args*>(rawArgs.args));
+	
+
+	string name = "\"" + args.name + "\" ";
+
+	string cvType = "voltage";
+	if (args.cvKind == VarKind::CURRENT)
+		cvType = "current";
+
+	bool isCvValuePresent = false;
+	string cvUnit = "V";
+	if (!isnan(args.cvValue))
+	{
+		isCvValuePresent = true;
+		if (args.cvKind == VarKind::CURRENT)
+			cvUnit = "A";
+	}
+
+
+	cout << "A new " << cvType << " input " << name;
+	if (isCvValuePresent)
+		cout << args.cvValue << " " << cvUnit;
+	cout << " is created" << endl << endl;
+}
+
+
+void CommandCreateInput::createInputByArgs(const Args& args) const
+{
+	activePowerTree->addInput(args.name, args.cvKind, args.cvValue);
+}
+
+
+
+
+
+
+
+
+
+
+
 const string CommandCreateConverter::name_suggesting_message = "Do you want to set a name for the new converter?";
 const string CommandCreateConverter::parent_suggesting_message = "Do you want to leave the new converter unconnected?";
 
-const string CommandCreateConverter::cv_value_requiresting_message_template = "Please enter a value of ";
+const string CommandCreateConverter::cv_value_requiresting_message_template = "Enter a value of ";
 
 
 

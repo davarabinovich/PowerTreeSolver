@@ -8,6 +8,7 @@
 #include "test_runner/test_runner.h"
 
 
+#include "command_processor/command_processor.h"
 #include "forest/forest.h"
 #include "file_server/file_server.h"
 #include "electric_net/electric_net_if.h"
@@ -23,11 +24,36 @@
 void TestAll ()
 {
 	TestRunner tr;
+	//tr.RunTest(TestCommandProcessor);
 	tr.RunTest(TestForest);
 	tr.RunTest(TestApiCommonFunctions);
 	tr.RunTest(TestLibrary);
 	tr.RunTest(IntegrationTests);
 }
+
+
+
+
+
+
+
+void TestCreateInput()
+{
+	{
+		string userInput = "ci newIn cur 2";
+		IoBufsKeeper::retargetIoBuffers(userInput);
+
+		
+	}
+}
+
+void TestCommandProcessor()
+{
+	TestCreateInput();
+}
+
+
+
 
 
 void TestIterating ()

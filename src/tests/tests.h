@@ -8,6 +8,8 @@
 
 void TestAll ();
 
+void TestCommandProcessor();
+
 void TestForest ();
 
 void TestApiCommonFunctions ();

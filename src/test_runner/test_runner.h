@@ -129,7 +129,7 @@ private:
 
 
 
-class IoBufsKeeperg
+class IoBufsKeeper
 {
 public:
 	static void retargetIoBuffers(string cinContent);
