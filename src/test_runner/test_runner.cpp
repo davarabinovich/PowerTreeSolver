@@ -25,31 +25,31 @@ TestRunner::~TestRunner() {
 
 
 
-bool StandardIoBuffersKeeper::isCinStored = false;
-bool StandardIoBuffersKeeper::isCoutStored = false;
+bool IoBufsKeeper::isCinStored = false;
+bool IoBufsKeeper::isCoutStored = false;
 
-stringstream* StandardIoBuffersKeeper::tempCin = nullptr;
-streambuf* StandardIoBuffersKeeper::cinStorage = nullptr;
+stringstream* IoBufsKeeper::tempCin = nullptr;
+streambuf* IoBufsKeeper::cinStorage = nullptr;
 
-stringstream* StandardIoBuffersKeeper::tempCout = nullptr;
-streambuf* StandardIoBuffersKeeper::coutStorage = nullptr;
+stringstream* IoBufsKeeper::tempCout = nullptr;
+streambuf* IoBufsKeeper::coutStorage = nullptr;
 
 
-void StandardIoBuffersKeeper::retargetIoBuffers(string cinContent)
+void IoBufsKeeper::retargetIoBuffers(string cinContent)
 {
 	retargetCin(cinContent);
 	retargetCout();
 }
 
 
-void StandardIoBuffersKeeper::restoreIoBuffers()
+void IoBufsKeeper::restoreIoBuffers()
 {
 	restoreCin();
 	restoreCout();
 }
 
 
-void StandardIoBuffersKeeper::retargetCin(string newContent)
+void IoBufsKeeper::retargetCin(string newContent)
 {
 	isCinStored = true;
 	cinStorage = cin.rdbuf();
@@ -59,26 +59,25 @@ void StandardIoBuffersKeeper::retargetCin(string newContent)
 	cin.rdbuf(tempCin->rdbuf());
 }
 
-void StandardIoBuffersKeeper::restoreCin()
+void IoBufsKeeper::restoreCin()
 {
 	delete tempCin;
 	cin.rdbuf(cinStorage);
 	isCinStored = false;
 }
 
-void StandardIoBuffersKeeper::retargetCout()
+void IoBufsKeeper::retargetCout()
 {
 	isCoutStored = true;
-	coutStorage = cin.rdbuf();
+	coutStorage = cout.rdbuf();
 
 	tempCout = new stringstream;
 	cout.rdbuf(tempCout->rdbuf());
 }
 
-void StandardIoBuffersKeeper::restoreCout()
+void IoBufsKeeper::restoreCout()
 {
 	delete tempCout;
 	cout.rdbuf(coutStorage);
 	isCoutStored = false;
 }
-

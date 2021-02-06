@@ -628,14 +628,7 @@ void IntegrationTestFileServer ()
 
 
 
-	const auto cinBufStorage = cin.rdbuf();
-	stringstream answers;
-	answers << "n";
-	cin.rdbuf(answers.rdbuf());
-
-	const auto coutBufStorage = cout.rdbuf();
-	stringstream retargetOuts;
-	cout.rdbuf(retargetOuts.rdbuf());
+	IoBufsKeeper::retargetIoBuffers("n");
 
 
 
@@ -660,8 +653,7 @@ void IntegrationTestFileServer ()
 
 	resetTree();
 
-	cin.rdbuf(cinBufStorage);
-	cout.rdbuf(coutBufStorage);
+	IoBufsKeeper::restoreIoBuffers();
 
 	remove("src\\tests\\intermediary_storage");
 	remove("src\\tests\\checking_storage");
